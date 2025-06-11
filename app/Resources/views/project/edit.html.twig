@@ -772,11 +772,14 @@
                             if((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)){
                             var urlApiClassesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
                             var urlApiPropertiesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
+                            var urlApiShaclProfile = '{{ path("api_shacl_profile", {'lang': 'en', 'profile-id' : 'profileID'}) }}';
                             urlApiClassesProfileJson = urlApiClassesProfileJson.replace("profileID", row.id);
                             urlApiPropertiesProfileJson = urlApiPropertiesProfileJson.replace("profileID", row.id);
+                            urlApiShaclProfile = urlApiShaclProfile.replace("profileID", row.id);
 
                             return '<a href="' + urlApiClassesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Classes</a>' +
-                                ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>';
+                                ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>'+
+                                ' <a href="' + urlApiShaclProfile + '" class="btn btn-primary"><i class="fas fa-microchip"></i> SHACL</a>';
                             }
                             else{
                                 return 'Not published in API';

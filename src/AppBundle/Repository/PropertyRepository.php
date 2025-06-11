@@ -842,7 +842,7 @@ class PropertyRepository extends EntityRepository
      * @param $lang string the language iso code
      * @param $profileId
      */
-    public function findShaclWithProfile(string $lang, int $profileId)
+    public function findShaclWithProfile($lang, $profileId)
     {
         $conn = $this->getEntityManager()
             ->getConnection();
@@ -855,6 +855,6 @@ class PropertyRepository extends EntityRepository
             'profileId' => (int) $profileId
         ]);
 
-        return $shaclData = $stmt->fetchOne();;
+        return $stmt->fetch()['shacl'];;
     }
 }

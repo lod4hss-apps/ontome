@@ -189,7 +189,7 @@ class ApiController extends Controller
                 ->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
-            $message = "# Error: " . $e->getMessage(); // Commentaire en Turtle
+            $message = "# Error: (PHP" . phpversion() .")" . $e->getMessage(); // Commentaire en Turtle
             return new Response($message, 500, ['Content-Type' => 'text/turtle']);
         }
 

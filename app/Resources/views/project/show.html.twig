@@ -347,6 +347,14 @@
                                         class="btn btn-primary">
                                         <i class="fas fa-microchip"></i> JSON Properties
                                     </a>
+
+                                    <a  href="{{ path('api_shacl_profile', {
+                                        'lang': 'en',
+                                        'profile-id': profile.id
+                                    }) }}"
+                                        class="btn btn-primary">
+                                        <i class="fas fa-microchip"></i> SHACL
+                                    </a>
                                 {% else %}
                                     Not published in API
                                 {% endif %}
