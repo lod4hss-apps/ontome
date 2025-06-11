@@ -556,21 +556,37 @@ class PropertyController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         // $namespacesIdFromClassVersion : Ensemble de namespaces provenant de la classe affiché (namespaceForVersion + references)
+        // $rootNamespacesIdFromPropertyVersion: pour contrôler les versions à ajouter (éviter deux versions différentes d'un même namespace).
         $namespacesIdFromPropertyVersion[] = $propertyVersion->getNamespaceForVersion()->getId();
+        $rootNamespacesId[] = $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getId();
 
-        //foreach($propertyVersion->getNamespaceForVersion()->getReferencedNamespaceAssociations() as $referencedNamespacesAssociation){
         foreach($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace){
-            $namespacesIdFromPropertyVersion[] = $referencedNamespace->getId();
+            if(!in_array($referencedNamespace->getTopLevelNamespace()->getId(), $rootNamespacesId)){
+                $namespacesIdFromPropertyVersion[] = $referencedNamespace->getId();
+                $rootNamespacesId[] = $referencedNamespace->getTopLevelNamespace()->getId();
+            }
         }
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){
-            $namespacesIdFromUser = $em->getRepository('AppBundle:OntoNamespace')->findPublicProjectNamespacesId();
+            $namespacesIdFromUserBeforeVerification = $em->getRepository('AppBundle:OntoNamespace')->findPublicProjectNamespacesId();
+
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesIdFromUser = $em->getRepository('AppBundle:OntoNamespace')->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUserBeforeVerification = $em->getRepository('AppBundle:OntoNamespace')->findNamespacesIdByUser($this->getUser());
         }
-        // sauf ceux automatiquement activés par l'entité
+
+        // On élimine les versions des root déjà utilisés
+        $namespacesIdFromUser = [];
+        foreach($namespacesIdFromUserBeforeVerification as $namespaceId){
+            $namespace = $em->getRepository('AppBundle:OntoNamespace')->find($namespaceId);
+            if(!in_array($namespace->getTopLevelNamespace()->getId(), $rootNamespacesId)){
+                $namespacesIdFromUser[] = $namespaceId;
+                $rootNamespacesId[] = $namespace->getTopLevelNamespace()->getId();
+            }
+        }
+
+        // On élimine les doublons
         $namespacesIdFromUser = array_diff($namespacesIdFromUser, $namespacesIdFromPropertyVersion);
 
         // $namespacesId : Tous les namespaces trouvés ci-dessus
@@ -829,11 +845,11 @@ class PropertyController extends Controller
         $this->denyAccessUnlessGranted('validate', $propertyVersion);
 
         //Verifier que les références sont cohérents
-        $nsRefsProperty = $propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces();
-        $nsRefsProperty->add($propertyVersion->getNamespaceForVersion());
+        $allNsFromPropertyVersion = $propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces();
+        $allNsFromPropertyVersion->add($propertyVersion->getNamespaceForVersion());
         $nsDomain = $propertyVersion->getDomainNamespace();
         $nsRange = $propertyVersion->getRangeNamespace();
-        if(!$nsRefsProperty->contains($nsDomain) || !$nsRefsProperty->contains($nsRange)){
+        if(!$allNsFromPropertyVersion->contains($nsDomain) || !$allNsFromPropertyVersion->contains($nsRange)){
             $uriNamespaceMismatches = $this->generateUrl('namespace_show', ['id' => $propertyVersion->getNamespaceForVersion()->getId(), '_fragment' => 'mismatches']);
             $this->addFlash('warning', 'This property can\'t be validated. Check <a href="'.$uriNamespaceMismatches.'">mismatches</a>.');
             return $this->redirectToRoute('property_show', [

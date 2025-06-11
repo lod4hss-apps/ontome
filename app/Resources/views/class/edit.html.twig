@@ -354,7 +354,7 @@
                                         {% set route_params = {'id': outgoingProperty.rangeId,  'namespaceFromUrlId': outgoingProperty.rangeNamespaceId } %}
 
                                         {# Vérification #}
-                                        {% if outgoingProperty.rangeNamespaceId not in outgoingProperty.selectedNamespacesId %}
+                                        {% if outgoingProperty.rangeNamespaceId not in outgoingProperty.allSelectedNamespacesId %}
                                             {% set isGoodNamespace = false %}
                                             {% set route = 'namespace_show' %}
                                             {% set route_params = {'id': outgoingProperty.propertyNamespaceId,  '_fragment': 'mismatches' } %}
@@ -391,7 +391,7 @@
                                         {% set route_params = {'id': ingoingProperty.domainId,  'namespaceFromUrlId': ingoingProperty.domainNamespaceId } %}
 
                                         {# Vérification #}
-                                        {% if ingoingProperty.domainNamespaceId not in ingoingProperty.selectedNamespacesId %}
+                                        {% if ingoingProperty.domainNamespaceId not in ingoingProperty.allSelectedNamespacesId %}
                                             {% set isGoodNamespace = false %}
                                             {% set route = 'namespace_show' %}
                                             {% set route_params = {'id': ingoingProperty.propertyNamespaceId,  '_fragment': 'mismatches' } %}
@@ -1246,7 +1246,7 @@
                                 {% set route_params = {'id': outgoingProperty.rangeId,  'namespaceFromUrlId': outgoingProperty.rangeNamespaceId } %}
 
                                 {# Vérification #}
-                                {% if outgoingProperty.rangeNamespaceId not in outgoingProperty.selectedNamespacesId %}
+                                {% if outgoingProperty.rangeNamespaceId not in outgoingProperty.allSelectedNamespacesId %}
                                     {% set isGoodNamespace = false %}
                                     {% set route = 'namespace_show' %}
                                     {% set route_params = {'id': outgoingProperty.propertyNamespaceId,  '_fragment': 'mismatches' } %}
@@ -1332,7 +1332,7 @@
                     <tbody>
                     {% for ingoingProperty in ingoingProperties|sort %}
                         {% set isGoodNamespace = true %}
-                        {% if ingoingProperty.domainNamespaceId not in ingoingProperty.selectedNamespacesId %}
+                        {% if ingoingProperty.domainNamespaceId not in ingoingProperty.allSelectedNamespacesId %}
                             {% set isGoodNamespace = false %}
                         {% endif %}
                         <tr>
@@ -1343,7 +1343,7 @@
                                 {% set route_params = {'id': ingoingProperty.domainId,  'namespaceFromUrlId': ingoingProperty.domainNamespaceId } %}
 
                                 {# Vérification #}
-                                {% if ingoingProperty.domainNamespaceId not in ingoingProperty.selectedNamespacesId %}
+                                {% if ingoingProperty.domainNamespaceId not in ingoingProperty.allSelectedNamespacesId %}
                                     {% set isGoodNamespace = false %}
                                     {% set route = 'namespace_show' %}
                                     {% set route_params = {'id': ingoingProperty.propertyNamespaceId,  '_fragment': 'mismatches' } %}
