@@ -20,11 +20,14 @@
             </a>
             {% set childClassValidationStatus = classAssociation.childClass.classVersionForDisplay(classAssociation.childClassNamespace).validationStatus %}
             {% set parentClassValidationStatus = classAssociation.parentClass.classVersionForDisplay(classAssociation.parentClassNamespace).validationStatus %}
-            {% if (childClassValidationStatus is null or childClassValidationStatus.id != 26) or (parentClassValidationStatus is null or parentClassValidationStatus.id != 26) %}
+            {% set isChildNamespaceOngoing = classAssociation.childClassNamespace.isOngoing %}
+            {% set isParentNamespaceOngoing = classAssociation.parentClassNamespace.isOngoing %}
+            {% if (isChildNamespaceOngoing and childClassValidationStatus.id != 26)
+                or (isParentNamespaceOngoing and parentClassValidationStatus.id != 26) %}
                 <div class="inline-block">
                     <h4>
                         {% if classAssociation.validationStatus is null %}
-                            <span class="label label-info">Candidate</span>
+                            <span class="label label-info">Candidate }}</span>
                         {% elseif classAssociation.validationStatus.id == 26  %}
                             <span class="label label-success">{{ classAssociation.validationStatus }}</span>
                         {% elseif classAssociation.validationStatus.id == 27  %}
@@ -37,7 +40,7 @@
                     </h4>
                 </div>
                 <h6><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><em>This relation cannot be validated because at least one of the classes in the relation has not been validated.</h6>
-            {% elseif is_granted('validate', classAssociation.childClass.classVersionForDisplay(classAssociation.namespaceForVersion))  %}
+            {% elseif is_granted('validate', classAssociation.namespaceForVersion)  %}
                 <div class="dropdown inline-block">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdown-validation" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         {% if classAssociation.validationStatus is null %}

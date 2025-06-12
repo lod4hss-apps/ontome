@@ -20,7 +20,10 @@
             </a>
             {% set childValidationStatus = propertyAssociation.childProperty.propertyVersionForDisplay(propertyAssociation.childPropertyNamespace).validationStatus %}
             {% set parentValidationStatus = propertyAssociation.parentProperty.propertyVersionForDisplay(propertyAssociation.parentPropertyNamespace).validationStatus %}
-            {% if (childValidationStatus is null or childValidationStatus.id != 26) or (parentValidationStatus is null or parentValidationStatus.id != 26) %}
+            {% set isChildNamespaceOngoing = propertyAssociation.childPropertyNamespace.isOngoing %}
+            {% set isParentNamespaceOngoing = propertyAssociation.parentPropertyNamespace.isOngoing %}
+            {% if (isChildNamespaceOngoing and childValidationStatus.id != 26)
+                or (isParentNamespaceOngoing and parentValidationStatus.id != 26) %}
                 <div class="inline-block">
                     <h4>
                         {% if propertyAssociation.validationStatus is null %}
@@ -37,7 +40,7 @@
                     </h4>
                 </div>
                 <h6><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><em>This relation cannot be validated because at least one of the properties in the relation has not been validated.</em></h6>
-            {% elseif is_granted('validate', propertyAssociation.childProperty.propertyVersionForDisplay(propertyAssociation.childPropertyNamespace))  %}
+            {% elseif is_granted('validate', propertyAssociation.namespaceForVersion)  %}
                 <div class="dropdown inline-block">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdown-validation" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         {% if propertyAssociation.validationStatus is null %}

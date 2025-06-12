@@ -352,13 +352,7 @@ class EntityAssociationController extends Controller
         }
 
         //Denied access if not an authorized validator
-        if ($entityAssociation->getSourceObjectType() == 'class') {
-            $this->denyAccessUnlessGranted('validate', $entityAssociation->getSourceClass()->getClassVersionForDisplay());
-        }
-        else if ($entityAssociation->getSourceObjectType() == 'property') {
-            $this->denyAccessUnlessGranted('validate', $entityAssociation->getSourceProperty()->getPropertyVersionForDisplay());
-        }
-        else throw new AccessDeniedHttpException();
+        $this->denyAccessUnlessGranted('validate', $entityAssociation->getNamespaceForVersion());
 
         //Verifier que les références sont cohérents
         $nsRefsEntityAssociation = $entityAssociation->getNamespaceForVersion()->getAllReferencedNamespaces();
