@@ -71,7 +71,9 @@
                 <!-- ok on a le label et le txtp, est ce que la propriété a son domain et range validés ? -->
                 {% set domainValidationStatus = propertyVersion.domain.classVersionForDisplay(propertyVersion.domainNamespace).validationStatus %}
                 {% set rangeValidationStatus = propertyVersion.range.classVersionForDisplay(propertyVersion.rangeNamespace).validationStatus %}
-                {% if (domainValidationStatus is not null and domainValidationStatus.id == 26) and (rangeValidationStatus is not null and rangeValidationStatus.id == 26) %}
+                {% set isDomainNamespaceOngoing = propertyVersion.domainNamespace.isOngoing %}
+                {% set isRangeNamespaceOngoing = propertyVersion.rangeNamespace.isOngoing %}
+                {% if (not isDomainNamespaceOngoing or (isDomainNamespaceOngoing and domainValidationStatus.id == 26)) and (not isRangeNamespaceOngoing or (isRangeNamespaceOngoing and rangeValidationStatus.id == 26)) %}
                     {{ include('property/_validation.html.twig') }}
                 {% else %}
                     <h4>Validation status:
