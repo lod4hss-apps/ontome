@@ -178,7 +178,7 @@ class OntoNamespace
     private $modificationTime;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\NotNull(groups={"RequirePrefix"})
      * @ORM\Column(type="text")
      * @Assert\Regex(
      *     pattern="/^[a-z0-9](-?[a-z0-9])*$/",
