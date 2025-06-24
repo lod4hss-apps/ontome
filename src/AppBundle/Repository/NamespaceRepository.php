@@ -372,6 +372,27 @@ class NamespaceRepository extends EntityRepository
      * @param $namespace int the ID of the namespace
      * @return array
      */
+    public function findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespace)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT result::text FROM api.get_owl_wisski_from_namespace(:lang, :namespace) as result;";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array(
+            'lang' => $lang,
+            'namespace' => $namespace
+        ));
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * @param $lang string the language iso code
+     * @param $namespace int the ID of the namespace
+     * @return array
+     */
     public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace)
     {
         $conn = $this->getEntityManager()

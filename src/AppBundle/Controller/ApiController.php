@@ -202,6 +202,33 @@ class ApiController extends Controller
     }
 
     /**
+     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getOwlWisskiByNamespace(Request $request)
+    {
+        try {
+            $lang = $request->get('lang', 'en');
+            $namespaceId = intval($request->get('namespace', 0));
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:OntoNamespace')
+                ->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
      * @Route("/api/project-rdf-owl.rdf", name="api_classes_and_properties_by_project_xml")
      * @Method("GET")
      * @param Request $request
