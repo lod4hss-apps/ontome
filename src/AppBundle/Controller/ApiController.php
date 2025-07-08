@@ -185,7 +185,7 @@ class ApiController extends Controller
             $profileId = intval($request->get('profile-id', 0));
 
             $em = $this->getDoctrine()->getManager();
-            $output = $em->getRepository('AppBundle:Property')
+            $output = $em->getRepository('AppBundle:Profile')
                 ->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
@@ -199,6 +199,8 @@ class ApiController extends Controller
 
         return new Response($output, 200, ['Content-Type' => 'text/turtle']);
     }
+
+
 
     /**
      * @Route("/api/namespaces-rdf-owl.rdf", name="api_classes_and_properties_by_namespace_xml")
