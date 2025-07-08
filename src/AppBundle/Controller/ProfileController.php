@@ -561,23 +561,43 @@ class ProfileController  extends Controller
                 }
             }
 
+            // Rassembler tous les NS à vérifier et éventuellement à changer:
+            $oldAssociatedNamespaces = $associatedNamespace->getAllReferencedNamespaces();
+            $oldAssociatedNamespaces->add($associatedNamespace);
+            $newAssociatedNamespaces = $newAssociatedNamespace->getAllReferencedNamespaces();
+            $newAssociatedNamespaces->add($newAssociatedNamespace);
+
             // Modifier les profileAssociations class/property-associatedNamespace
             foreach ($profile->getProfileAssociations() as $profileAssociation){
-                if($profileAssociation->getEntityNamespaceForVersion() == $associatedNamespace
+                if($oldAssociatedNamespaces->contains($profileAssociation->getEntityNamespaceForVersion())
                     and in_array($profileAssociation->getSystemType()->getId(),array(5,6))){
 
                     if(!is_null($profileAssociation->getClass())){
                         foreach ($profileAssociation->getClass()->getClassVersions() as $classVersion){
-                            if($classVersion->getNamespaceForVersion() == $newAssociatedNamespace){
-                                $profileAssociation->setEntityNamespaceForVersion($newAssociatedNamespace);
+                            if($newAssociatedNamespaces->contains($classVersion->getNamespaceForVersion())){
+                                $profileAssociation->setEntityNamespaceForVersion($classVersion->getNamespaceForVersion());
                             }
                         }
                     }
 
                     if(!is_null($profileAssociation->getProperty())){
                         foreach ($profileAssociation->getProperty()->getPropertyVersions() as $propertyVersion){
-                            if($propertyVersion->getNamespaceForVersion() == $newAssociatedNamespace){
-                                $profileAssociation->setEntityNamespaceForVersion($newAssociatedNamespace);
+                            if($newAssociatedNamespaces->contains($propertyVersion->getNamespaceForVersion())){
+                                $profileAssociation->setEntityNamespaceForVersion($propertyVersion->getNamespaceForVersion());
+
+                                $possiblesRangeNamespace = $profileAssociation->getRangeNamespace()->getTopLevelNamespace()->getChildVersions();
+                                foreach ($possiblesRangeNamespace as $possibleRangeNamespace){
+                                    if($newAssociatedNamespaces->contains($possibleRangeNamespace)) {
+                                        $profileAssociation->setRangeNamespace($possibleRangeNamespace);
+                                    }
+                                }
+
+                                $possiblesDomainNamespace = $profileAssociation->getDomainNamespace()->getTopLevelNamespace()->getChildVersions();
+                                foreach ($possiblesDomainNamespace as $possibleDomainNamespace){
+                                    if($newAssociatedNamespaces->contains($possibleDomainNamespace)) {
+                                        $profileAssociation->setDomainNamespace($possibleDomainNamespace);
+                                    }
+                                }
                             }
                         }
                     }
