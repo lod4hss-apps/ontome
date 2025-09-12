@@ -50,4 +50,26 @@ class ProjectRepository extends EntityRepository
 
         return $stmt->fetchAll();
     }
+
+    /**
+     * @param $lang string the language iso code
+     * @param $project int the ID of the project
+     * @return array
+     * @throws DBALException
+     */
+    public function findNamespacesApiByProjectIdApi($lang, $project)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT result::text FROM api.get_owl_wisski_from_project(:lang, :project) as result;";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array(
+            'lang' => $lang,
+            'project' => $project
+        ));
+
+        return $stmt->fetchAll();
+    }
 }

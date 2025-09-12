@@ -172,8 +172,12 @@ class ProjectController  extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
+        $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
+            ->findApiNamespacesProject($project);
+
         return $this->render('project/show.html.twig', array(
-            'project' => $project
+            'project' => $project,
+            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject
         ));
     }
 
@@ -193,6 +197,9 @@ class ProjectController  extends Controller
 
         $namespacesPublicProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findNamespacesInPublicProject();
+
+        $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
+            ->findApiNamespacesProject($project);
 
         $formImport = $this->createForm(ImportNamespaceForm::class);
 
@@ -1255,10 +1262,17 @@ class ProjectController  extends Controller
                 '_fragment' => 'managed-namespaces'
             ]);
         }
+
+        $rootNamespaces = $em->getRepository('AppBundle:OntoNamespace')
+            ->findBy(array('isTopLevelNamespace' => true));
+        $rootNamespaces = array_filter($rootNamespaces, function($v){return $v->getId() != 5;});
+
         return $this->render('project/edit.html.twig', array(
             'project' => $project,
             'formImport' => $formImport->createView(),
             'namespacesPublicProject' => $namespacesPublicProject,
+            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject,
+            'rootNamespaces' => $rootNamespaces,
             'users' => $users
         ));
     }
@@ -1357,6 +1371,57 @@ class ProjectController  extends Controller
         $response = array(
             'status' => $status,
             'message' => $message
+        );
+
+        return new JsonResponse($response);
+    }
+
+    /**
+     * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"})
+     * @Method({ "POST"})
+     * @param OntoNamespace $namespace    The namespace to be associated with a project API
+     * @param Project  $project    The project API to be associated with a namespace
+     * @throws \Exception in case of unsuccessful association
+     * @return JsonResponse $response
+     */
+    public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit_manager', $project);
+
+        $em = $this->getDoctrine()->getManager();
+
+        $systemTypeAPISelected = $em->getRepository('AppBundle:SystemType')->find(38); //systemType 38 = Associated namespace for API Project
+
+        $projectAssociation = $em->getRepository('AppBundle:ProjectAssociation')
+            ->findOneBy(array('project' => $project->getId(), 'namespace' => $namespace->getId(), 'systemType' => 38));
+
+        if (!is_null($projectAssociation)) {
+            $status = 'Error';
+            $message = 'This user is already member of this project.';
+        }
+        else {
+            $em = $this->getDoctrine()->getManager();
+
+            $projectAssociation = new ProjectAssociation();
+            $projectAssociation->setProject($project);
+            $projectAssociation->setNamespace($namespace);
+            $projectAssociation->setSystemType($systemTypeAPISelected);
+            $projectAssociation->setCreator($this->getUser());
+            $projectAssociation->setModifier($this->getUser());
+            $projectAssociation->setCreationTime(new \DateTime('now'));
+            $projectAssociation->setModificationTime(new \DateTime('now'));
+            $em->persist($projectAssociation);
+
+            $em->flush();
+            $status = 'Success';
+            $message = 'Namespace successfully associated in API.';
+        }
+
+
+        $response = array(
+            'status' => $status,
+            'message' => $message,
+            'idProjectAssociation' => $projectAssociation->getId()
         );
 
         return new JsonResponse($response);
