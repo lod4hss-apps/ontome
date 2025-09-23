@@ -194,4 +194,24 @@ class ProfileRepository extends EntityRepository
         return $stmt->fetchAll();
     }
 
+    /**
+     * @param $lang string the language iso code
+     * @param $profileId
+     */
+    public function findShaclWithProfile($lang, $profileId)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT api.get_shacl_profile(:lang::TEXT, :profileId::INTEGER) AS shacl";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            'lang' => (string) $lang,
+            'profileId' => (int) $profileId
+        ]);
+
+        return $stmt->fetch()['shacl'];;
+    }
+
 }

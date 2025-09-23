@@ -321,7 +321,7 @@ class ProfileController  extends Controller
         //we delete the word "ongoing" from all the profile labels
         foreach ($profile->getLabels() as $label) {
             $txt = $label->getLabel();
-            $label->setLabel(str_replace('ongoing', '', $txt));
+            $label->setLabel(trim(str_replace('ongoing', '', $txt)));
             $em->persist($label);
             $em->flush();
         }

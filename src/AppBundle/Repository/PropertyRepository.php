@@ -837,5 +837,4 @@ class PropertyRepository extends EntityRepository
 
         return $stmt->fetchAll();
     }
-
 }

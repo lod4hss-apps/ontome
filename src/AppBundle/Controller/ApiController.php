@@ -175,6 +175,34 @@ class ApiController extends Controller
     }
 
     /**
+     * @Route("/api/shacl-profile.ttl", name="api_shacl_profile")
+     * @Method("GET")
+     */
+    public function getShaclWithProfile(Request $request)
+    {
+        try {
+            $lang = $request->get('lang', 'en');
+            $profileId = intval($request->get('profile-id', 0));
+
+            $em = $this->getDoctrine()->getManager();
+            $output = $em->getRepository('AppBundle:Profile')
+                ->findShaclWithProfile($lang, $profileId);
+
+        } catch (\Exception $e) {
+            $message = "# Error: (PHP" . phpversion() .")" . $e->getMessage(); // Commentaire en Turtle
+            return new Response($message, 500, ['Content-Type' => 'text/turtle']);
+        }
+
+        if (empty($output)) {
+            return new Response("", 200, ['Content-Type' => 'text/turtle']); // Fichier Turtle vide
+        }
+
+        return new Response($output, 200, ['Content-Type' => 'text/turtle']);
+    }
+
+
+
+    /**
      * @Route("/api/namespaces-rdf-owl.rdf", name="api_classes_and_properties_by_namespace_xml")
      * @Method("GET")
      * @param Request $request
