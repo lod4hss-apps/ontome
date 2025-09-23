@@ -292,7 +292,7 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
-                <span id="api-owl-url">{{ path('api_owl_wisski_by_project', {project: project.id}, true) }}</span>
+                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
                 <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
                 <div class="row">
                     <div class="col-lg-7">
@@ -1046,6 +1046,7 @@
                         }
                         if(data.status == 'Success'){
                             urlDelete = urlDelete.replace("associationID", data.idProjectAssociation);
+                            $('.dataTables_empty').remove();
                             $("#api-namespaces-project-table tbody").append(
                                 "<tr><td><a href=\""+urlNamespace+"\">"+labelNamespace+"</a></td><td><a href=\""+urlDelete+"\"><span class=\"glyphicon glyphicon-remove text-danger\" aria-hidden=\"true\"></span></a></td></tr>"
                             );
@@ -1055,6 +1056,8 @@
                 $('#select-root-namespace option:first').prop('selected',true);
                 $("#chosable-namespaces-list").empty();
             });
+
+            $('#api-owl-url').hide();
         } );
     </script>
     {% include 'projectThesaurusAssociation/js-bock.html.twig'  with {'projectId' : project.id} %}

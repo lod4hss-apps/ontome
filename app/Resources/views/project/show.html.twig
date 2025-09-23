@@ -248,7 +248,7 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
-                <span id="api-owl-url">{{ path('api_owl_wisski_by_project', {project: project.id}, true) }}</span>
+                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
                 <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
                 <table class="table table-striped" id="api-namespaces-project-table">
                     <thead>
