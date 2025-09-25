@@ -54,10 +54,10 @@ class ProjectRepository extends EntityRepository
     /**
      * @param $lang string the language iso code
      * @param $project int the ID of the project
-     * @return array
+     * @return string XML (OWL format)
      * @throws DBALException
      */
-    public function findNamespacesApiByProjectIdApi($lang, $project)
+    public function findNamespacesByProjectIdApi($lang, $project)
     {
         $conn = $this->getEntityManager()
             ->getConnection();

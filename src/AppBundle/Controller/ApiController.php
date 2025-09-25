@@ -357,7 +357,7 @@ class ApiController extends Controller
             $namespaceId = intval($request->get('project', 0));
             $em = $this->getDoctrine()->getManager();
             $xml = $em->getRepository('AppBundle:Project')
-                ->findNamespacesApiByProjectIdApi($lang, $namespaceId);
+                ->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF8" ?>';
             $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';

@@ -301,7 +301,7 @@ class NamespaceRepository extends EntityRepository
     }
 
     /**
-     * @return array
+     * @return array un tableau d'espaces de noms associés au projet pour l'owl:imports API
      */
     public function findApiNamespacesProject(Project $project){
         $conn = $this->getEntityManager()
