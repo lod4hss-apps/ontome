@@ -345,6 +345,33 @@ class ApiController extends Controller
     }
 
     /**
+     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_project")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getOwlWisskiByProject(Request $request)
+    {
+        try {
+            $lang = $request->get('lang', 'en');
+            $namespaceId = intval($request->get('project', 0));
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Project')
+                ->findNamespacesByProjectIdApi($lang, $namespaceId);
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
      * @Route("/api/classes-type-descendants/label/{label}/json", name="classes_type_descendants_json", requirements={"label"="^[a-zA-Z0-9 -]+$"})
      * @Method("GET")
      * @param String $label the class label to find

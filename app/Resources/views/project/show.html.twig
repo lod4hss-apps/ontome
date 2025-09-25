@@ -248,6 +248,28 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
+                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
+                <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
+                <table class="table table-striped" id="api-namespaces-project-table">
+                    <thead>
+                    <tr>
+                        <th>Namespace</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for namespace in associatedNamespacesForAPIProject %}
+                        <tr>
+                            <td data-id="{{ namespace.id }}">
+                                <a href="{{ path('namespace_show', {
+                                    'id': namespace.id
+                                }) }}">
+                                    {{ namespace.standardLabel }}
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
             <div id="profiles" class="tab-pane fade">
                 <h3>Profiles owned by this project</h3>
@@ -442,6 +464,7 @@
             $('#parent-projects-table').DataTable();
             $('#child-projects-table').DataTable();
             $('#managed-namespaces-table').DataTable();
+            $('#api-namespaces-project-table').DataTable();
             $('#owned-profiles-table').DataTable();
             $('#associated-profiles-table').DataTable({
                 "columnDefs": [
@@ -493,6 +516,8 @@
                     }
                 });
             });
+
+            $('#api-owl-url').hide();
         } );
     </script>
 

@@ -65,7 +65,7 @@ class ProjectAssociationController extends Controller
     /**
      * @param ProjectAssociation $projectAssociation
      * @param Request $request
-     * @Route("/project-association/{id}/delete", name="project_association_delete", requirements={"id"="^[0-9]+$"})
+     * @Route("/project-association/{id}/delete", name="project_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
      */
     public function deleteAction(Request $request, ProjectAssociation $projectAssociation)
     {
