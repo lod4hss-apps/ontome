@@ -301,6 +301,26 @@ class NamespaceRepository extends EntityRepository
     }
 
     /**
+     * @return array un tableau d'espaces de noms associés au projet pour l'owl:imports API
+     */
+    public function findApiNamespacesProject(Project $project){
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT  nsp.pk_namespace AS id,
+                        nsp.standard_label AS \"standardLabel\",
+                        aspro.pk_associates_project AS \"associationId\"
+                FROM che.namespace nsp
+                JOIN che.associates_project aspro ON nsp.pk_namespace = aspro.fk_namespace
+                WHERE aspro.fk_project = :id_project AND aspro.fk_system_type = 38;";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array('id_project' => $project->getId()));
+
+        return $stmt->fetchAll();
+    }
+
+    /**
      * @return array
      */
     public function findActiveNamespacesInPublicProject(){
