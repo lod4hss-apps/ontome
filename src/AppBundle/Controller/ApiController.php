@@ -372,7 +372,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_project")
+     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project")
      * @Method("GET")
      * @param Request $request
      * @return Response
