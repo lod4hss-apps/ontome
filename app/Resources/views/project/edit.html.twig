@@ -19,7 +19,7 @@
             <li><a data-toggle="tab" href="#project-hierarchy">Hierarchy</a></li>
             <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
             {% if app.user is not null and "ROLE_ADMIN" in app.user.roles %}
-            <li><a data-toggle="tab" href="#import">Import (only admin)</a></li>
+                <li><a data-toggle="tab" href="#import">Import (only admin)</a></li>
             {% endif %}
             <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
             <li><a data-toggle="tab" href="#vocabulary">Vocabulary</a></li>
@@ -312,6 +312,14 @@
                                         }) }}">
                                             {{ namespace.standardLabel }}
                                         </a>
+                                        <div class="small text-muted"><strong><em>Referenced:</em></strong></div>
+                                        <ul>
+                                            {% for namespaceReferenced in namespace.namespacesReferenced %}
+                                                <li class="list-unstyled" style="border-left: 3px solid darkgrey; padding-left: 5px;">
+                                                    <em><a href="{{ path('namespace_show', {'id': namespaceReferenced.id}) }}">{{ namespaceReferenced.label }}</a></em>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
                                     </td>
                                     <td>
                                         <a href="{{ path('project_association_delete', {
@@ -380,14 +388,14 @@
             <div id="import" class="tab-pane fade">
                 <h3>Import (only admin can see this page)</h3>
                 {% if project.managedNamespaces is not empty or 1==1 %}
-                {{ form_start(formImport) }}
-                {{ form_row(formImport.uploadXMLFile) }}
+                    {{ form_start(formImport) }}
+                    {{ form_row(formImport.uploadXMLFile) }}
                     <p>
                         <button type="submit" class="btn btn-primary" formnovalidate>Import</button>
                         <button type="reset" class="btn btn-default">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button>
                         <!-- <button type="button" class="btn btn-default" onclick="window.location.reload();">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button> -->
                     </p>
-                {{ form_end(formImport) }}
+                    {{ form_end(formImport) }}
                 {% else %}
                     Pas de namespace root, pas d'import possible
                 {% endif %}
@@ -449,7 +457,7 @@
                                 <th>Status</th>
                                 <th>API</th>
                                 {% if app.user is not null %}
-                                <th>Download</th>
+                                    <th>Download</th>
                                 {% endif %}
                             </tr>
                             </thead>
@@ -820,7 +828,7 @@
                         targets: 3,
                         render: function ( data, type, row, meta ) {
                             if (row.isOngoing) {
-                               return 'Ongoing';
+                                return 'Ongoing';
                             }
                             //profile.wasClosedAt is not null and profile.endDate is null
                             else if (row.wasClosedAt != null && row.endDate == null) {
@@ -835,16 +843,16 @@
                         targets: 4,
                         render: function ( data, type, row, meta ) {
                             if((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)){
-                            var urlApiClassesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
-                            var urlApiPropertiesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
-                            var urlApiShaclProfile = '{{ path("api_shacl_profile", {'lang': 'en', 'profile-id' : 'profileID'}) }}';
-                            urlApiClassesProfileJson = urlApiClassesProfileJson.replace("profileID", row.id);
-                            urlApiPropertiesProfileJson = urlApiPropertiesProfileJson.replace("profileID", row.id);
-                            urlApiShaclProfile = urlApiShaclProfile.replace("profileID", row.id);
+                                var urlApiClassesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
+                                var urlApiPropertiesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
+                                var urlApiShaclProfile = '{{ path("api_shacl_profile", {'lang': 'en', 'profile-id' : 'profileID'}) }}';
+                                urlApiClassesProfileJson = urlApiClassesProfileJson.replace("profileID", row.id);
+                                urlApiPropertiesProfileJson = urlApiPropertiesProfileJson.replace("profileID", row.id);
+                                urlApiShaclProfile = urlApiShaclProfile.replace("profileID", row.id);
 
-                            return '<a href="' + urlApiClassesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Classes</a>' +
-                                ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>'+
-                                ' <a href="' + urlApiShaclProfile + '" class="btn btn-primary"><i class="fas fa-microchip"></i> SHACL</a>';
+                                return '<a href="' + urlApiClassesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Classes</a>' +
+                                    ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>'+
+                                    ' <a href="' + urlApiShaclProfile + '" class="btn btn-primary"><i class="fas fa-microchip"></i> SHACL</a>';
                             }
                             else{
                                 return 'Not published in API';

@@ -115,28 +115,28 @@
                     {% endfor %}
                 {% endif %}
                 {% if canSeeInternalNotes %}
-                <h3>Internal notes</h3>
-                <table class="table table-striped" id="additional-notes-table">
-                    <thead>
-                    <tr>
-                        <th>Show</th>
-                        <th>Notes</th>
-                        <th>Language</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
-                        {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
+                    <h3>Internal notes</h3>
+                    <table class="table table-striped" id="additional-notes-table">
+                        <thead>
                         <tr>
-                            <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
-                            <td class="truncated-text">
-                                <span>{{ textProperty.textProperty|striptags|raw }}</span>
-                            </td>
-                            <td>{{ textProperty.languageIsoCode}}</td>
+                            <th>Show</th>
+                            <th>Notes</th>
+                            <th>Language</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
+                            {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
+                            <tr>
+                                <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                                <td class="truncated-text">
+                                    <span>{{ textProperty.textProperty|striptags|raw }}</span>
+                                </td>
+                                <td>{{ textProperty.languageIsoCode}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 {% endif %}
             </div>
             <div id="identification" class="tab-pane fade">
@@ -265,6 +265,14 @@
                                 }) }}">
                                     {{ namespace.standardLabel }}
                                 </a>
+                                <div class="small text-muted"><strong><em>Referenced:</em></strong></div>
+                                <ul>
+                                    {% for namespaceReferenced in namespace.namespacesReferenced %}
+                                        <li class="list-unstyled" style="border-left: 3px solid darkgrey; padding-left: 5px;">
+                                            <em><a href="{{ path('namespace_show', {'id': namespaceReferenced.id}) }}">{{ namespaceReferenced.label }}</a></em>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
                             </td>
                         </tr>
                     {% endfor %}
@@ -295,17 +303,17 @@
                     {% endfor %}
                     </tbody>
                 </table>
-            {% if app.user is not null %}
-                <div class="pull-right add-div">
-                    <a  href="{{ path('api_classes_and_properties_by_project_xml', {
-                        project: project.id
-                    }) }}"
-                        class="btn btn-primary"
-                        download="project-{{ project.standardLabel }}.rdf">
-                        <i class="fas fa-code"></i> OWL-RDF
-                    </a>
-                </div>
-            {% endif %}
+                {% if app.user is not null %}
+                    <div class="pull-right add-div">
+                        <a  href="{{ path('api_classes_and_properties_by_project_xml', {
+                            project: project.id
+                        }) }}"
+                            class="btn btn-primary"
+                            download="project-{{ project.standardLabel }}.rdf">
+                            <i class="fas fa-code"></i> OWL-RDF
+                        </a>
+                    </div>
+                {% endif %}
                 <h3>
                     Profiles used by this project
                     <a data-toggle="tooltip" data-placement="right" title="These profiles are published in the API of the project">
@@ -321,7 +329,7 @@
                         <th>Last updated</th>
                         <th>API</th>
                         {% if app.user is not null %}
-                        <th>Download</th>
+                            <th>Download</th>
                         {% endif %}
                     </tr>
                     </thead>
@@ -382,19 +390,19 @@
                                 {% endif %}
                             </td>
                             {% if app.user is not null %}
-                            <td>
-                                {% if (not profile.isOngoing and profile.wasClosedAt is not null and profile.endDate is null) or (profile.isForcedPublication and profile.isOngoing ) %}
-                                    <a  href="{{ path('api_classes_and_properties_by_profile_xml', {
-                                        'profile': profile.id
-                                    }) }}"
-                                        class="btn btn-primary"
-                                        download="profile-{{ profile.standardLabel }}.rdf">
-                                        <i class="fas fa-code"></i> OWL-RDF
-                                    </a>
-                                {% else %}
-                                    Not available
-                                {% endif %}
-                            </td>
+                                <td>
+                                    {% if (not profile.isOngoing and profile.wasClosedAt is not null and profile.endDate is null) or (profile.isForcedPublication and profile.isOngoing ) %}
+                                        <a  href="{{ path('api_classes_and_properties_by_profile_xml', {
+                                            'profile': profile.id
+                                        }) }}"
+                                            class="btn btn-primary"
+                                            download="profile-{{ profile.standardLabel }}.rdf">
+                                            <i class="fas fa-code"></i> OWL-RDF
+                                        </a>
+                                    {% else %}
+                                        Not available
+                                    {% endif %}
+                                </td>
                             {% endif %}
                         </tr>
                     {% endfor %}

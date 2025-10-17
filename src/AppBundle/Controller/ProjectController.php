@@ -175,6 +175,10 @@ class ProjectController  extends Controller
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
 
+        foreach ($associatedNamespacesForAPIProject as &$associate){
+            $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
+        }
+
         return $this->render('project/show.html.twig', array(
             'project' => $project,
             'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject
@@ -200,6 +204,10 @@ class ProjectController  extends Controller
 
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
+
+        foreach ($associatedNamespacesForAPIProject as &$associate){
+            $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
+        }
 
         $formImport = $this->createForm(ImportNamespaceForm::class);
 
