@@ -1,0 +1,272 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+	{{ parent() }}
+
+{%  endblock %}
+
+{% block body %}
+	<div>
+		<h3><i class="fas fa-file-import"></i> Import preview:
+			<strong>{{ newNamespace.standardLabel }}</strong>
+		</h3>
+		<p><em>Please review the information below before confirming the import of this new namespace version.</em></p>
+	</div>
+	<div class="row">
+		<div class="col-md-9">
+			<div class="container-import">
+				<strong>Namespace label:</strong>
+				{{ newNamespace.standardLabel }}<br>
+
+				{% if newNamespace.textProperties is not null %}
+					{% for textProperty in newNamespace.textProperties %}
+						<strong>{{ textProperty.systemType }}:
+						</strong>
+						{{ textProperty.textProperty }}<br>
+					{% endfor %}
+				{% endif %}
+
+				<strong>Published at:</strong>
+				{{ newNamespace.publishedAt|date('Y-m-d H:i:s') }}<br>
+
+				<strong>Namespace URI:</strong>
+				{{ newNamespace.namespaceURI|default('N/A') }}<br>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="container-import">
+				<strong>Reference(s) namespace(s):</strong>
+				{% if newNamespace.referencedNamespaceAssociations is not null %}
+						{% for assoc in newNamespace.referencedNamespaceAssociations %}
+								<a href="{{ path('namespace_show', {'id': assoc.referencedNamespace.id}) }}" target="_blank">{{ assoc.referencedNamespace.standardLabel }}</a><br>
+						{% endfor %}
+				{% else %}
+					N/A<br>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+
+	<div>
+		<div class="row mb-10">
+			<div class="col-md-6">
+				<div class="row" style="display: flex; align-items: center;">
+					<div class="col-md-8">
+						<strong>Number of classes:</strong>
+						<span class="badge badge-secondary">{{ newNamespace.classVersions|length }}</span>
+					</div>
+					<div class="col-md-4 text-right mb-10">
+						<button type="button" class="btn btn-sm btn-default toggle-accordion" data-target="#accordion-classes">
+							<i class="fas fa-expand"></i> Expand/Collapse all
+						</button>
+					</div>
+				</div>
+				<div class="scrollable-entities-preview">
+					{% if newNamespace.classVersions is not null %}
+						<div class="panel-group" id="accordion-classes" role="tablist" aria-multiselectable="true">
+							{% for classVersion in newNamespace.classVersions %}
+								<div
+									class="panel panel-default">
+									<!-- Pour les classes -->
+									<div class="panel-heading" role="tab" id="heading-class-{{ classVersion.class.identifierInNamespace }}">
+										<h4 class="panel-title">
+											<a role="button" data-toggle="collapse" href="#collapse-class-{{ classVersion.class.identifierInNamespace }}" aria-expanded="true" aria-controls="collapse-class-{{ classVersion.class.identifierInNamespace }}">
+												<i class="fas fa-chevron-right"></i>
+												{{ classVersion.invertedLabel }}
+											</a>
+										</h4>
+									</div>
+									<div id="collapse-class-{{ classVersion.class.identifierInNamespace }}" class="panel-collapse collapse {% if loop.first %} in{% endif %}" role="tabpanel" aria-labelledby="heading-class-{{ classVersion.class.identifierInNamespace }}">
+										<div class="panel-body">
+											{% set childClassAssociationsForClass = newNamespace.classAssociations|filter(ca => ca.childClass == classVersion.class and ca.namespaceForVersion == newNamespace) %}
+											{% if childClassAssociationsForClass|length > 0 %}
+												<strong>Subclass of:</strong><br>
+												{% for cca in childClassAssociationsForClass %}
+													{% if cca.parentClassNamespace.id != newNamespace.id %}
+														<a href="{{ path('class_show_with_version', {'id': cca.parentClass.id, 'namespaceFromUrlId': cca.parentClassNamespace.id}) }}" target="_blank">{{cca.parentClassNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ cca.parentClass.identifierInNamespace }}</a><br>
+													{% else %}
+														{{ cca.parentClass.identifierInNamespace }}<br>
+													{% endif %}
+												{% endfor %}<br>
+											{% endif %}
+
+											{% set entityAssociationsForClass = newNamespace.entityAssociations|filter(ea => ea.sourceClass == classVersion.class and ea.namespaceForVersion == newNamespace and ea.systemType.id == 18) %}
+											{% if entityAssociationsForClass|length > 0 %}
+												<strong>Equivalent class:</strong><br>
+												{% for eac in entityAssociationsForClass %}
+													{% if eac.targetNamespaceForVersion.id != newNamespace.id %}
+														<a href="{{ path('class_show_with_version', {'id': eac.targetClass.id, 'namespaceFromUrlId': eac.targetNamespaceForVersion.id}) }}" target="_blank">{{eac.targetNamespaceForVersion.topLevelNamespace.rootNamespacePrefix }}:{{ eac.targetClass.identifierInNamespace }}</a><br>
+													{% else %}
+														{{ eac.targetClass.identifierInNamespace }}<br>
+													{% endif %}
+												{% endfor %}<br>
+											{% endif %}
+
+
+											{% set entityAssociationsForClass = newNamespace.entityAssociations|filter(ea => ea.sourceClass == classVersion.class and ea.namespaceForVersion == newNamespace and ea.systemType.id == 19) %}
+											{% if entityAssociationsForClass|length > 0 %}
+												<strong>Disjoint with:</strong><br>
+												{% for eac in entityAssociationsForClass %}
+													{% if eac.targetNamespaceForVersion.id != newNamespace.id %}
+														<a href="{{ path('class_show_with_version', {'id': eac.targetClass.id, 'namespaceFromUrlId': eac.targetNamespaceForVersion.id}) }}" target="_blank">{{eac.targetNamespaceForVersion.topLevelNamespace.rootNamespacePrefix }}:{{ eac.targetClass.identifierInNamespace }}</a><br>
+													{% else %}
+														{{ eac.targetClass.identifierInNamespace }}<br>
+													{% endif %}
+												{% endfor %}<br>
+											{% endif %}
+
+											<strong>Labels:</strong><br>
+											{% set classLabelsForNamespace = classVersion.class.labels|filter(lbl => lbl.namespaceForVersion == newNamespace) %}
+											{% for classLabel in classLabelsForNamespace %}
+												[{{ classLabel.languageIsoCode }}]
+												{{ classLabel.label }}<br>
+											{% endfor %}<br>
+											{% set textPropertiesForNamespace = classVersion.class.textProperties|filter(txtp => txtp.namespaceForVersion == newNamespace) %}
+											{% if textPropertiesForNamespace|length > 0 %}
+												{% for textProperty in textPropertiesForNamespace %}
+													<strong>{{ textProperty.systemType }}:</strong><br>
+													[{{ textProperty.languageIsoCode }}]
+													{{ textProperty.textProperty }}<br><br>
+												{% endfor %}
+											{% endif %}
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="row" style="display: flex; align-items: center;">
+					<div class="col-md-8">
+						<strong>Number of properties:</strong>
+						<span class="badge badge-secondary">{{ newNamespace.propertyVersions|length }}</span>
+					</div>
+					<div class="col-md-4 text-right mb-10">
+						<button type="button" class="btn btn-sm btn-default toggle-accordion" data-target="#accordion-properties">
+							<i class="fas fa-expand"></i> Expand/Collapse all
+						</button>
+					</div>
+				</div>
+				<div class="scrollable-entities-preview">
+					{% if newNamespace.propertyVersions is not null %}
+						<div class="panel-group" id="accordion-properties" role="tablist" aria-multiselectable="true">
+							{% for propertyVersion in newNamespace.propertyVersions %}
+								<div
+									class="panel panel-default">
+									<!-- Pour les propriétés -->
+									<div class="panel-heading" role="tab" id="heading-property-{{ propertyVersion.property.identifierInNamespace }}">
+										<h4 class="panel-title">
+											<a role="button" data-toggle="collapse" href="#collapse-property-{{ propertyVersion.property.identifierInNamespace }}" aria-expanded="true" aria-controls="collapse-property-{{ propertyVersion.property.identifierInNamespace }}">
+												<i class="fas fa-chevron-right"></i>
+												{{ propertyVersion.invertedLabel }}
+											</a>
+										</h4>
+									</div>
+									<div id="collapse-property-{{ propertyVersion.property.identifierInNamespace }}" class="panel-collapse collapse {% if loop.first %} in{% endif %}" role="tabpanel" aria-labelledby="heading-property-{{ propertyVersion.property.identifierInNamespace }}">
+										<div class="panel-body">
+											{% set domain = propertyVersion.domain.classVersions|filter(cv => cv.namespaceForVersion == propertyVersion.domainNamespace)|first %}
+											{% set range = propertyVersion.range.classVersions|filter(cv => cv.namespaceForVersion == propertyVersion.rangeNamespace)|first %}
+											<div class="text-center container-import">
+												{% if propertyVersion.domainNamespace.id != newNamespace.id %}
+													<a href="{{ path('class_show_with_version', {'id': propertyVersion.domain.id, 'namespaceFromUrlId': propertyVersion.domainNamespace.id}) }}" target="_blank">{{ propertyVersion.domainNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ domain.invertedLabel }}</a>
+												{% else %}
+													{{ propertyVersion.domainNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ domain.invertedLabel }}
+												{% endif %}
+												<i class="fas fa-arrow-right"></i>
+												<span class="text-muted">{{ propertyVersion.property.identifierInNamespace }}</span>
+												<i class="fas fa-arrow-right"></i>
+												{% if propertyVersion.rangeNamespace.id != newNamespace.id %}
+													<a href="{{ path('class_show_with_version', {'id': propertyVersion.range.id, 'namespaceFromUrlId': propertyVersion.rangeNamespace.id}) }}" target="_blank">{{ propertyVersion.rangeNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ range.invertedLabel }}</a>
+												{% else %}
+													{{ propertyVersion.rangeNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ range.invertedLabel }}
+												{% endif %}
+											</div>
+											{% set childPropertyAssociationsForProperty = newNamespace.propertyAssociations|filter(pa => pa.childProperty == propertyVersion.property and pa.namespaceForVersion == newNamespace) %}
+											{% if childPropertyAssociationsForProperty|length > 0 %}
+												<strong>Subproperty of:</strong><br>
+												{% for cpa in childPropertyAssociationsForProperty %}
+													{% if cpa.parentPropertyNamespace.id != newNamespace.id %}
+														<a href="{{ path('class_show_with_version', {'id': cpa.parentProperty.id, 'namespaceFromUrlId': cpa.parentPropertyNamespace.id}) }}" target="_blank">{{cpa.parentPropertyNamespace.topLevelNamespace.rootNamespacePrefix }}:{{ cpa.parentProperty.identifierInNamespace }}</a><br>
+													{% else %}
+														{{ cpa.parentProperty.identifierInNamespace }}<br>
+													{% endif %}
+												{% endfor %}<br>
+											{% endif %}
+											<strong>Labels:</strong><br>
+											{% for propertyLabel in propertyVersion.property.labels|filter(lbl => lbl.namespaceForVersion == newNamespace) %}
+												[{{ propertyLabel.languageIsoCode }}]
+												{{ propertyLabel.label }}<br>
+											{% endfor %}<br>
+											{% set textPropertiesForNamespace = propertyVersion.property.textProperties|filter(txtp => txtp.namespaceForVersion == newNamespace) %}
+											{% if textPropertiesForNamespace|length > 0 %}
+												{% for textProperty in textPropertiesForNamespace %}
+													<strong>{{ textProperty.systemType }}:</strong><br>
+													[{{ textProperty.languageIsoCode }}]
+													{{ textProperty.textProperty }}<br><br>
+												{% endfor %}
+											{% endif %}
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="text-center">
+		<a href="{{ path('project_edit', {'id': project.id, 'confirmImport': 'true'}) }}" class="btn btn-success">
+			<i class="fas fa-check"></i>
+			Confirm Import</a>
+	</div>
+</div>{# Add more detailed preview information about the new namespace version here #}{% endblock %}{% block javascripts %}
+
+{{ parent() }}
+<script>
+	$(document).ready(function() {
+    // Attendre que Font Awesome convertisse les icônes
+    setTimeout(function() {
+        // Initialiser les chevrons selon l'état des panels
+        $('.panel-title a').each(function() {
+            var $icon = $(this).find('svg.fa-chevron-right, svg.fa-chevron-down');
+            if ($(this).closest('.panel-heading').next('.panel-collapse').hasClass('in')) {
+                $icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+            } else {
+                $icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+            }
+        });
+    }, 100);
+    
+    $('.toggle-accordion').click(function () {
+        var accordionId = $(this).data('target');
+        var $panels = $(accordionId + ' .panel-collapse');
+        
+        var openPanels = $panels.filter('.in, .show').length;
+        
+        if (openPanels > 0) {
+            $panels.collapse('hide');
+            // Mettre tous les chevrons à droite
+            $(accordionId + ' .panel-title a svg').removeClass('fa-chevron-down').addClass('fa-chevron-right');
+        } else {
+            $panels.collapse('show');
+            // Mettre tous les chevrons en bas
+            $(accordionId + ' .panel-title a svg').removeClass('fa-chevron-right').addClass('fa-chevron-down');
+        }
+    });
+
+    // Toggle chevron au clic
+    $('.panel-title a').on('click', function () {
+        var $icon = $(this).find('svg.fa-chevron-right, svg.fa-chevron-down');
+        if ($(this).closest('.panel-heading').next('.panel-collapse').hasClass('in')) {
+            $icon.removeClass('fa-chevron-down').addClass('fa-chevron-right');
+        } else {
+            $icon.removeClass('fa-chevron-right').addClass('fa-chevron-down');
+        }
+    });
+});
+</script>
+{% endblock %}

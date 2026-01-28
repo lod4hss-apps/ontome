@@ -152,7 +152,8 @@ paste_as_text: true
 						<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
 						</button>
-						<i class="fas fa-exclamation-triangle"></i> {{ msg|raw }}
+						<i class="fas fa-exclamation-triangle"></i>
+						{{ msg|raw }}
 					</div>
 				{% endfor %}
 				{% block body %}{% endblock %}

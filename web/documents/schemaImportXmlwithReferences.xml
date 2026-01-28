@@ -15,6 +15,7 @@
                 <xs:element name="publishedAt" type="xs:dateTime" minOccurs="0" maxOccurs="1" />
                 <xs:element name="contributors" type="xs:string" minOccurs="0" maxOccurs="1" />
                 <xs:element name="referenceNamespace" type="xs:positiveInteger" minOccurs="0" maxOccurs="unbounded" />
+                <xs:element name="namespaceURI" type="xs:string" minOccurs="0" maxOccurs="1" />
                 <xs:element name="description" minOccurs="0" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:simpleContent>

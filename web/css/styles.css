@@ -884,3 +884,21 @@ FOOTER Styling
 .xsmall{
     font-size: 0.8em;
 }
+
+.container-import{
+    padding: 15px;
+    background-color: #e7e7e7;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.scrollable-entities-preview{
+    max-height: 450px;
+    overflow-y: auto;
+    border: solid 1px #ddd;
+    padding: 10px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}

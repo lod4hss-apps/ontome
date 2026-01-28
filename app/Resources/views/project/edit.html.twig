@@ -378,19 +378,38 @@
                 {% endif %}
             </div>
             <div id="import" class="tab-pane fade">
-                <h3>Import (only admin can see this page)</h3>
-                {% if project.managedNamespaces is not empty or 1==1 %}
-                {{ form_start(formImport) }}
-                {{ form_row(formImport.uploadXMLFile) }}
-                    <p>
-                        <button type="submit" class="btn btn-primary" formnovalidate>Import</button>
-                        <button type="reset" class="btn btn-default">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button>
-                        <!-- <button type="button" class="btn btn-default" onclick="window.location.reload();">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button> -->
-                    </p>
-                {{ form_end(formImport) }}
-                {% else %}
-                    Pas de namespace root, pas d'import possible
-                {% endif %}
+                <h3>Import a namespace with an XML file</h3>
+                <p>This interface allows you to upload an XML file compliant with the OntoME schema in order to automatically create a new namespace and all its related entities (classes, properties, notes, etc.). 
+                The import process validates the file structure, reports any errors, and generates the namespace once the file is approved.</p>
+                <p><strong><i class="fas fa-info-circle"></i> For more details about the expected format and best practices, please refer to the <a href="https://github.com/lod4hss-apps/ontome/wiki/How-to-Import-XML-Namespaces-in-OntoME" target="_blank">official documentation <i class="fas fa-external-link-alt"></i></a></strong></p>
+                <div class="container-import">
+                    {% if project.managedNamespaces is not empty %}
+                        {{ form_start(formImport, {'attr': {'id': 'import-form'}}) }}
+
+                        <div id="drop-zone" style="border: 2px dashed #007bff; border-radius: 8px; padding: 25px; text-align: center; cursor: pointer; background: #f8f9fa; transition: all 0.3s;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                                <i id="drop-icon" class="fas fa-cloud-upload-alt" style="font-size: 2em; color: #007bff;"></i>
+                                <div style="text-align: left;">
+                                    <h5 id="drop-title" style="color: #495057; margin: 0 0 5px 0; font-weight: normal;">Drag and drop your XML file here</h5>
+                                    <p id="drop-text" style="color: #6c757d; margin: 0; font-size: 14px;">or click to select a file</p>
+                                </div>
+                            </div>
+                            <p id="file-selected" style="margin-top: 15px; color: #007bff; font-weight: bold; display: none;">
+                                <i class="fas fa-file-alt"></i> <span id="file-name"></span>
+                            </p>
+                        </div>
+
+                        {{ form_widget(formImport.uploadXMLFile, {'attr': {'id': 'file-input', 'style': 'position:absolute;left:-9999px;'}}) }}
+
+                        <p style="margin-top: 20px; text-align: center;">
+                            <button type="submit" class="btn btn-primary" formnovalidate>Import</button>
+                            <button type="reset" class="btn btn-default">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button>
+                        </p>
+                        {{ form_end(formImport) }}
+                    {% else %}
+                        Please note that you must first create at least one managed namespace for this project before importing a new namespace.
+                    {% endif %}
+                </div>
             </div>
             <div id="profiles" class="tab-pane fade">
                 {% if is_granted('edit', project) %}
@@ -1058,6 +1077,125 @@
             });
 
             $('#api-owl-url').hide();
+
+            // Drag & Drop pour l'import de fichier - initialisé uniquement quand l'onglet est affiché
+            var fileUploadInitialized = false;
+
+            $('a[href="#import"]').on('shown.bs.tab', function (e) {
+                console.log('Onglet import affiché');
+                
+                if (fileUploadInitialized) {
+                    console.log('Déjà initialisé');
+                    return;
+                }
+                
+                var dropZone = $('#drop-zone');
+                // Chercher l'input file dans le formulaire d'import
+                var fileInput = $('#import-form input[type="file"]')[0];
+                var fileSelected = $('#file-selected');
+                var fileName = $('#file-name');
+                var dropIcon = $('#drop-icon');
+                var dropTitle = $('#drop-title');
+                var dropText = $('#drop-text');
+
+                console.log('dropZone:', dropZone.length, 'fileInput:', fileInput);
+                if (fileInput) {
+                    console.log('fileInput ID:', fileInput.id, 'fileInput name:', fileInput.name);
+                }
+
+                if (dropZone.length && fileInput) {
+                    fileUploadInitialized = true;
+                    
+                    // Empêcher l'ouverture du fichier par le navigateur
+                    $(document).on('dragover.fileupload drop.fileupload', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+
+                    // Clic sur la zone
+                    dropZone.on('click', function(e) {
+                        console.log('click détecté sur drop-zone');
+                        fileInput.click();
+                    });
+
+                    // Changement de fichier
+                    $(fileInput).on('change', function() {
+                        console.log('change détecté', this.files);
+                        if (this.files && this.files.length > 0) {
+                            var file = this.files[0];
+                            if (file.name.toLowerCase().endsWith('.xml')) {
+                                fileName.text(file.name);
+                                fileSelected.show();
+                                // Masquer les éléments de texte
+                                dropIcon.hide();
+                                dropTitle.hide();
+                                dropText.hide();
+                            } else {
+                                alert('Veuillez sélectionner un fichier XML.');
+                                $(fileInput).val('');
+                            }
+                        }
+                    });
+
+                    // Drag enter
+                    dropZone.on('dragenter', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(this).css({'background': '#e3f2fd', 'border-color': '#0056b3'});
+                    });
+
+                    // Drag over
+                    dropZone.on('dragover', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(this).css({'background': '#e3f2fd', 'border-color': '#0056b3'});
+                    });
+
+                    // Drag leave
+                    dropZone.on('dragleave', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(this).css({'background': '#f8f9fa', 'border-color': '#007bff'});
+                    });
+
+                    // Drop
+                    dropZone.on('drop', function(e) {
+                        console.log('drop détecté');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $(this).css({'background': '#f8f9fa', 'border-color': '#007bff'});
+
+                        var files = e.originalEvent.dataTransfer.files;
+                        if (files.length > 0) {
+                            var file = files[0];
+                            if (file.name.toLowerCase().endsWith('.xml')) {
+                                fileInput.files = files;
+                                fileName.text(file.name);
+                                fileSelected.show();
+                                // Masquer les éléments de texte
+                                dropIcon.hide();
+                                dropTitle.hide();
+                                dropText.hide();
+                            } else {
+                                alert('Veuillez sélectionner un fichier XML.');
+                            }
+                        }
+                    });
+
+                    // Reset
+                    $('#import-form').on('reset', function() {
+                        fileSelected.hide();
+                        fileName.text('');
+                        dropZone.css({'background': '#f8f9fa', 'border-color': '#007bff'});
+                        // Réafficher les éléments de texte
+                        dropIcon.show();
+                        dropTitle.show();
+                        dropText.show();
+                    });
+
+                    console.log('File upload initialisé avec succès');
+                }
+            });
         } );
     </script>
     {% include 'projectThesaurusAssociation/js-bock.html.twig'  with {'projectId' : project.id} %}
