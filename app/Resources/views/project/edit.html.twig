@@ -293,7 +293,10 @@
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
                 <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
-                <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
+                <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button> 
+                    <button class="btn btn-primary btn-export-owl-api-project" data-project-id="{{ project.id }}">Export OWL-DL</button>
+                    <button class="btn btn-primary disabled btn-export-owl-api-project-disabled"  disabled="disabled" data-project-id="{{ project.id }}">Export OWL-DL</button>
+                </h3>
                 <div class="row">
                     <div class="col-lg-7">
                         <table class="table table-striped" id="api-namespaces-project-table" style="width: 100%">
@@ -990,6 +993,52 @@
                         return 0;
                     });
                 }
+            });
+
+            // Export OWL-DL of the project in the API
+            $('.btn-export-owl-api-project-disabled').hide();
+            $('.btn-export-owl-api-project').on('click', function(){
+
+                $('.btn-export-owl-api-project-disabled').show();
+                $('.btn-export-owl-api-project').hide();
+
+                var projectID = $(this).attr("data-project-id");
+                var url = '{{ path("api_owl_dl_by_project", {'project': 'projectID'}) }}';
+                url = url.replace("projectID", projectID);
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    dataType: 'text',  // Forcer à recevoir en texte brut, pas en XML parsé
+                    success: function (data, status, xhr) {
+                        $('.btn-export-owl-api-project-disabled').hide();
+                        $('.btn-export-owl-api-project').show();
+                        
+                        // Créer un blob à partir des données texte
+                        var blob = new Blob([data], { type: 'application/rdf+xml' });
+                        
+                        var contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                        var filename = 'export.rdf';
+                        
+                        if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                            filename = contentDisposition.split('filename=')[1].split('"')[1];
+                        }
+                        
+                        var a = document.createElement('a');
+                        var blobUrl = window.URL.createObjectURL(blob);
+                        a.href = blobUrl;
+                        a.download = filename;
+                        document.body.append(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(blobUrl);
+                    },
+                    error: function(xhr, status, error) {
+                        $('.btn-export-owl-api-project-disabled').hide();
+                        $('.btn-export-owl-api-project').show();
+                        alert('Error downloading file: ' + error);
+                    }
+                });
             });
 
             $('#select-root-namespace').on('select2:select', function (e) {

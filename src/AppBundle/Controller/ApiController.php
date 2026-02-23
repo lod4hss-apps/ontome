@@ -354,10 +354,10 @@ class ApiController extends Controller
     {
         try {
             $lang = $request->get('lang', 'en');
-            $namespaceId = intval($request->get('project', 0));
+            $projectId = intval($request->get('project', 0));
             $em = $this->getDoctrine()->getManager();
             $xml = $em->getRepository('AppBundle:Project')
-                ->findNamespacesByProjectIdApi($lang, $namespaceId);
+                ->findNamespacesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF8" ?>';
             $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
@@ -368,6 +368,52 @@ class ApiController extends Controller
 
         $response = new Response($xml[0]['result']);
         $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/owl-dl.rdf", name="api_owl_dl_by_project")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getOwlDlByProject(Request $request)
+    {
+        try {
+            $lang = $request->get('lang', 'en');
+            $projectId = intval($request->get('project', 0));
+            $em = $this->getDoctrine()->getManager();
+            
+            // Récupérer le projet pour le nom du fichier
+            $project = $em->getRepository('AppBundle:Project')->find($projectId);
+            if (!$project) {
+                throw new \Exception('Project not found');
+            }
+            
+            $xml = $em->getRepository('AppBundle:Project')
+                ->findApiNamespacesDLByProjectId($lang, $projectId);
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        // Vérifier si des résultats ont été trouvés
+        if (empty($xml) || !isset($xml[0]['result'])) {
+            $emptyXml = '<?xml version="1.0" encoding="UTF-8"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"></rdf:RDF>';
+            $response = new Response($emptyXml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            $filename = 'project-' . $project->getId() . '-owl-dl.rdf';
+            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        $filename = 'project-' . $project->getId() . '-owl-dl.rdf';
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
         return $response;
     }
 
