@@ -233,13 +233,18 @@
                 $temp.remove();
             }
 
-            $('button.copyToClipboard').on('click', function () {
+            $(document).on('click', '.copyToClipboard', function () {
                 // On améliore la fonction copyToClipboard avec un message "Copied!"
-                var elementId = $(this).data("id");
-                var element = $('#'+elementId);
-                copyToClipboard(element);
-                $(this).after('<span class="copyConfirm small text-primary">Copied! </span>');
-                setTimeout(function() { $('.copyConfirm').fadeOut(); }, 500);
+                const elementId = $(this).data("id");
+                copyToClipboard('#' + elementId);
+
+                // Conserver pour remettre le texte du bouton après 2 secondes
+                let memHtml = $(this).html();
+
+                $(this).html('<i class="fas fa-check text-success"></i> Copied!');
+                setTimeout(() => {
+                     $(this).html(memHtml);
+                }, 2000);
             });
         });
 

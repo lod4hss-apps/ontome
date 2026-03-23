@@ -177,7 +177,7 @@ class ProjectController  extends Controller
 
         return $this->render('project/show.html.twig', array(
             'project' => $project,
-            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject
+            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject,
         ));
     }
 
@@ -1636,5 +1636,54 @@ class ProjectController  extends Controller
 
         return new JsonResponse(null, 204);
 
+    }
+
+
+    /**
+     * @Route("/project/{id}/containers/datatable", name="containers_by_project_datatable", requirements={"id"="^([0-9]+)|(projectID){1}$"})
+     * @Method("GET")
+     * @param Project $project
+     * @return JsonResponse a Json formatted list representation of Containers selected by Project
+     */
+    public function getContainersByProjectForDatatable(Project $project)
+    {        
+        try{
+            $em = $this->getDoctrine()->getManager();
+            $containersResponse = $em->getRepository('AppBundle:Container')->createQueryBuilder('c')
+                ->join('c.project', 'p')
+                ->where('p.id = :projectId')
+                ->setParameter('projectId', $project->getId())
+                ->orderBy('c.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+            foreach ($containersResponse as $container) {
+                $namespaces = [];
+                $namespacesResponse = $container->getNamespaces();
+                foreach ($namespacesResponse as $namespace) {
+                    $namespaces[] = array(
+                        'id' => $namespace->getId(),
+                        'label' => $namespace->getStandardLabel()
+                    );
+                }
+
+                $containers[] = array(
+                    'id' => $container->getId(),
+                    'label' => $container->getLabel()->getLabel(),
+                    'lastUpdate' => $container->getModificationTime()->format('Y-m-d H:i:s'),
+                    'namespaces' => $namespaces,
+                    'pathbuilders' => '', //TODO pathbuilders
+                    'isOngoing' => $container->getIsOngoing()
+                );
+            }
+        }
+        catch (NotFoundHttpException $e) {
+            return new JsonResponse(null,404, 'content-type:application/problem+json');
+        }
+
+        if(empty($containers)) {
+            return new JsonResponse(null,204, array());
+        }
+
+        return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
     }
 }

@@ -17,11 +17,12 @@
             <li><a data-toggle="tab" href="#identification">Identification</a></li>
             <li><a data-toggle="tab" href="#definition">Definition</a></li>
             <li><a data-toggle="tab" href="#project-hierarchy">Hierarchy</a></li>
+            <li><a data-toggle="tab" href="#containers">Containers</a></li>
+            <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
             <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
             {% if app.user is not null and "ROLE_ADMIN" in app.user.roles %}
             <li><a data-toggle="tab" href="#import">Import (only admin)</a></li>
             {% endif %}
-            <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
             <li><a data-toggle="tab" href="#vocabulary">Vocabulary</a></li>
             <li><a data-toggle="tab" href="#members">Members</a></li>
             <!--<li><a data-toggle="tab" href="#comments-list">Comments list</a></li>-->
@@ -377,6 +378,42 @@
                     </table>
                 {% endif %}
             </div>
+            <div id="containers" class="tab-pane fade">
+                <div class="d-flex justify-content-between align-items-center align-content-center">
+                    <h3>Containers</h3>
+                    <button type="button" class="btn btn-primary" id="button-new-container"><span class="fa fa-plus-circle"></span> Create a new container </button>
+                </div>
+                <div id="createContainer" style="display: none;">
+                    <label for="new-container-label">New container name</label>
+                    <input type="text" id="new-container-label" class="form-control" placeholder="Enter container name">
+                    <button type="button" class="btn btn-primary" id="submit-new-container" style="margin-top: 10px;">Submit</button>
+                </div>
+                <table id="table-containers" class="table table-striped" 
+                    data-url-namespace="{{ path('namespace_show', {'id' : '__NAMESPACE_ID__'}) }}" 
+                    data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : '__CONTAINER_ID__', 'namespaceId' : '__NAMESPACE_ID__'}) }}"
+                    data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : '__CONTAINER_ID__'}) }}"
+                    >
+                    <thead>
+                        <tr>
+                            <th>Container name</th>
+                            <th>Namespaces</th>
+                            <th>Pathbuilders</th>
+                            <th>Status</th>
+                            <th>Last updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Remplissage auto -->
+                    </tbody>
+                </table>
+
+                <h3>Content from selected container</h3>
+                <div id="containerContent">
+                    <!-- Remplissage auto -->
+                    <p><em>Please create or select a container to see its content.</em></p>
+                </div>
+            </div>
             <div id="import" class="tab-pane fade">
                 <h3>Import (only admin can see this page)</h3>
                 {% if project.managedNamespaces is not empty or 1==1 %}
@@ -526,6 +563,7 @@
 {% endblock %}
 
 {% block javascripts %}
+
     {{ parent() }}
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
     <script>
@@ -767,6 +805,332 @@
                     }
                 });
             });
+
+            // -----
+            // Onglet Containers
+            // -----
+
+            /* Le tableau doit être géré par AJAX afin de faciliter le reload & pagination */
+            tableContainers = $('#table-containers').DataTable({
+                pageLength: 5,
+                ajax: '{{ path("containers_by_project_datatable", {'id' : project.id}) }}',
+                dataSrc: 'data',
+                order: [[4, "desc"]],
+                columns: [
+                    { data: 'label' },
+                    { 
+                        data: 'namespaces',
+                        render: function ( data, type, row, meta ) {
+                            if(data.length === 0) {
+                                return '<em>No namespaces linked to this container.</em>';
+                            }
+
+                            let namespacesListHtml = `
+                                <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <ul>
+                                `;
+
+                            for(const namespace of data) {
+                                const urlNamespace = $('#table-containers').data("url-namespace").replace("__NAMESPACE_ID__", namespace.id);
+                                namespacesListHtml += `
+                                    <li>
+                                        <a href="${urlNamespace}">${namespace.label}</a>
+                                    </li>
+                                    `;
+                            }
+
+                            namespacesListHtml += `</ul>`;
+
+                            if(data.length > 0) {
+                                namespacesListHtml += `
+                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                                `;
+                            }
+
+                            return namespacesListHtml;
+                        }
+                    },
+                    { 
+                        data: null,
+                        render: function ( data, type, row, meta ) {
+                            return '<em>Coming soon...</em>';
+                        }
+                    },
+                    { 
+                        data: 'isOngoing',
+                        render: function ( data, type, row, meta ) {
+                            return data ? 'Ongoing' : 'Published';
+                        }
+                    },
+                    { data: 'lastUpdate' },
+                    { 
+                        data: null,
+                        render: function ( data, type, row, meta ) {
+                            // Si ongoing, on peut éditer le container, sinon non
+                            if (!row.isOngoing) {
+                                return `
+                                    <button class="btn btn-primary view-container" data-container-id="${row.id}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                `;
+                            }
+                            return `
+                                <button class="btn btn-success edit-container" data-container-id="${row.id}">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    $(row).attr('data-container-id', data.id);
+                },
+            });
+
+            /* Remettre la ligne sélectionnée après un reload */
+            tableContainers.on('draw', function() {
+                // Récupérer le containerId dans containerContent s'il existe
+                const containerId = $('#containerContent').attr("data-container-id");
+                
+                console.log('Table redrawn, trying to keep selected row...' + containerId);
+                if(!containerId) {
+                    console.log('No containerId found in containerContent, skipping row selection.');
+                    return;
+                }
+
+
+                // Chercher la ligne du tableau
+                const $row = $(`#table-containers tbody tr[data-container-id="${containerId}"]`);
+                if ($row.length > 0) {
+                    $row.addClass('info');
+                }
+            });
+
+            $(document).on("click", ".edit-container", function() {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                var url = '{{ path("container", {'id' : 'containerID'}) }}';
+                const urlNamespace = $('#table-containers').data("url-namespace");
+                const containerContentNode = $('#containerContent');
+                containerContentNode.attr("data-container-id", containerId);
+
+                containerContentNode.html('<div class="loader"><span class="fas fa-spinner fa-spin"></span> Loading container content...</div>');
+
+                url = url.replace("containerID", containerId);
+                $.ajax({
+                    url: url ,
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(container){
+                        const titleText = container.label;
+                        let title = containerContentNode.prev('.selected-container-title');
+                        if (title.length === 0) {
+                            containerContentNode.before(`
+                                <h4 class="selected-container-title"></h4>
+                            `);
+                            title = containerContentNode.prev('.selected-container-title');
+                        }
+
+                        title.text(titleText);
+
+                        // Vérifier si le bouton n'existe déjà pas
+                        if ($('#btnPublish').length === 0) {
+                            containerContentNode.after(`
+                                <p class="text-muted"><em>Once published, the container will be read-only.</em></p>
+                                <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container</button>
+                            `);
+                        }
+                        else{
+                            $('#btnPublish').data("container-id", container.id);
+                        }
+
+                        let contentHtml = `
+                            <div id="containerNamespaces">
+                                <div id="headerContainerNamespaces">
+                                    <h4>Namespaces</h4>
+                                    <p><em>Available through the owl:imports API for this container</em></p>
+                                </div>
+                                <div id="namespacesList">
+                        `;
+                        
+                        if(container.namespaces.length === 0) {
+                            contentHtml += '<p>There is currently no namespace linked to this container.</p>';
+                        }
+
+                        for (const namespace of container.namespaces) {
+                            contentHtml += `
+                                    <div class="namespaceRow" data-namespace-id="` + namespace.id + `">
+                                        <div class="namespaceRowLine">
+                                            <i class="fas fa-times text-danger delete-association-container-namespace" data-container-id="` + container.id + `" data-namespace-id="` + namespace.id + `"></i>
+                                            <a href="` + urlNamespace.replace("__NAMESPACE_ID__", namespace.id) + `">` + namespace.standardLabel + `</a>
+                                        </div>
+                                    ` 
+                                    + (namespace.referencedNamespaces.length > 0 ? `
+                                        <div class="referencedNamespacesList">
+                                            <span class="text-muted small"><strong><em>Referenced:</em></strong></span>
+                                    `
+                                            + namespace.referencedNamespaces.map(ref => `
+                                            <div class="referencedNamespaceRow">
+                                                <a href="` + urlNamespace.replace("__NAMESPACE_ID__", ref.id) + `">` + ref.standardLabel + `</a>
+                                            </div>`).join('') + `
+                                        </div>`
+                                    : '') + `
+                                    </div>
+                            `;
+                        }
+
+                        contentHtml += `
+                                </div>
+                                <div id="addNamespaceContainerDiv" data-container-id="` + container.id + `">
+                                    <button class="btn btn-primary add-namespace-to-container-btn">
+                                        <i class="fas fa-plus"></i> Add a namespace
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="containerPathbuilders">
+                                <h4>Pathbuilders</h4>
+                                <p><em>Coming soon...</em></p>
+                            </div>
+                        `;
+
+                        containerContentNode.html(contentHtml);
+                    }
+                });
+            });
+
+            $(document).on("click", "#button-new-container", function() {
+                const newContainerForm = $('#createContainer');
+
+                newContainerForm.slideToggle(300);
+            });
+
+            $(document).on("click", "#submit-new-container", function() {
+                const containerLabel = $('#new-container-label').val();
+                if(containerLabel.trim() === '') {
+                    alert('Please enter a name for the container.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ path("container_create") }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        project_id: {{ project.id }},
+                        label: containerLabel
+                    },
+                    success:function(container){
+                        // Recharge la page pour afficher le nouveau container dans la liste et éviter les problèmes de cache
+                        location.reload();
+                    }
+                });
+            });
+
+            $(document).on("click", ".add-namespace-to-container-btn", function() {
+                const addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+
+                // Récupérer les Root namespaces déjà associés au container pour les exclure du select
+                const containerId = $("#addNamespaceContainerDiv").data("container-id");
+                $.ajax({
+                    url: '{{ path("container_root_namespaces_not_associated", {'id' : 'containerID'}) }}'.replace("containerID", containerId),
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(data){
+                        // Ajouter un select pour choisir le namespace à ajouter
+                        const selectHtml = `
+                            <label for="addRootNamespaceSelect">Pick a namespace:</label>
+                            <select id="addRootNamespaceSelect" class="form-control">
+                                <option value="">Select a root namespace to find a namespace version</option>
+                                ${data.map(nsRoot => `<option value="${nsRoot.id}">${nsRoot.standardLabel}</option>`).join('')}
+                            </select>
+                        `;
+
+                        addNamespaceContainerDiv.html(selectHtml);
+                    }
+                });
+            });
+
+            $(document).on("change", "#addRootNamespaceSelect", function() {
+                $("#addNamespaceSelectDiv").remove();
+                $("#addRootNamespaceSelect").after(`
+                    <div id="addNamespaceSelectDiv">
+                        <select id="addNamespaceSelect" class="form-control">
+                            <option value="">Select a namespace to add it to the container</option>
+                        </select>
+                        <button class="btn btn-primary" id="confirmAddNamespaceToContainerBtn">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                `);
+
+                let selectedValue = $(this).val();
+                let url = '{{ path("namespaces_by_root_id_list_json", {'id': 'selectedValue'}) }}'; 
+                url = url.replace("selectedValue", selectedValue);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(data){
+                        const namespaces = data.namespaces;
+                        const namespaceSelect = $('#addNamespaceSelect');
+                        namespaceSelect.empty();
+                        for(const namespace of namespaces) {
+                            namespaceSelect.append(`<option value="${namespace.id}">${namespace.standardLabel}</option>`);
+                        }
+                    }
+                });
+            });
+
+            $(document).on("click", "#confirmAddNamespaceToContainerBtn", function() {
+                const selectedNamespaceId = $("#addNamespaceSelect").val();
+                const containerId = $("#addNamespaceContainerDiv").data("container-id");
+                let url = '{{ path("association_container_namespace_create") }}';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        container_id: containerId,
+                        namespace_id: selectedNamespaceId
+                    },
+                    success:function(data){
+                        // Simuler le click sur edit-container pour rafraîchir la liste des namespaces associés au container
+                        $(".edit-container[data-container-id='" + containerId + "']").click();
+
+                        // Mettre à jour le tableau via son ajax
+                        tableContainers.ajax.reload();
+                    }
+                });
+            });
+
+            $(document).on("click", ".delete-association-container-namespace", function() {
+                // Récupérer le noeud cliqué
+                var $clickedIcon = $(this);
+                var containerId = $(this).data("container-id");
+                var namespaceId = $(this).data("namespace-id");
+                var url = $('#table-containers').data("url-delete-association-container-namespace");
+                url = url.replace("__CONTAINER_ID__", containerId);
+                url = url.replace("__NAMESPACE_ID__", namespaceId);
+
+                $.ajax({
+                    url: url ,
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(data){
+                        $clickedIcon.closest('.namespaceRow').remove();
+                        if($('.namespaceRow').length === 0) {
+                            $('#namespacesList').html('<p>There is currently no namespace linked to this container.</p>');
+                        }
+
+                        // Mettre à jour le tableau via son ajax
+                        tableContainers.ajax.reload();
+                    }
+                });
+            });
+
 
             // -----
             // Onglet Profiles

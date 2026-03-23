@@ -293,6 +293,12 @@ class OntoNamespace
     private $propertyVersions;
 
     /**
+     * @ORM\ManyToMany(targetEntity="Container", mappedBy="namespaces")
+     * @ORM\OrderBy({"id" = "ASC"})
+     */
+    private $containers;
+
+    /**
      * @return mixed
      */
     public function getCurrentClassNumber()
@@ -390,6 +396,7 @@ class OntoNamespace
         $this->projectAssociations = new ArrayCollection();
         $this->classVersions = new ArrayCollection();
         $this->propertyVersions = new ArrayCollection();
+        $this->containers = new ArrayCollection();
     }
 
     /**
@@ -1116,5 +1123,30 @@ class OntoNamespace
                     break;
             }
             return $arrStr;
+    }
+
+    public function addContainer(Container $container)
+    {
+        if ($this->containers->contains($container)) {
+            return;
+        }
+        $this->containers[] = $container;
+        // needed to update the owning side of the relationship!
+        $container->addNamespace($this);
+    }
+
+    public function removeContainer(Container $container)
+    {
+        if (!$this->containers->contains($container)) {
+            return;
+        }
+        $this->containers->removeElement($container);
+        // needed to update the owning side of the relationship!
+        $container->removeNamespace($this);
+    }
+
+    public function getContainers()
+    {
+        return $this->containers;
     }
 }

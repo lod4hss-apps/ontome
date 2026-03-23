@@ -281,14 +281,6 @@ class OntoClass
     /**
      * @return mixed
      */
-    public function getStandardLabel()
-    {
-        return $this->standardLabel;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getNotes()
     {
         return $this->notes;
@@ -369,14 +361,6 @@ class OntoClass
     /**
      * @return OntoNamespace
      */
-    public function getOngoingNamespace()
-    {
-        return $this->ongoingNamespace;
-    }
-
-    /**
-     * @return OntoNamespace
-     */
     public function getTopLevelNamespace()
     {
         /** On n'a besoin que d'un seul namespace, donc on pioche le 1er */
@@ -438,22 +422,6 @@ class OntoClass
     public function setIsManualIdentifier($isManualIdentifier)
     {
         $this->isManualIdentifier = $isManualIdentifier;
-    }
-
-    /**
-     * @param mixed $propertiesAsDomain
-     */
-    public function setPropertiesAsDomain($propertiesAsDomain)
-    {
-        $this->propertiesAsDomain = $propertiesAsDomain;
-    }
-
-    /**
-     * @param mixed $propertiesAsRange
-     */
-    public function setPropertiesAsRange($propertiesAsRange)
-    {
-        $this->propertiesAsRange = $propertiesAsRange;
     }
 
     /**
@@ -543,14 +511,6 @@ class OntoClass
             return;
         }
         $this->namespaces[] = $namespace;
-    }
-
-    public function addPropertyAsDomain(Property $property)
-    {
-        if ($this->propertiesAsDomain->contains($property)) {
-            return;
-        }
-        $this->propertiesAsDomain[] = $property;
     }
 
     public function addProfile(Profile $profile)

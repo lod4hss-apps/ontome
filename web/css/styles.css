@@ -884,3 +884,84 @@ FOOTER Styling
 .xsmall{
     font-size: 0.8em;
 }
+
+/* New styles */
+.d-flex {
+    display: flex;
+}
+.justify-content-between {
+    justify-content: space-between;
+}
+.align-items-center {
+    align-items: center;
+}
+.align-content-center {
+    align-content: center;
+}
+
+.loader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #3a3a3a;
+}
+
+#containerContent {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+#containerNamespaces, #containerPathbuilders, #createContainer{
+    border: solid 1px #ddd;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+#containerContentTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#containerNamespaces, #containerPathbuilders {
+    width: 50%;
+}
+
+#containerNamespaces .namespacesList{
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.referencedNamespacesList {
+    margin-left: 1.5rem;
+}
+
+.referencedNamespaceRow {
+    border-left: solid 3px darkgrey;
+    padding-left: 0.5rem;
+}
+
+#addNamespaceContainerDiv {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#addNamespaceSelectDiv{
+    display: flex;
+    gap: 0.5rem;
+}
+
+#addNamespaceSelectDiv select{
+    flex-grow: 1;
+}
+
+#addNamespaceSelectDiv button{
+    flex-shrink: 1;
+}

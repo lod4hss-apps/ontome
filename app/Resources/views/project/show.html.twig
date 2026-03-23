@@ -1,6 +1,8 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ project.standardLabel }}{% endblock %}
+{% block title %}
+    {{ project.standardLabel }}
+{% endblock %}
 
 {% block body %}
 
@@ -21,8 +23,9 @@
             <li><a data-toggle="tab" href="#identification">Identification</a></li>
             <li><a data-toggle="tab" href="#definition">Definition</a></li>
             <li><a data-toggle="tab" href="#project-hierarchy">Hierarchy</a></li>
-            <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
+            <li><a data-toggle="tab" href="#containers">Containers</a></li>
             <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
+            <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
             <li><a data-toggle="tab" href="#vocabulary">Vocabulary</a></li>
             <li><a data-toggle="tab" href="#members">Members</a></li>
             <!-- <li><a data-toggle="tab" href="#comments-list">Comments list</a></li> -->
@@ -271,6 +274,33 @@
                     </tbody>
                 </table>
             </div>
+            <div id="containers" class="tab-pane fade">
+                <h3>Containers</h3>
+                <table id="table-containers" class="table table-striped" 
+                    data-url-namespace="{{ path('namespace_show', {'id' : '__NAMESPACE_ID__'}) }}" 
+                    data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : '__CONTAINER_ID__', 'namespaceId' : '__NAMESPACE_ID__'}) }}"
+                    data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : '__CONTAINER_ID__'}) }}"
+                    >
+                    <thead>
+                        <tr>
+                            <th>Container name</th>
+                            <th>Namespaces</th>
+                            <th>Pathbuilders</th>
+                            <th>Status</th>
+                            <th>Last updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Remplissage auto -->
+                    </tbody>
+                </table>
+                <h3>Content from selected container</h3>
+                <div id="containerContent">
+                    <!-- Remplissage auto -->
+                    <p><em>Please select a container to see its content.</em></p>
+                </div>
+            </div>
             <div id="profiles" class="tab-pane fade">
                 <h3>Profiles owned by this project</h3>
                 <table class="table table-striped" id="owned-profiles-table">
@@ -446,7 +476,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Onglet Comment List - Retiré par AP - Sauvegardé sous Desktop/commentList.txt -->
         </div>
     </div>
 
@@ -491,6 +520,81 @@
                     }
                 });
             });
+            
+            $(document).on("click", ".view-container", function() {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                var url = '{{ path("container", {'id' : 'containerID'}) }}';
+                const urlNamespace = $('#table-containers').data("url-namespace");
+                const containerContentNode = $('#containerContent');
+                containerContentNode.attr("data-container-id", containerId);
+
+                containerContentNode.html('<div class="loader"><span class="fas fa-spinner fa-spin"></span> Loading container content...</div>');
+
+                url = url.replace("containerID", containerId);
+                $.ajax({
+                    url: url ,
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(container){
+                        const titleText = 'Selected: ' + container.label;
+                        let $title = containerContentNode.prev('.selected-container-title');
+
+                        if ($title.length === 0) {
+                            containerContentNode.before('<h4 class="selected-container-title"></h4>');
+                            $title = containerContentNode.prev('.selected-container-title');
+                        }
+
+                        $title.text(titleText);
+
+                        let contentHtml = `
+                            <div id="containerNamespaces">
+                                <div id="headerContainerNamespaces">
+                                    <h4>Namespaces</h4>
+                                    <p><em>Available through the owl:imports API for this container</em></p>
+                                </div>
+                                <div id="namespacesList">
+                        `;
+                        
+                        if(container.namespaces.length === 0) {
+                            contentHtml += '<p>There is currently no namespace linked to this container.</p>';
+                        }
+
+                        for (const namespace of container.namespaces) {
+                            contentHtml += `
+                                    <div class="namespaceRow" data-namespace-id="` + namespace.id + `">
+                                        <div class="namespaceRowLine">
+                                            <a href="` + urlNamespace.replace("__NAMESPACE_ID__", namespace.id) + `">` + namespace.standardLabel + `</a>
+                                        </div>
+                                    ` 
+                                    + (namespace.referencedNamespaces.length > 0 ? `
+                                        <div class="referencedNamespacesList">
+                                            <span class="text-muted small"><strong><em>Referenced:</em></strong></span>
+                                    `
+                                            + namespace.referencedNamespaces.map(ref => `
+                                            <div class="referencedNamespaceRow">
+                                                <a href="` + urlNamespace.replace("__NAMESPACE_ID__", ref.id) + `">` + ref.standardLabel + `</a>
+                                            </div>`).join('') + `
+                                        </div>`
+                                    : '') + `
+                                    </div>
+                            `;
+                        }
+
+                        contentHtml += `
+                                </div>
+                            </div>
+                            <div id="containerPathbuilders">
+                                <h4>Pathbuilders</h4>
+                                <p><em>Coming soon...</em></p>
+                            </div>
+                        `;
+
+                        containerContentNode.html(contentHtml);
+                    }
+                });
+            });
 
             //confirmation box for profile recreate action
             $('.recreate-btn').on('click', function() {
@@ -518,6 +622,75 @@
             });
 
             $('#api-owl-url').hide();
+
+            /* Container */
+
+            /* Le tableau doit être géré par AJAX afin de faciliter le reload & pagination */
+            tableContainers = $('#table-containers').DataTable({
+                pageLength: 5,
+                ajax: '{{ path("containers_by_project_datatable", {'id' : project.id}) }}',
+                dataSrc: 'data',
+                order: [[4, "desc"]],
+                columns: [
+                    { data: 'label' },
+                    { 
+                        data: 'namespaces',
+                        render: function ( data, type, row, meta ) {
+                            if(data.length === 0) {
+                                return '<em>No namespaces linked to this container.</em>';
+                            }
+
+                            let namespacesListHtml = `
+                                <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <ul>
+                                `;
+
+                            for(const namespace of data) {
+                                const urlNamespace = $('#table-containers').data("url-namespace").replace("__NAMESPACE_ID__", namespace.id);
+                                namespacesListHtml += `
+                                    <li>
+                                        <a href="${urlNamespace}">${namespace.label}</a>
+                                    </li>
+                                    `;
+                            }
+
+                            namespacesListHtml += `</ul>`;
+
+                            if(data.length > 0) {
+                                namespacesListHtml += `
+                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                                `;
+                            }
+
+                            return namespacesListHtml;
+                        }
+                    },
+                    { 
+                        data: null,
+                        render: function ( data, type, row, meta ) {
+                            return '<em>Coming soon...</em>';
+                        }
+                    },
+                    { 
+                        data: 'isOngoing',
+                        render: function ( data, type, row, meta ) {
+                            return data ? 'Ongoing' : 'Published';
+                        }
+                    },
+                    { data: 'lastUpdate' },
+                    { 
+                        data: null,
+                        render: function ( data, type, row, meta ) {
+                            return `
+                                <button class="btn btn-primary view-container" data-container-id="${row.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ]
+            });
         } );
     </script>
 
