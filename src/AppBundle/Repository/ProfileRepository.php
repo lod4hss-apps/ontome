@@ -132,12 +132,13 @@ class ProfileRepository extends EntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT pk_profile AS \"profileId\", standard_label AS \"standardLabel\"
+        $sql = "SELECT DISTINCT pk_profile AS \"profileId\", standard_label AS \"standardLabel\", version AS \"version\"
                 FROM che.profile
                 WHERE (was_closed_at IS NOT NULL OR is_forced_publication) AND end_date IS NULL AND NOT is_root_profile
                 EXCEPT 
                 SELECT DISTINCT pk_profile AS id, 
-                standard_label AS \"standardLabel\"
+                standard_label AS \"standardLabel\",
+                version AS \"version\"
                 FROM che.profile
                 WHERE pk_profile IN(
                   SELECT fk_profile 
