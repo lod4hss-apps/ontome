@@ -44,10 +44,20 @@ class ContainerController extends Controller
             ];
         }
 
+        $pathbuilders = $container->getPathbuilders();
+        $pathbuildersData = [];
+        foreach ($pathbuilders as $pathbuilder) {
+            $pathbuildersData[] = [
+                'id' => $pathbuilder->getId(),
+                'label' => $pathbuilder->getLabel()->getLabel()
+            ];
+        }
+
         $containerData = [
             'id' => $container->getId(),
             'label' => $label,
             'namespaces' => $namespacesData,
+            'pathbuilders' => $pathbuildersData,
             'isOngoing' => $container->getIsOngoing()
         ];
 

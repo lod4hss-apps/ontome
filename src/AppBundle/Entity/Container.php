@@ -10,6 +10,7 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Class Container
@@ -39,6 +40,11 @@ class Container
      *      )
      */
     private $namespaces;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Pathbuilder", mappedBy="container")
+     */
+    private $pathbuilders;
 
     /**
      * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Label", inversedBy="containers")
@@ -74,6 +80,12 @@ class Container
      * @ORM\Column(type="datetime")
      */
     private $modificationTime;
+
+    public function __construct()
+    {
+        $this->namespaces = new ArrayCollection();
+        $this->pathbuilders = new ArrayCollection();
+    }
 
     /**
      * @return mixed
@@ -186,6 +198,31 @@ class Container
     public function getNamespaces()
     {
         return $this->namespaces;
+    }
+
+    /**
+    * @param mixed $pathbuilder
+    */
+    public function addPathbuilder($pathbuilder)
+    {
+        if(!$this->pathbuilders->contains($pathbuilder)){
+            $this->pathbuilders->add($pathbuilder);
+        }
+    }
+
+    public function removePathbuilder($pathbuilder)
+    {
+        if($this->pathbuilders->contains($pathbuilder)){
+            $this->pathbuilders->removeElement($pathbuilder);
+        }
+    }
+
+    /**
+    * @return mixed
+    */
+    public function getPathbuilders()
+    {
+        return $this->pathbuilders;
     }
 
     /**

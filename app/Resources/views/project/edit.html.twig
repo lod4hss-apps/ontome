@@ -397,26 +397,27 @@
                     <input type="text" id="new-container-label" class="form-control" placeholder="Enter container name">
                     <button type="button" class="btn btn-primary" id="submit-new-container" style="margin-top: 10px;">Submit</button>
                 </div>
-                <table id="table-containers" class="table table-striped" 
-                    data-url-namespace="{{ path('namespace_show', {'id' : '__NAMESPACE_ID__'}) }}" 
-                    data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : '__CONTAINER_ID__', 'namespaceId' : '__NAMESPACE_ID__'}) }}"
-                    data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : '__CONTAINER_ID__'}) }}"
-                    >
-                    <thead>
-                        <tr>
-                            <th>Container name</th>
-                            <th>Namespaces</th>
-                            <th>Pathbuilders</th>
-                            <th>Status</th>
-                            <th>Last updated</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Remplissage auto -->
-                    </tbody>
-                </table>
-
+                <div class="table-responsive">
+                    <table id="table-containers" class="table table-striped" 
+                        data-url-namespace="{{ path('namespace_show', {'id' : '__NAMESPACE_ID__'}) }}" 
+                        data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : '__CONTAINER_ID__', 'namespaceId' : '__NAMESPACE_ID__'}) }}"
+                        data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : '__CONTAINER_ID__'}) }}"
+                        >
+                        <thead>
+                            <tr>
+                                <th>Container name</th>
+                                <th>Namespaces</th>
+                                <th>Pathbuilders</th>
+                                <th>Status</th>
+                                <th>Last updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Remplissage auto -->
+                        </tbody>
+                    </table>
+                </div>
                 <h3>Content from selected container</h3>
                 <div id="containerContent">
                     <!-- Remplissage auto -->
@@ -823,6 +824,7 @@
             /* Le tableau doit être géré par AJAX afin de faciliter le reload & pagination */
             tableContainers = $('#table-containers').DataTable({
                 pageLength: 5,
+                autoWidth: false,
                 ajax: '{{ path("containers_by_project_datatable", {'id' : project.id}) }}',
                 dataSrc: 'data',
                 order: [[4, "desc"]],
@@ -862,9 +864,20 @@
                         }
                     },
                     { 
-                        data: null,
+                        data: 'pathbuilders',
                         render: function ( data, type, row, meta ) {
-                            return '<em>Coming soon...</em>';
+                            if(data.length === 0) {
+                                return '<em>No pathbuilders linked to this container.</em>';
+                            }
+
+                            let pathbuildersListHtml = `<ul>`;
+                            for(const pathbuilder of data) {
+                                pathbuildersListHtml += `
+                                    <li>${pathbuilder.label}</li>
+                                `;
+                            }
+                            pathbuildersListHtml += `</ul>`;
+                            return pathbuildersListHtml;
                         }
                     },
                     { 
@@ -1001,7 +1014,48 @@
                             </div>
                             <div id="containerPathbuilders">
                                 <h4>Pathbuilders</h4>
-                                <p><em>Coming soon...</em></p>
+                        `;
+
+                        if(container.pathbuilders.length === 0) {
+                            contentHtml += `
+                                <p><em>No pathbuilder linked to this container.</em></p>
+                            `;
+                        }
+                        else{
+                            contentHtml += `
+                                <div class="table-responsive" id="pathbuildersList">
+                                    <table class="table table-striped">
+                                        <tbody>
+                            `;
+
+                            for (const pathbuilder of container.pathbuilders) {
+                                contentHtml += `
+                                        <tr class="pathbuilderRow">
+                                            <td>
+                                                <i class="fas fa-times text-danger delete-pathbuilder" data-pathbuilder-id="` + pathbuilder.id + `"></i>
+                                            </td>
+                                            <td>` + pathbuilder.label + `</td>
+                                            <td>
+                                                <a href="#">
+                                                    <i class="fas fa-file-export export-pathbuilder-btn" data-pathbuilder-id="` + pathbuilder.id + `" title="Export this pathbuilder"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                `;
+                            }
+                            contentHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+
+                        contentHtml += `
+                                <div id="addPathbuilderContainerDiv" data-container-id="` + container.id + `">
+                                    <button class="btn btn-primary add-pathbuilder-to-container-btn">
+                                        <i class="fas fa-plus"></i> Add a pathbuilder
+                                    </button>
+                                </div>
                             </div>
                         `;
 
@@ -1060,6 +1114,20 @@
                         addNamespaceContainerDiv.html(selectHtml);
                     }
                 });
+            });
+
+            $(document).on("click", ".add-pathbuilder-to-container-btn", function() {
+                const addPathbuilderContainerDiv = $('#addPathbuilderContainerDiv');
+
+                const formHtml = `
+                    <label for="addPathbuilderForm">Create a new pathbuilder:</label>
+                    <input type="text" id="newPathbuilderLabel" class="form-control" placeholder="Enter the label of the pathbuilder to add">
+                    <input type="file" id="newPathbuilderFile" class="form-control-file" accept=".xml">
+                    <button class="btn btn-primary" id="confirmAddPathbuilderToContainerBtn">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                `;
+                addPathbuilderContainerDiv.html(formHtml);
             });
 
             $(document).on("change", "#addRootNamespaceSelect", function() {

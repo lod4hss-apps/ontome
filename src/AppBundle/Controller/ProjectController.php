@@ -1716,12 +1716,21 @@ class ProjectController  extends Controller
                     );
                 }
 
+                $pathbuilders = [];
+                $pathbuildersResponse = $container->getPathbuilders();
+                foreach ($pathbuildersResponse as $pathbuilder) {
+                    $pathbuilders[] = array(
+                        'id' => $pathbuilder->getId(),
+                        'label' => $pathbuilder->getLabel()->getLabel()
+                    );
+                }
+
                 $containers[] = array(
                     'id' => $container->getId(),
                     'label' => $container->getLabel()->getLabel(),
                     'lastUpdate' => $container->getModificationTime()->format('Y-m-d H:i:s'),
                     'namespaces' => $namespaces,
-                    'pathbuilders' => '', //TODO pathbuilders
+                    'pathbuilders' => $pathbuilders,
                     'isOngoing' => $container->getIsOngoing()
                 );
             }

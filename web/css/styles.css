@@ -932,7 +932,8 @@ FOOTER Styling
     width: 50%;
 }
 
-#containerNamespaces .namespacesList{
+#containerNamespaces .namespacesList,
+#containerPathbuilders .pathbuildersList {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -947,10 +948,14 @@ FOOTER Styling
     padding-left: 0.5rem;
 }
 
-#addNamespaceContainerDiv {
+#addNamespaceContainerDiv, #addPathbuilderContainerDiv {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+}
+
+#pathbuildersList{
+    flex-grow: 1;
 }
 
 #addNamespaceSelectDiv{
