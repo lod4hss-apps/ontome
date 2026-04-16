@@ -12,11 +12,13 @@ use AppBundle\Entity\ClassAssociation;
 use AppBundle\Entity\EntityAssociation;
 use AppBundle\Entity\Label;
 use AppBundle\Entity\OntoClass;
+use AppBundle\Entity\Container;
 use AppBundle\Entity\OntoClassVersion;
 use AppBundle\Entity\OntoNamespace;
 use AppBundle\Entity\Profile;
 use AppBundle\Entity\Project;
 use AppBundle\Entity\ProjectAssociation;
+use AppBundle\Entity\Pathbuilder;
 use AppBundle\Entity\Property;
 use AppBundle\Entity\PropertyAssociation;
 use AppBundle\Entity\PropertyVersion;
@@ -1744,5 +1746,102 @@ class ProjectController  extends Controller
         }
 
         return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
+    }
+
+    /**
+     * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"})
+     * @Method("GET")
+     * @param Pathbuilder $pathbuilder
+    * @return Response an XML file response with the content of the pathbuilder to export
+     */
+    public function exportPathbuilderAction(Pathbuilder $pathbuilder)
+    {
+        $xmlContent = $pathbuilder->getXmlContent();
+
+        $response = new Response($xmlContent);
+        $response->headers->set('Content-Type', 'application/xml');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $pathbuilder->getLabel()->getLabel() . '.xml"');
+
+        return $response;
+    }
+    /**
+     * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"})
+     * @Method("POST")
+     * @param Container $container
+     * @return JsonResponse a Json response with the id and label of the created pathbuilder
+     */
+    public function createAssociationContainerPathbuilderAction(Container $container, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $container->getProject());
+
+        $em = $this->getDoctrine()->getManager();
+        $pathbuilderLabel = trim((string)$request->request->get('label', ''));
+        if ($pathbuilderLabel === '') {
+            $pathbuilderLabel = $container->getLabel()->getLabel();
+        }
+
+        $uploadedFile = $request->files->get('file');
+        $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>';
+
+        if (!is_null($uploadedFile)) {
+            $uploadedContent = file_get_contents($uploadedFile->getPathname());
+            if ($uploadedContent !== false && trim($uploadedContent) !== '') {
+                $xmlContent = $uploadedContent;
+            }
+        }
+
+        $newPathbuilderLabel = new Label();
+        $newPathbuilderLabel->setLabel($pathbuilderLabel);
+        $newPathbuilderLabel->setInverseLabel('');
+        $newPathbuilderLabel->setLanguageIsoCode($container->getLabel()->getLanguageIsoCode());
+        $newPathbuilderLabel->setIsStandardLabelForLanguage(true);
+        $newPathbuilderLabel->setCreator($this->getUser());
+        $newPathbuilderLabel->setModifier($this->getUser());
+        $newPathbuilderLabel->setCreationTime(new \DateTime('now'));
+        $newPathbuilderLabel->setModificationTime(new \DateTime('now'));
+        $em->persist($newPathbuilderLabel);
+
+        $pathbuilder = new Pathbuilder();
+        $pathbuilder->setLabel($newPathbuilderLabel);
+        $pathbuilder->setContainer($container);
+        $pathbuilder->setXmlContent($xmlContent);
+        $pathbuilder->setCreator($this->getUser());
+        $pathbuilder->setModifier($this->getUser());
+        $pathbuilder->setCreationTime(new \DateTime('now'));
+        $pathbuilder->setModificationTime(new \DateTime('now'));
+        $em->persist($pathbuilder);
+
+        $container->addPathbuilder($pathbuilder);
+        $em->persist($container);
+
+        $em->flush();
+
+        return new JsonResponse(array(
+            'id' => $pathbuilder->getId(),
+            'label' => $pathbuilder->getLabel()->getLabel()
+        ));
+    }
+
+    // Supprimer un pathbuilder d'un container
+    /**
+     * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"})
+     * @Method("POST")
+     * @param Container $container
+     * @param Pathbuilder $pathbuilder
+     * @return JsonResponse a Json 204 HTTP response
+     */
+    public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $container->getProject());
+
+        $em = $this->getDoctrine()->getManager();
+
+        $container->removePathbuilder($pathbuilder);
+        $em->persist($container);
+
+        $em->remove($pathbuilder);
+        $em->flush();
+
+        return new JsonResponse(null, 204);
     }
 }
