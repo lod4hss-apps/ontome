@@ -872,8 +872,9 @@
 
                             let pathbuildersListHtml = `<ul>`;
                             for(const pathbuilder of data) {
+                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
                                 pathbuildersListHtml += `
-                                    <li>${pathbuilder.label}</li>
+                                    <li><a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">${pathbuilder.label} <i class="fas fa-file-export"></i></a></li>
                                 `;
                             }
                             pathbuildersListHtml += `</ul>`;
@@ -962,7 +963,7 @@
                         if ($('#btnPublish').length === 0) {
                             containerContentNode.after(`
                                 <p class="text-muted"><em>Once published, the container will be read-only.</em></p>
-                                <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container</button>
+                                <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container <i class="fas fa-upload"></i></button>
                             `);
                         }
                         else{
@@ -1029,15 +1030,21 @@
                             `;
 
                             for (const pathbuilder of container.pathbuilders) {
+                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
+                                const urlPathbuilderDelete = '{{ path("association_container_pathbuilder_delete", {"container": "containerID", "pathbuilder": "pathbuilderID"}) }}'
+                                    .replace('containerID', container.id)
+                                    .replace('pathbuilderID', pathbuilder.id);
                                 contentHtml += `
                                         <tr class="pathbuilderRow">
                                             <td>
-                                                <i class="fas fa-times text-danger delete-pathbuilder" data-pathbuilder-id="` + pathbuilder.id + `"></i>
+                                                <a href="#" class="delete-pathbuilder" data-url="${urlPathbuilderDelete}" data-container-id="${container.id}" data-pathbuilder-id="${pathbuilder.id}">
+                                                    <i class="fas fa-times text-danger" title="Delete this pathbuilder"></i>
+                                                </a>
                                             </td>
                                             <td>` + pathbuilder.label + `</td>
                                             <td>
-                                                <a href="#">
-                                                    <i class="fas fa-file-export export-pathbuilder-btn" data-pathbuilder-id="` + pathbuilder.id + `" title="Export this pathbuilder"></i>
+                                                <a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">
+                                                    <i class="fas fa-file-export" title="Export this pathbuilder"></i>
                                                 </a>
                                             </td>
                                         </tr>
@@ -1130,6 +1137,44 @@
                 addPathbuilderContainerDiv.html(formHtml);
             });
 
+            $(document).on("click", "#confirmAddPathbuilderToContainerBtn", function() {
+                const containerId = $("#addPathbuilderContainerDiv").data("container-id");
+                const pathbuilderLabel = $('#newPathbuilderLabel').val();
+                const pathbuilderFile = $('#newPathbuilderFile')[0].files[0];
+
+                if(pathbuilderLabel.trim() === '') {
+                    alert('Please enter a label for the pathbuilder.');
+                    return;
+                }
+
+                if(!pathbuilderFile) {
+                    alert('Please select an XML file for the pathbuilder.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('label', pathbuilderLabel);
+                formData.append('file', pathbuilderFile);
+
+                const createPathbuilderUrl = '{{ path("association_container_pathbuilder_create", {"container": "containerID"}) }}'.replace('containerID', containerId);
+
+                $.ajax({
+                    url: createPathbuilderUrl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success:function(data){
+                        // Simuler le click sur edit-container pour rafraîchir la liste des pathbuilders associés au container
+                        $(".edit-container[data-container-id='" + containerId + "']").click();
+
+                        // Mettre à jour le tableau via son ajax
+                        tableContainers.ajax.reload();
+                    }
+                });
+            });
+
             $(document).on("change", "#addRootNamespaceSelect", function() {
                 $("#addNamespaceSelectDiv").remove();
                 $("#addRootNamespaceSelect").after(`
@@ -1204,6 +1249,23 @@
                         }
 
                         // Mettre à jour le tableau via son ajax
+                        tableContainers.ajax.reload();
+                    }
+                });
+            });
+
+            $(document).on("click", ".delete-pathbuilder", function(e) {
+                e.preventDefault();
+
+                const containerId = $(this).data("container-id");
+                const url = $(this).data("url");
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    complete: function() {
+                        $(".edit-container[data-container-id='" + containerId + "']").click();
                         tableContainers.ajax.reload();
                     }
                 });

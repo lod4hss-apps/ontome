@@ -608,10 +608,10 @@
                         }
 
                         for (const pathbuilder of container.pathbuilders) {
+                            const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
                             contentHtml += `
                                 <li data-pathbuilder-id="` + pathbuilder.id + `">
-                                    ${pathbuilder.label}
-                                    <i class="fas fa-file-export export-pathbuilder-btn" data-pathbuilder-id="` + pathbuilder.id + `" title="Export this pathbuilder"></i>
+                                    <a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">${pathbuilder.label}</a>
                                 </li>
                             `;
                         }
@@ -705,8 +705,9 @@
 
                             let pathbuildersListHtml = `<ul>`;
                             for(const pathbuilder of data) {
+                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
                                 pathbuildersListHtml += `
-                                    <li>${pathbuilder.label}</li>
+                                    <li><a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">${pathbuilder.label}</a></li>
                                 `;
                             }
                             pathbuildersListHtml += `</ul>`;
