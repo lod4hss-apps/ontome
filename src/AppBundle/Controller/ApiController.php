@@ -403,18 +403,17 @@ class ApiController extends Controller
 
     /**
      * @Route("/api/get-ontome-uri", name="api_get_ontome_uri")
-     * @Method("POST")
-     * @param Request $request
+     * @Method("GET")
+     * @param Request $request the request containing the officialUri parameter
      * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
      * This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
      */
     public function getOntoMeUriFromOfficialUri(Request $request)
     {
-        // Catch from POST request the official URI parameter
-        $officialUri = $request->request->get('official_uri', null);
+        $officialUri = rawurldecode($request->query->get('officialUri'));
 
         if (!$officialUri) {
-            return new JsonResponse(['error' => 'Missing official_uri parameter'], 400, array('content-type:application/problem+json'));
+            return new JsonResponse(['error' => 'Missing officialUri parameter'], 400, array('content-type:application/problem+json'));
         }
 
         $em = $this->getDoctrine()->getManager();
