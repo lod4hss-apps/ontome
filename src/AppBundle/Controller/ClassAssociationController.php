@@ -226,7 +226,7 @@ class ClassAssociationController extends Controller
         }
 
         //Denied access if not an authorized validator
-        $this->denyAccessUnlessGranted('validate', $classAssociation->getChildClass()->getClassVersionForDisplay());
+        $this->denyAccessUnlessGranted('validate', $classAssociation->getNamespaceForVersion());
 
         //Verifier que les références sont cohérents
         $nsRefsClassAssociation = $classAssociation->getNamespaceForVersion()->getAllReferencedNamespaces();

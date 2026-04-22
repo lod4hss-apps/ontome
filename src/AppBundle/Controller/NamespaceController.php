@@ -40,6 +40,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -305,7 +306,14 @@ class NamespaceController  extends Controller
             $ongoingNamespaceHasChanged = $em->getRepository('AppBundle:OntoNamespace')
                 ->checkNamespaceChange($namespace);
 
-            $form = $this->createForm(NamespaceForm::class, $namespace, ['is_root_namespace' => $namespace->getIsTopLevelNamespace()]);
+            $isRoot = $namespace->getIsTopLevelNamespace();
+
+            $form = $this->createForm(NamespaceForm::class, $namespace, [
+                'is_root_namespace' => $isRoot,
+                'validation_groups' => function (FormInterface $form) use ($isRoot) {
+                    return $isRoot === true ? ['Default', 'RequirePrefix'] : ['Default'];
+                },
+            ]);
 
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {

@@ -20,7 +20,10 @@
             </a>
             {% set childClassValidationStatus = classAssociation.childClass.classVersionForDisplay(classAssociation.childClassNamespace).validationStatus %}
             {% set parentClassValidationStatus = classAssociation.parentClass.classVersionForDisplay(classAssociation.parentClassNamespace).validationStatus %}
-            {% if (childClassValidationStatus is null or childClassValidationStatus.id != 26) or (parentClassValidationStatus is null or parentClassValidationStatus.id != 26) %}
+            {% set isChildNamespaceOngoing = classAssociation.childClassNamespace.isOngoing %}
+            {% set isParentNamespaceOngoing = classAssociation.parentClassNamespace.isOngoing %}
+            {% if (isChildNamespaceOngoing and childClassValidationStatus.id != 26)
+                or (isParentNamespaceOngoing and parentClassValidationStatus.id != 26) %}
                 <div class="inline-block">
                     <h4>
                         {% if classAssociation.validationStatus is null %}
