@@ -417,7 +417,7 @@ class ApiController extends Controller
         }
 
         $em = $this->getDoctrine()->getManager();
-        $ontomeUri = $em->getRepository('AppBundle:OntoClass')
+        $ontomeUri = $em->getRepository('AppBundle:Project')
             ->findOntoMeUriFromOfficialUri($officialUri);
 
         if (!$ontomeUri) {
