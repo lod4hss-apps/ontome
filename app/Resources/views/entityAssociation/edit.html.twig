@@ -45,8 +45,10 @@
                 {% set targetValidationStatus = entityAssociation.targetProperty.propertyVersionForDisplay(entityAssociation.targetNamespaceForVersion).validationStatus %}
                 {% set word = "properties" %}
             {% endif %}
+            {% set isSourceNamespaceOngoing = entityAssociation.sourceNamespaceForVersion.isOngoing %}
+            {% set isTargetNamespaceOngoing = entityAssociation.targetNamespaceForVersion.isOngoing %}
 
-            {% if (sourceValidationStatus is null or sourceValidationStatus.id != 26) or (targetValidationStatus is null or targetValidationStatus.id != 26) %}
+            {% if (isSourceNamespaceOngoing and sourceValidationStatus.id != 26) or (isTargetNamespaceOngoing and targetValidationStatus.id != 26) %}
                 <div class="inline-block">
                     <h4>
                         {% if entityAssociation.validationStatus is null %}
@@ -63,7 +65,7 @@
                     </h4>
                 </div>
                 <h6><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span><em>This relation cannot be validated because at least one of the {{ word }} in the relation has not been validated.</em></h6>
-            {% elseif entityAssociation.sourceObjectType == "class" and is_granted('validate', entityAssociation.sourceClass.classVersionForDisplay(entityAssociation.namespaceForVersion)) or entityAssociation.sourceObjectType == "property" and is_granted('validate', entityAssociation.sourceProperty.propertyVersionForDisplay(entityAssociation.namespaceForVersion)) %}
+            {% elseif is_granted('validate', entityAssociation.namespaceForVersion) %}
                 <div class="dropdown inline-block">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdown-validation" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         {% if entityAssociation.validationStatus is null %}

@@ -141,6 +141,11 @@ class Project
      */
     private $projectThesaurusAssociations;
 
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $project_types = [];
+
     public function __construct()
     {
         $this->ownedProfiles = new ArrayCollection();
@@ -153,6 +158,7 @@ class Project
         $this->userProjectAssociations = new ArrayCollection();
         $this->projectAssociations = new ArrayCollection();
         $this->projectThesaurusAssociations = new ArrayCollection();
+        $this->project_types = [];
     }
 
 
@@ -437,6 +443,22 @@ class Project
         $this->labels[] = $label;
         // needed to update the owning side of the relationship!
         $label->setProject($this);
+    }
+
+    /**
+     * @return array
+     */
+    public function getProjectTypes()
+    {
+        return $this->project_types ?: [];
+    }
+
+    /**
+     * @param array|null $projectTypes
+     */
+    public function setProjectTypes(array $projectTypes = null)
+    {
+        $this->project_types = $projectTypes ?: [];
     }
 
     public function __toString()
