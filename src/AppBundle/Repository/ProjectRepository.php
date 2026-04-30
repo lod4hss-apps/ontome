@@ -90,64 +90,79 @@ class ProjectRepository extends EntityRepository
         ));
         $result = $stmt->fetchAll();
 
-        if (empty($result)) {
-            return null;
+        $idNamespaces = !empty($result) ? array_column($result, 'pk_namespace') : null;
+
+        // Search for the class having the identifierInUri (only if namespace found)
+        if ($idNamespaces !== null) {
+            $sql = "SELECT DISTINCT cl.pk_class
+                    FROM che.class cl
+                    LEFT JOIN che.class_version cv ON cl.pk_class = cv.fk_class
+                    WHERE cl.identifier_in_uri = :identifierInUri
+                    AND cv.fk_namespace_for_version IN (".implode(',', $idNamespaces).")";
+
+            $stmt = $conn->prepare($sql);
+            $stmt->execute(array(
+                'identifierInUri' => $identifierInUri
+            ));
+
+            $result = $stmt->fetchAll();
+
+            // If there is something, return the (first) result, otherwise continue with properties
+            if (!empty($result)) {
+                return 'https://ontome.net/ontology/c' . array_column($result, 'pk_class')[0];
+            }
+
+            // If no class is found, search among properties
+            $sql = "SELECT DISTINCT prop.pk_property
+                    FROM che.property prop
+                    LEFT JOIN che.property_version pv ON prop.pk_property = pv.fk_property
+                    WHERE prop.identifier_in_uri = :identifierInUri
+                    AND pv.fk_namespace_for_version IN (".implode(',', $idNamespaces).")";
+
+            $stmt = $conn->prepare($sql);
+            $stmt->execute(array(
+                'identifierInUri' => $identifierInUri
+            ));
+
+            $result = $stmt->fetchAll();
+
+            if (!empty($result)) {
+                return 'https://ontome.net/ontology/p' . array_column($result, 'pk_property')[0];
+            }
+
+            // If no class nor property is found, find the project url
+            if ($idNamespaces !== null) {
+                $sql = "SELECT DISTINCT ns.fk_project_for_top_level_namespace
+                        FROM che.namespace ns
+                        WHERE ns.namespace_uri = :namespaceUri
+                        AND ns.pk_namespace IN (".implode(',', $idNamespaces).")";
+                
+                $stmt = $conn->prepare($sql);
+                $stmt->execute(array(
+                    'namespaceUri' => $namespaceUri
+                ));
+
+                $result = $stmt->fetchAll();
+
+                if (!empty($result)) {
+                    return 'https://ontome.net/project/' . array_column($result, 'fk_project_for_top_level_namespace')[0];
+                }
+            }
         }
 
-        $idNamespaces = array_column($result, 'pk_namespace');
-
-        // Search for the class having the identifierInUri
-        $sql = "SELECT DISTINCT cl.pk_class
-                FROM che.class cl
-                LEFT JOIN che.class_version cv ON cl.pk_class = cv.fk_class
-                WHERE cl.identifier_in_uri = :identifierInUri
-                AND cv.fk_namespace_for_version IN (".implode(',', $idNamespaces).")";
+        // If no namespace is found, check uriProject in project table
+         $sql = "SELECT DISTINCT pr.pk_project
+                FROM che.project pr
+                WHERE pr.uri_project = :uri;";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute(array(
-            'identifierInUri' => $identifierInUri
+            'uri' => $officialUri
         ));
 
         $result = $stmt->fetchAll();
-
-        // If there is something, return the (first) result, otherwise continue with properties
         if (!empty($result)) {
-            return 'https://ontome.net/ontology/c' . array_column($result, 'pk_class')[0];
-        }
-
-        // If no class is found, search among properties
-        $sql = "SELECT DISTINCT prop.pk_property
-                FROM che.property prop
-                LEFT JOIN che.property_version pv ON prop.pk_property = pv.fk_property
-                WHERE prop.identifier_in_uri = :identifierInUri
-                AND pv.fk_namespace_for_version IN (".implode(',', $idNamespaces).")";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
-            'identifierInUri' => $identifierInUri
-        ));
-
-        $result = $stmt->fetchAll();
-
-        if (!empty($result)) {
-            return 'https://ontome.net/ontology/p' . array_column($result, 'pk_property')[0];
-        }
-
-        // If no class nor property is found, find the project url
-         $sql = "SELECT DISTINCT ns.fk_project_for_top_level_namespace
-                FROM che.namespace ns
-                WHERE ns.namespace_uri = :namespaceUri
-                AND ns.pk_namespace IN (".implode(',', $idNamespaces).")";;
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
-            'namespaceUri' => $namespaceUri
-        ));
-
-        $result = $stmt->fetchAll();
-
-        if (!empty($result)) {
-            return 'https://ontome.net/project/' . array_column($result, 'fk_project_for_top_level_namespace')[0];
+            return 'https://ontome.net/project/' . array_column($result, 'pk_project')[0];
         }
 
         return null;

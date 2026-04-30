@@ -166,6 +166,9 @@
                 {% if  project.endDate is not null %}
                     <p>End date: {{ project.endDate|date('Y-m-d') }}</p>
                 {% endif %}
+                {% if  project.uriProject is not null %}
+                    <p>Project URI: <a href="{{ project.uriProject }}">{{ project.uriProject }}</a></p>
+                {% endif %}
                 <div class="pull-right add-div">
                     <a href="{{ path('label_new', {'object': 'project', 'objectId': project.id })}}"
                        class="btn btn-primary pull-right">

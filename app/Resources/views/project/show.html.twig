@@ -147,6 +147,9 @@
                 {% if  project.endDate is not null %}
                     <p>End date: {{ project.endDate|date('Y-m-d') }}</p>
                 {% endif %}
+                {% if  project.uriProject is not null %}
+                    <p>Project URI: <a href="{{ project.uriProject }}">{{ project.uriProject }}</a></p>
+                {% endif %}
                 <h3>Labels</h3>
                 <table class="table table-striped" id="labels-table">
                     <thead>

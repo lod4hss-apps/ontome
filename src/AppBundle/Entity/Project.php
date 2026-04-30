@@ -141,6 +141,11 @@ class Project
      */
     private $projectThesaurusAssociations;
 
+    /**
+     * @ORM\Column(type="text")
+     */
+    private $uriProject;
+
     public function __construct()
     {
         $this->ownedProfiles = new ArrayCollection();
@@ -443,5 +448,21 @@ class Project
     {
         $s = $this->getStandardLabel();
         return (string) $s;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUriProject()
+    {
+        return $this->uriProject;
+    }
+
+    /**
+     * @param mixed $uriProject
+     */
+    public function setUriProject($uriProject)
+    {
+        $this->uriProject = $uriProject;
     }
 }
