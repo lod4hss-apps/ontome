@@ -230,6 +230,74 @@ class ApiController extends Controller
     }
 
     /**
+     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getOwlWisskiByNamespace(Request $request)
+    {
+        // Let's see what environment we're in. If dev, we do not persist files
+        $persistent = true;
+        $currentEnv = $this->getParameter('kernel.environment');
+        if($currentEnv === 'dev') {
+            $persistent = false;
+        }
+
+        try {
+            $lang = $request->get('lang', 'en');
+            $namespaceId = intval($request->get('namespace', 0));
+
+            // Check if we need to reload the file (so with a query SQL)
+            $reload = boolval($request->get('reload', false));
+
+            // Build the path to the expected file (web/documents/files-owl/namespace-<id>.owl)
+            $owlFilePath = 'documents/files-owl/namespace-' . $namespaceId . '.owl';
+
+            // If we don't want to persist, delete the file if it exists
+            if (!$persistent && file_exists($owlFilePath)) {
+                unlink($owlFilePath);
+            }
+
+            // If the file does not exist or if reloading is forced
+            if (!file_exists($owlFilePath) || $reload) {
+                // In this case, we generate the XML with the SQL query.
+                $em = $this->getDoctrine()->getManager();
+                $xml = $em->getRepository('AppBundle:OntoNamespace')
+                    ->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
+
+                // The file is saved if the namespace is not ongoing.
+                // unless $persistent is false, we do not save
+                if ($persistent) {
+                    $isOngoing = $em->getRepository('AppBundle:OntoNamespace')->find($namespaceId)->getIsOngoing();
+                    if (!$isOngoing) {
+                        $xmlContent = simplexml_load_string($xml[0]['result']);
+                        if ($xmlContent !== false) {
+                            // Save the owl file (or overwrite completely in case of reload)
+                            $xmlContent->asXML($owlFilePath);
+                        }
+                    }
+                }
+            } else {
+                // Otherwise, the file exists and we return the content of the owl file
+                $xmlContent = simplexml_load_file($owlFilePath);
+                $xml = [];
+                $xml[0]['result'] = $xmlContent !== false ? $xmlContent->asXML() : '';
+            }
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
      * @Route("/api/project-rdf-owl.rdf", name="api_classes_and_properties_by_project_xml")
      * @Method("GET")
      * @param Request $request
@@ -345,7 +413,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_project")
+     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project")
      * @Method("GET")
      * @param Request $request
      * @return Response

@@ -19,7 +19,10 @@
             </a>
             {% set childValidationStatus = propertyAssociation.childProperty.propertyVersionForDisplay(propertyAssociation.childPropertyNamespace).validationStatus %}
             {% set parentValidationStatus = propertyAssociation.parentProperty.propertyVersionForDisplay(propertyAssociation.parentPropertyNamespace).validationStatus %}
-            {% if (childValidationStatus is null or childValidationStatus.id != 26) or (parentValidationStatus is null or parentValidationStatus.id != 26) %}
+            {% set isChildNamespaceOngoing = propertyAssociation.childPropertyNamespace.isOngoing %}
+            {% set isParentNamespaceOngoing = propertyAssociation.parentPropertyNamespace.isOngoing %}
+            {% if (isChildNamespaceOngoing and childValidationStatus.id != 26)
+                or (isParentNamespaceOngoing and parentValidationStatus.id != 26) %}
                 <div class="inline-block">
                     <h4>
                     {% if propertyAssociation.validationStatus is null %}

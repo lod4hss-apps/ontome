@@ -41,16 +41,26 @@ class ProjectController  extends Controller
 {
     /**
      * @Route("/project")
+     * @Route("/domains", name="domain_list")
      */
     public function listAction()
     {
+        $displayDomains = $this->get('request_stack')->getCurrentRequest()->attributes->get('_route') === 'domain_list';
+        
         $em = $this->getDoctrine()->getManager();
 
         $projects = $em->getRepository('AppBundle:Project')
             ->findAll();
 
+        if($displayDomains){
+            $projects = array_filter($projects, function($project){
+                return in_array('domain', (array) $project->getProjectTypes(), true);
+            });
+        }
+
         return $this->render('project/list.html.twig', [
-            'projects' => $projects
+            'projects' => $projects,
+            'title' => $displayDomains ? 'Domains' : 'Projects'
         ]);
     }
 
@@ -175,6 +185,10 @@ class ProjectController  extends Controller
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
 
+        foreach ($associatedNamespacesForAPIProject as &$associate){
+            $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
+        }
+
         return $this->render('project/show.html.twig', array(
             'project' => $project,
             'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject
@@ -200,6 +214,10 @@ class ProjectController  extends Controller
 
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
+
+        foreach ($associatedNamespacesForAPIProject as &$associate){
+            $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
+        }
 
         $formImport = $this->createForm(ImportNamespaceForm::class);
 
