@@ -49,7 +49,7 @@ class OntoNamespace
      *     min = 1,
      *     max = 6,
      *     minMessage="Your class prefix must be at least {{ limit }} characters long",
-     *     maxMessage="Your class prefix cannot be loger than {{ limit }} characters"
+     *     maxMessage="Your class prefix cannot be longer than {{ limit }} characters"
      * )
      * @ORM\Column(type="text")
      */
@@ -60,7 +60,7 @@ class OntoNamespace
      *     min = 1,
      *     max = 6,
      *     minMessage="Your property prefix must be at least {{ limit }} characters long",
-     *     maxMessage="Your property prefix cannot be loger than {{ limit }} characters"
+     *     maxMessage="Your property prefix cannot be longer than {{ limit }} characters"
      * )
      * @ORM\Column(type="text")
      */
@@ -178,7 +178,13 @@ class OntoNamespace
     private $modificationTime;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 10,
+     *      minMessage="Your root namespace prefix must be at least {{ limit }} characters long",
+     *      maxMessage="Your root namespace prefix cannot be longer than {{ limit }} characters"
+     *  )
+     * @Assert\NotNull(groups={"RequirePrefix"})
      * @ORM\Column(type="text")
      * @Assert\Regex(
      *     pattern="/^[a-z0-9](-?[a-z0-9])*$/",

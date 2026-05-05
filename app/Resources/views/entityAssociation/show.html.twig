@@ -47,9 +47,10 @@
                 {% set targetValidationStatus = entityAssociation.targetProperty.propertyVersionForDisplay(entityAssociation.targetNamespaceForVersion).validationStatus %}
                 {% set word = "properties" %}
             {% endif %}
+            {% set isSourceNamespaceOngoing = entityAssociation.sourceNamespaceForVersion.isOngoing %}
+            {% set isTargetNamespaceOngoing = entityAssociation.targetNamespaceForVersion.isOngoing %}
 
-            {% if (sourceValidationStatus is null or sourceValidationStatus.id != 26) or (targetValidationStatus is null or targetValidationStatus.id != 26) %}
-                <div class="inline-block">
+            {% if (isSourceNamespaceOngoing and sourceValidationStatus.id != 26) or (isTargetNamespaceOngoing and targetValidationStatus.id != 26) %}                <div class="inline-block">
                     <h4>
                         {% if entityAssociation.validationStatus is null %}
                             <span class="label label-info">Candidate</span>

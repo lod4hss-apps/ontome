@@ -284,7 +284,7 @@ class PropertyAssociationController extends Controller
         }
 
         //Denied access if not an authorized validator
-        $this->denyAccessUnlessGranted('validate', $propertyAssociation->getChildProperty()->getPropertyVersionForDisplay());
+        $this->denyAccessUnlessGranted('validate', $propertyAssociation->getNamespaceForVersion());
 
         //Verifier que les références sont cohérents
         $nsRefsPropertyAssociation = $propertyAssociation->getNamespaceForVersion()->getAllReferencedNamespaces();
