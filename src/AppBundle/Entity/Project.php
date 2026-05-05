@@ -142,7 +142,8 @@ class Project
     private $projectThesaurusAssociations;
 
     /**
-     * @ORM\Column(type="text")
+     * @Assert\Url(message="Please enter a valid URI")
+     * @ORM\Column(type="text", nullable=true, unique=true)
      */
     private $uriProject;
   

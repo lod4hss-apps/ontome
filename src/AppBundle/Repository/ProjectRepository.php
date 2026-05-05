@@ -73,6 +73,11 @@ class ProjectRepository extends EntityRepository
         return $stmt->fetchAll();
     }
 
+    /**
+     * @param $officialUri string the official URI of a class or property or project
+     * @return string the corresponding OntoME URI (if it exists), null otherwise
+     * @throws DBALException
+     */
     public function findOntoMeUriFromOfficialUri($officialUri){
         // Find the OntoME URI corresponding to the given official URI of a class or property
         // Ex: https://sdhss.org/ontology/core/C32 -> namespaceUri = https://sdhss.org/ontology/core/ et identifierInUri = C32
