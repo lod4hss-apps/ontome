@@ -1655,4 +1655,37 @@ class ProjectController  extends Controller
         return new JsonResponse(null, 204);
 
     }
+
+    /**
+     * @Route("/project-uri-edit/{project}", name="project_uri_edit", requirements={"project"="^([0-9]+)|(projectID){1}$"})
+     * @Method({ "POST"})
+     * @param Project $project The project for which the URI is to be edited
+     * @param Request $request
+     * @return JsonResponse a Json response with the new project URI
+    */
+    public function editProjectURIAction(Project $project, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $project);
+        $em = $this->getDoctrine()->getManager();
+
+        $newURI = $request->request->get('newUriProject');
+
+        // Si l'url est bien vide ou si elle est au format URL valide
+        if (filter_var($newURI, FILTER_VALIDATE_URL) === false && !empty(trim($newURI))) {
+            return new JsonResponse(['status' => 'Error', 'message' => 'Invalid URI format. Please provide a valid URL.']);
+        }
+
+        try {
+            // Si l'url est vide mettre null
+            if (empty(trim($newURI))) {
+                $newURI = null;
+            }
+            $project->setUriProject($newURI);
+            $em->persist($project);
+            $em->flush();
+            return new JsonResponse(['status' => 'Success', 'message' => 'Project URI successfully updated.', 'newURI' => $newURI]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['status' => 'Error', 'message' => 'An error occurred while updating the project URI.']);
+        }
+    }
 }

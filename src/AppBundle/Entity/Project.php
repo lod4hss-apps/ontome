@@ -142,6 +142,12 @@ class Project
     private $projectThesaurusAssociations;
 
     /**
+     * @Assert\Url(message="Please enter a valid URI")
+     * @ORM\Column(type="text", nullable=true, unique=true)
+     */
+    private $uriProject;
+  
+    /**
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $project_types = [];
@@ -465,5 +471,21 @@ class Project
     {
         $s = $this->getStandardLabel();
         return (string) $s;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUriProject()
+    {
+        return $this->uriProject;
+    }
+
+    /**
+     * @param mixed $uriProject
+     */
+    public function setUriProject($uriProject)
+    {
+        $this->uriProject = $uriProject;
     }
 }

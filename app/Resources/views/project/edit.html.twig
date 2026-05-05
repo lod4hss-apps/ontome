@@ -166,6 +166,7 @@
                 {% if  project.endDate is not null %}
                     <p>End date: {{ project.endDate|date('Y-m-d') }}</p>
                 {% endif %}
+                <p id="project-uri">Project URI: <a href="{{ project.uriProject }}">{{ project.uriProject }}</a> <a id="edit-project-uri" href="#" data-project-uri="{{ project.uriProject }}"><i class="fas fa-pen"></i></a></p>
                 <div class="pull-right add-div">
                     <a href="{{ path('label_new', {'object': 'project', 'objectId': project.id })}}"
                        class="btn btn-primary pull-right">
@@ -1068,6 +1069,44 @@
             });
 
             $('#api-owl-url').hide();
+
+            $(document).on('click', '#edit-project-uri', function() {
+                // Remplacer le texte par un champ de saisie
+                var currentUri = $(this).data('project-uri');
+                var input = $(`
+                <form class="form-inline">                   
+                    <input type="text" id="edit-project-uri-input" class="form-control" value="`+currentUri+`"/> <button id="save-project-uri" class="btn btn-primary">Save</button>
+                </form>
+                `);
+                $(this).replaceWith(input);
+                input.focus();
+            });
+
+            $(document).on('click', '#save-project-uri', function(e) {
+                e.preventDefault();
+                var newUriProject = $('#edit-project-uri-input').val();
+                var url = '{{ path("project_uri_edit", {'project' : project.id}) }}';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { newUriProject: newUriProject },
+                    success:function(data){
+                        if(data.status == 'Error'){
+                            console.log("[API] ERROR: "+data.message);
+                            // Sous l'input, afficher le message d'erreur
+                            if($('#save-project-uri').next('.error-message').length == 0) {
+                                $('#save-project-uri').after('<div class="error-message text-danger">' + data.message + '</div>');
+                            } else {
+                                $('#save-project-uri').next('.error-message').text(data.message);
+                            }
+                        }
+                        if(data.status == 'Success'){
+                            $('#project-uri').html(`Project URI: <a href="`+newUriProject+`">`+newUriProject+`</a> <a id="edit-project-uri" href="#" data-project-uri="`+newUriProject+`"><i class="fas fa-pen"></i></a>`);
+                        }
+                    }
+                });
+            });
         } );
     </script>
     {% include 'projectThesaurusAssociation/js-bock.html.twig'  with {'projectId' : project.id} %}
