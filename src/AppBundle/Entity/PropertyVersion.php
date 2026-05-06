@@ -651,6 +651,7 @@ class PropertyVersion
      */
     public function getIsLinkableURI()
     {
+        return false;
         if(!$this->getNamespaceForVersion()->getIsExternalNamespace()){
             return false; // Namespace interne, donc non linkable.
         }
