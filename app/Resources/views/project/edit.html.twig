@@ -836,31 +836,23 @@
                             if(data.length === 0) {
                                 return '<em>No namespaces linked to this container.</em>';
                             }
-
-                            let namespacesListHtml = `
-                                <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <ul>
-                                `;
-
-                            for(const namespace of data) {
-                                const urlNamespace = $('#table-containers').data("url-namespace").replace("__NAMESPACE_ID__", namespace.id);
-                                namespacesListHtml += `
-                                    <li>
-                                        <a href="${urlNamespace}">${namespace.label}</a>
-                                    </li>
-                                    `;
+                            else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' namespace' + (data.length > 1 ? 's' : '') + ' linked to this container';
                             }
-
-                            namespacesListHtml += `</ul>`;
-
-                            if(data.length > 0) {
-                                namespacesListHtml += `
+                        }
+                    },
+                    {
+                        data: 'namespaces',
+                        render: function ( data, type, row, meta ) {
+                            if(data.length === 0) {
+                                return '';
+                            }
+                            else {
+                                return `
+                                    <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
                                     <button data-id="api-owl-container-url-${row.id}" class="btn btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
                                 `;
                             }
-
-                            return namespacesListHtml;
                         }
                     },
                     { 
@@ -869,16 +861,9 @@
                             if(data.length === 0) {
                                 return '<em>No pathbuilders linked to this container.</em>';
                             }
-
-                            let pathbuildersListHtml = `<ul>`;
-                            for(const pathbuilder of data) {
-                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
-                                pathbuildersListHtml += `
-                                    <li><a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">${pathbuilder.label} <i class="fas fa-file-export"></i></a></li>
-                                `;
+                            else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' pathbuilder' + (data.length > 1 ? 's' : '') + ' linked to this container';
                             }
-                            pathbuildersListHtml += `</ul>`;
-                            return pathbuildersListHtml;
                         }
                     },
                     { 
@@ -931,6 +916,35 @@
                 }
             });
 
+            const defaultContainerMessage = '<p><em>Please create or select a container to see its content.</em></p>';
+
+            function setSelectedContainerTitle(containerContentNode, containerLabel) {
+                let title = containerContentNode.prev('.selected-container-title');
+                if (title.length === 0) {
+                    containerContentNode.before(
+                        '<h4 class="selected-container-title clearfix">'
+                        + '<span class="selected-container-label"></span>'
+                        + '<button type="button" class="btn btn-secondary btn-sm pull-right close-selected-container" title="Close selected container" aria-label="Close selected container" style="margin-top:-4px; font-weight:bold;">'
+                        + '<i class="fas fa-times"></i> Close'
+                        + '</button>'
+                        + '</h4>'
+                    );
+                    title = containerContentNode.prev('.selected-container-title');
+                }
+
+                title.find('.selected-container-label').text('Selected: ' + containerLabel);
+            }
+
+            $(document).on('click', '.close-selected-container', function() {
+                const containerContentNode = $('#containerContent');
+                $('#table-containers tbody tr').removeClass('info');
+                containerContentNode.removeAttr('data-container-id');
+                containerContentNode.prev('.selected-container-title').remove();
+                containerContentNode.html(defaultContainerMessage);
+                $('#btnPublish').remove();
+                $('.publish-container-help').remove();
+            });
+
             $(document).on("click", ".edit-container", function() {
                 // Changer la couleur de la ligne.
                 $(this).closest('tr').addClass('info').siblings().removeClass('info');
@@ -948,21 +962,12 @@
                     type: 'GET',
                     dataType: 'json',
                     success:function(container){
-                        const titleText = container.label;
-                        let title = containerContentNode.prev('.selected-container-title');
-                        if (title.length === 0) {
-                            containerContentNode.before(`
-                                <h4 class="selected-container-title"></h4>
-                            `);
-                            title = containerContentNode.prev('.selected-container-title');
-                        }
-
-                        title.text(titleText);
+                        setSelectedContainerTitle(containerContentNode, container.label);
 
                         // Vérifier si le bouton n'existe déjà pas
                         if ($('#btnPublish').length === 0) {
                             containerContentNode.after(`
-                                <p class="text-muted"><em>Once published, the container will be read-only.</em></p>
+                                <p class="text-muted publish-container-help"><em>Once published, the container will be read-only.</em></p>
                                 <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container <i class="fas fa-upload"></i></button>
                             `);
                         }
@@ -1129,7 +1134,10 @@
                 const formHtml = `
                     <label for="addPathbuilderForm">Create a new pathbuilder:</label>
                     <input type="text" id="newPathbuilderLabel" class="form-control" placeholder="Enter the label of the pathbuilder to add">
+                    <div><b>Option 1:</b> upload an XML file from your computer</div>
                     <input type="file" id="newPathbuilderFile" class="form-control-file" accept=".xml">
+                    <div><b>Option 2:</b> or put an url to an existing pathbuilder xml file</div>
+                    <input type="text" id="newPathbuilderUrl" class="form-control" placeholder="Enter the URL of the pathbuilder XML file">
                     <button class="btn btn-primary" id="confirmAddPathbuilderToContainerBtn">
                         <i class="fas fa-plus"></i> Add
                     </button>

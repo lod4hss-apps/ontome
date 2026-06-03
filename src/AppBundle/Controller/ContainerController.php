@@ -81,14 +81,22 @@ class ContainerController extends Controller
             throw new NotFoundHttpException("Container not found");
         }
 
+        // Ensemble de namespaces déjà associés au container => on récupère leur id root
         $idRootNamespacesAssociated = [];
         foreach ($container->getNamespaces() as $namespace) {
             $idRootNamespacesAssociated[] = $namespace->getTopLevelNamespace()->getId();
         }
 
+        // Récupération de tous les root namespaces qui ne sont pas associés au container
         $qb = $this->getDoctrine()->getRepository('AppBundle:OntoNamespace')->createQueryBuilder('n')
+            ->select('DISTINCT n')
+            ->innerJoin('AppBundle:OntoNamespace', 'child', 'WITH', 'child.topLevelNamespace = n')
             ->where('n.isTopLevelNamespace = :isTop')
-            ->setParameter('isTop', true);
+            ->andWhere('child.isVisible = :isVisible')
+            ->andWhere('child.id != n.id')
+            ->setParameter('isTop', true)
+            ->setParameter('isVisible', true)
+            ->orderBy('n.standardLabel', 'ASC');
 
         if (!empty($idRootNamespacesAssociated)) {
             $qb->andWhere('n.id NOT IN (:ids)')
