@@ -382,6 +382,35 @@ class ApiController extends Controller
     }
 
     /**
+     * @Route("/api/namespaces-rdfs-inverse-properties.rdf", name="api_classes_and_properties_by_namespace_xml_rdfs_inverse_properties")
+     * @param Request $request
+     * @return Response
+     */
+    public function getClassesAndPropertiesByNamespaceRdfsInverseProperties(Request $request)
+    {
+        try {
+            $lang = $request->get('lang', 'en');
+            $namespaceId = intval($request->get('namespace', 0));
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:OntoNamespace')
+                ->findClassesAndPropertiesByNamespaceIdApiRdfsInverseProperties($lang, $namespaceId);
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+        $dom = new \DOMDocument;
+        $dom->preserveWhiteSpace = FALSE;
+        $dom->loadXML($xml[0]['result']);
+        $dom->formatOutput = TRUE;
+        $response = new Response($dom->saveXML());
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
      * @Route("/api/profile-rdfs.rdf", name="api_classes_and_properties_by_profile_xml_rdfs")
      * @Method("GET")
      * @param Request $request
