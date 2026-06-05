@@ -914,9 +914,29 @@
                 if ($row.length > 0) {
                     $row.addClass('info');
                 }
+
+                setActiveContainerActionButton(containerId);
             });
 
             const defaultContainerMessage = '<p><em>Please create or select a container to see its content.</em></p>';
+
+            function resetContainerActionButtons() {
+                $('#table-containers .view-container, #table-containers .edit-container')
+                    .prop('disabled', false)
+                    .removeClass('active');
+            }
+
+            function setActiveContainerActionButton(containerId) {
+                resetContainerActionButtons();
+
+                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+
+                $('#table-containers .edit-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+            }
 
             function setSelectedContainerTitle(containerContentNode, containerLabel) {
                 let title = containerContentNode.prev('.selected-container-title');
@@ -943,16 +963,24 @@
                 containerContentNode.html(defaultContainerMessage);
                 $('#btnPublish').remove();
                 $('.publish-container-help').remove();
+                resetContainerActionButtons();
             });
 
-            $(document).on("click", ".edit-container", function() {
-                // Changer la couleur de la ligne.
+            $(document).on("click", ".view-container", function() {
                 $(this).closest('tr').addClass('info').siblings().removeClass('info');
                 var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, true);
+            });
+
+            function loadContainerContent(containerId, readOnlyMode) {
                 var url = '{{ path("container", {'id' : 'containerID'}) }}';
                 const urlNamespace = $('#table-containers').data("url-namespace");
                 const containerContentNode = $('#containerContent');
                 containerContentNode.attr("data-container-id", containerId);
+
+                $('#btnPublish').remove();
+                $('.publish-container-help').remove();
 
                 containerContentNode.html('<div class="loader"><span class="fas fa-spinner fa-spin"></span> Loading container content...</div>');
 
@@ -964,15 +992,17 @@
                     success:function(container){
                         setSelectedContainerTitle(containerContentNode, container.label);
 
-                        // Vérifier si le bouton n'existe déjà pas
-                        if ($('#btnPublish').length === 0) {
-                            containerContentNode.after(`
-                                <p class="text-muted publish-container-help"><em>Once published, the container will be read-only.</em></p>
-                                <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container <i class="fas fa-upload"></i></button>
-                            `);
-                        }
-                        else{
-                            $('#btnPublish').data("container-id", container.id);
+                        if (!readOnlyMode) {
+                            // Vérifier si le bouton n'existe déjà pas
+                            if ($('#btnPublish').length === 0) {
+                                containerContentNode.after(`
+                                    <p class="text-muted publish-container-help"><em>Once published, the container will be read-only.</em></p>
+                                    <button class="btn btn-primary" id="btnPublish" data-container-id="${container.id}">Publish this container <i class="fas fa-upload"></i></button>
+                                `);
+                            }
+                            else{
+                                $('#btnPublish').data("container-id", container.id);
+                            }
                         }
 
                         let contentHtml = `
@@ -989,10 +1019,11 @@
                         }
 
                         for (const namespace of container.namespaces) {
+                            const deleteNamespaceIcon = readOnlyMode ? '' : `<i class="fas fa-times text-danger delete-association-container-namespace" data-container-id="` + container.id + `" data-namespace-id="` + namespace.id + `"></i>`;
                             contentHtml += `
                                     <div class="namespaceRow" data-namespace-id="` + namespace.id + `">
                                         <div class="namespaceRowLine">
-                                            <i class="fas fa-times text-danger delete-association-container-namespace" data-container-id="` + container.id + `" data-namespace-id="` + namespace.id + `"></i>
+                                            ` + deleteNamespaceIcon + `
                                             <a href="` + urlNamespace.replace("__NAMESPACE_ID__", namespace.id) + `">` + namespace.standardLabel + `</a>
                                         </div>
                                     ` 
@@ -1012,15 +1043,20 @@
 
                         contentHtml += `
                                 </div>
+                            </div>
+                            <div id="containerPathbuilders">
+                                <h4>Pathbuilders</h4>
+                        `;
+
+                        if (!readOnlyMode) {
+                            contentHtml += `
                                 <div id="addNamespaceContainerDiv" data-container-id="` + container.id + `">
                                     <button class="btn btn-primary add-namespace-to-container-btn">
                                         <i class="fas fa-plus"></i> Add a namespace
                                     </button>
                                 </div>
-                            </div>
-                            <div id="containerPathbuilders">
-                                <h4>Pathbuilders</h4>
-                        `;
+                            `;
+                        }
 
                         if(container.pathbuilders.length === 0) {
                             contentHtml += `
@@ -1039,13 +1075,16 @@
                                 const urlPathbuilderDelete = '{{ path("association_container_pathbuilder_delete", {"container": "containerID", "pathbuilder": "pathbuilderID"}) }}'
                                     .replace('containerID', container.id)
                                     .replace('pathbuilderID', pathbuilder.id);
-                                contentHtml += `
-                                        <tr class="pathbuilderRow">
+                                const deletePathbuilderCell = readOnlyMode ? '' : `
                                             <td>
                                                 <a href="#" class="delete-pathbuilder" data-url="${urlPathbuilderDelete}" data-container-id="${container.id}" data-pathbuilder-id="${pathbuilder.id}">
                                                     <i class="fas fa-times text-danger" title="Delete this pathbuilder"></i>
                                                 </a>
                                             </td>
+                                `;
+                                contentHtml += `
+                                        <tr class="pathbuilderRow">
+                                            ` + deletePathbuilderCell + `
                                             <td>` + pathbuilder.label + `</td>
                                             <td>
                                                 <a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">
@@ -1062,18 +1101,31 @@
                             `;
                         }
 
-                        contentHtml += `
+                        if (!readOnlyMode) {
+                            contentHtml += `
                                 <div id="addPathbuilderContainerDiv" data-container-id="` + container.id + `">
                                     <button class="btn btn-primary add-pathbuilder-to-container-btn">
                                         <i class="fas fa-plus"></i> Add a pathbuilder
                                     </button>
                                 </div>
+                            `;
+                        }
+
+                        contentHtml += `
                             </div>
                         `;
 
                         containerContentNode.html(contentHtml);
                     }
                 });
+            }
+
+            $(document).on("click", ".edit-container", function() {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, false);
             });
 
             $(document).on("click", "#button-new-container", function() {
@@ -1149,20 +1201,22 @@
                 const containerId = $("#addPathbuilderContainerDiv").data("container-id");
                 const pathbuilderLabel = $('#newPathbuilderLabel').val();
                 const pathbuilderFile = $('#newPathbuilderFile')[0].files[0];
+                const pathbuilderUrl = $('#newPathbuilderUrl').val();
 
                 if(pathbuilderLabel.trim() === '') {
                     alert('Please enter a label for the pathbuilder.');
                     return;
                 }
 
-                if(!pathbuilderFile) {
-                    alert('Please select an XML file for the pathbuilder.');
+                if(!pathbuilderFile && !pathbuilderUrl) {
+                    alert('Please select an XML file or enter a URL for the pathbuilder.');
                     return;
                 }
 
                 const formData = new FormData();
                 formData.append('label', pathbuilderLabel);
                 formData.append('file', pathbuilderFile);
+                formData.append('url', pathbuilderUrl);
 
                 const createPathbuilderUrl = '{{ path("association_container_pathbuilder_create", {"container": "containerID"}) }}'.replace('containerID', containerId);
 

@@ -1780,13 +1780,28 @@ class ProjectController  extends Controller
             $pathbuilderLabel = $container->getLabel()->getLabel();
         }
 
+        // Soit on a un fichier, soit on a un url
         $uploadedFile = $request->files->get('file');
+        $pathbuilderUrl = trim((string)$request->request->get('url', ''));
+
+        
         $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>';
 
         if (!is_null($uploadedFile)) {
             $uploadedContent = file_get_contents($uploadedFile->getPathname());
             if ($uploadedContent !== false && trim($uploadedContent) !== '') {
                 $xmlContent = $uploadedContent;
+            }
+        } elseif ($pathbuilderUrl !== '') {
+            $urlContent = file_get_contents($pathbuilderUrl);
+            if ($urlContent !== false && trim($urlContent) !== '') {
+                // On s'assure que c'est bien du XML
+                $xml = @simplexml_load_string($urlContent);
+                if ($xml !== false) {
+                    $xmlContent = $urlContent;
+                } else {
+                    return new JsonResponse(['status' => 'Error', 'message' => 'The content retrieved from the URL is not valid XML.'], 400);
+                }
             }
         }
 

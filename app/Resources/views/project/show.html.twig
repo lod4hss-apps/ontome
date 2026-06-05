@@ -537,6 +537,20 @@
 
             const defaultContainerMessage = '<p><em>Please select a container to see its content.</em></p>';
 
+            function resetContainerActionButtons() {
+                $('#table-containers .view-container')
+                    .prop('disabled', false)
+                    .removeClass('active');
+            }
+
+            function setActiveContainerActionButton(containerId) {
+                resetContainerActionButtons();
+
+                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+            }
+
             function setSelectedContainerTitle(containerContentNode, containerLabel) {
                 let $title = containerContentNode.prev('.selected-container-title');
 
@@ -561,12 +575,14 @@
                 containerContentNode.removeAttr("data-container-id");
                 containerContentNode.prev('.selected-container-title').remove();
                 containerContentNode.html(defaultContainerMessage);
+                resetContainerActionButtons();
             });
             
             $(document).on("click", ".view-container", function() {
                 // Changer la couleur de la ligne.
                 $(this).closest('tr').addClass('info').siblings().removeClass('info');
                 var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
                 var url = '{{ path("container", {'id' : 'containerID'}) }}';
                 const urlNamespace = $('#table-containers').data("url-namespace");
                 const containerContentNode = $('#containerContent');
@@ -737,7 +753,25 @@
                             `;
                         }
                     }
-                ]
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    $(row).attr('data-container-id', data.id);
+                }
+            });
+
+            tableContainers.on('draw', function() {
+                const containerId = $('#containerContent').attr("data-container-id");
+
+                if(!containerId) {
+                    return;
+                }
+
+                const $row = $(`#table-containers tbody tr[data-container-id="${containerId}"]`);
+                if ($row.length > 0) {
+                    $row.addClass('info');
+                }
+
+                setActiveContainerActionButton(containerId);
             });
         } );
     </script>
