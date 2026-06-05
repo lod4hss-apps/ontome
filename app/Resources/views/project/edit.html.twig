@@ -407,6 +407,7 @@
                             <tr>
                                 <th>Container name</th>
                                 <th>Namespaces</th>
+                                <th>Namespaces API</th>
                                 <th>Pathbuilders</th>
                                 <th>Status</th>
                                 <th>Last updated</th>
@@ -1041,13 +1042,6 @@
                             `;
                         }
 
-                        contentHtml += `
-                                </div>
-                            </div>
-                            <div id="containerPathbuilders">
-                                <h4>Pathbuilders</h4>
-                        `;
-
                         if (!readOnlyMode) {
                             contentHtml += `
                                 <div id="addNamespaceContainerDiv" data-container-id="` + container.id + `">
@@ -1057,6 +1051,13 @@
                                 </div>
                             `;
                         }
+
+                        contentHtml += `
+                                </div>
+                            </div>
+                            <div id="containerPathbuilders">
+                                <h4>Pathbuilders</h4>
+                        `;
 
                         if(container.pathbuilders.length === 0) {
                             contentHtml += `
@@ -1156,6 +1157,80 @@
                 });
             });
 
+            function restoreAddNamespaceButton(containerId) {
+                let addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+
+                if (addNamespaceContainerDiv.length === 0) {
+                    $('#containerNamespaces').append('<div id="addNamespaceContainerDiv"></div>');
+                    addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+                }
+
+                addNamespaceContainerDiv
+                    .attr('data-container-id', containerId)
+                    .html(`
+                        <button class="btn btn-primary add-namespace-to-container-btn">
+                            <i class="fas fa-plus"></i> Add a namespace
+                        </button>
+                    `);
+            }
+
+            function refreshContainerNamespaces(containerId) {
+                let containerUrl = '{{ path("container", {'id' : 'containerID'}) }}';
+                containerUrl = containerUrl.replace("containerID", containerId);
+                const urlNamespace = $('#table-containers').data("url-namespace");
+
+                $.ajax({
+                    url: containerUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success:function(container){
+                        const namespaces = container.namespaces || [];
+                        const namespacesList = $('#namespacesList');
+                        namespacesList.empty();
+
+                        if(namespaces.length === 0) {
+                            namespacesList.html('<p>There is currently no namespace linked to this container.</p>');
+                            restoreAddNamespaceButton(container.id || containerId);
+                            return;
+                        }
+
+                        let namespacesHtml = '';
+                        for (const namespace of namespaces) {
+                            namespacesHtml += `
+                                <div class="namespaceRow" data-namespace-id="${namespace.id}">
+                                    <div class="namespaceRowLine">
+                                        <i class="fas fa-times text-danger delete-association-container-namespace" data-container-id="${container.id}" data-namespace-id="${namespace.id}"></i>
+                                        <a href="${urlNamespace.replace("__NAMESPACE_ID__", namespace.id)}">${namespace.standardLabel}</a>
+                                    </div>
+                            `;
+
+                            if(namespace.referencedNamespaces && namespace.referencedNamespaces.length > 0) {
+                                namespacesHtml += `
+                                    <div class="referencedNamespacesList">
+                                        <span class="text-muted small"><strong><em>Referenced:</em></strong></span>
+                                `;
+                                for (const ref of namespace.referencedNamespaces) {
+                                    namespacesHtml += `
+                                        <div class="referencedNamespaceRow">
+                                            <a href="${urlNamespace.replace("__NAMESPACE_ID__", ref.id)}">${ref.standardLabel}</a>
+                                        </div>
+                                    `;
+                                }
+                                namespacesHtml += '</div>';
+                            }
+
+                            namespacesHtml += '</div>';
+                        }
+
+                        namespacesList.html(namespacesHtml);
+                        restoreAddNamespaceButton(container.id || containerId);
+                    },
+                    error: function() {
+                        restoreAddNamespaceButton(containerId);
+                    }
+                });
+            }
+
             $(document).on("click", ".add-namespace-to-container-btn", function() {
                 const addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
 
@@ -1228,11 +1303,76 @@
                     contentType: false,
                     dataType: 'json',
                     success:function(data){
-                        // Simuler le click sur edit-container pour rafraîchir la liste des pathbuilders associés au container
-                        $(".edit-container[data-container-id='" + containerId + "']").click();
+                        // Close form: restore the "Add a pathbuilder" button.
+                        $('#addPathbuilderContainerDiv').html(`
+                            <button class="btn btn-primary add-pathbuilder-to-container-btn">
+                                <i class="fas fa-plus"></i> Add a pathbuilder
+                            </button>
+                        `);
 
-                        // Mettre à jour le tableau via son ajax
-                        tableContainers.ajax.reload();
+                        // Refresh only the pathbuilders section.
+                        let containerUrl = '{{ path("container", {'id' : 'containerID'}) }}';
+                        containerUrl = containerUrl.replace("containerID", containerId);
+                        $.ajax({
+                            url: containerUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success:function(container){
+                                const pathbuilders = container.pathbuilders || [];
+                                const pathbuilderSection = $('#containerPathbuilders');
+                                pathbuilderSection.find('#pathbuildersList').remove();
+                                pathbuilderSection.find('p.pathbuilders-empty-message').remove();
+
+                                if(pathbuilders.length === 0) {
+                                    pathbuilderSection.find('#addPathbuilderContainerDiv').before('<p class="pathbuilders-empty-message"><em>No pathbuilder linked to this container.</em></p>');
+                                    return;
+                                }
+
+                                let pathbuildersHtml = `
+                                    <div class="table-responsive" id="pathbuildersList">
+                                        <table class="table table-striped">
+                                            <tbody>
+                                `;
+
+                                for (const pathbuilder of pathbuilders) {
+                                    const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
+                                    const urlPathbuilderDelete = '{{ path("association_container_pathbuilder_delete", {"container": "containerID", "pathbuilder": "pathbuilderID"}) }}'
+                                        .replace('containerID', container.id)
+                                        .replace('pathbuilderID', pathbuilder.id);
+
+                                    pathbuildersHtml += `
+                                        <tr class="pathbuilderRow">
+                                            <td>
+                                                <a href="#" class="delete-pathbuilder" data-url="${urlPathbuilderDelete}" data-container-id="${container.id}" data-pathbuilder-id="${pathbuilder.id}">
+                                                    <i class="fas fa-times text-danger" title="Delete this pathbuilder"></i>
+                                                </a>
+                                            </td>
+                                            <td>${pathbuilder.label}</td>
+                                            <td>
+                                                <a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">
+                                                    <i class="fas fa-file-export" title="Export this pathbuilder"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }
+
+                                pathbuildersHtml += `
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `;
+
+                                pathbuilderSection.find('#addPathbuilderContainerDiv').before(pathbuildersHtml);
+                            }
+                        });
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'An error occurred while adding the pathbuilder to the container.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
                     }
                 });
             });
@@ -1282,18 +1422,20 @@
                         namespace_id: selectedNamespaceId
                     },
                     success:function(data){
-                        // Simuler le click sur edit-container pour rafraîchir la liste des namespaces associés au container
-                        $(".edit-container[data-container-id='" + containerId + "']").click();
-
-                        // Mettre à jour le tableau via son ajax
-                        tableContainers.ajax.reload();
+                        refreshContainerNamespaces(containerId);
+                    },
+                    error: function(xhr) {
+                        restoreAddNamespaceButton(containerId);
+                        let errorMessage = 'An error occurred while adding the namespace to the container.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
                     }
                 });
             });
 
             $(document).on("click", ".delete-association-container-namespace", function() {
-                // Récupérer le noeud cliqué
-                var $clickedIcon = $(this);
                 var containerId = $(this).data("container-id");
                 var namespaceId = $(this).data("namespace-id");
                 var url = $('#table-containers').data("url-delete-association-container-namespace");
@@ -1305,13 +1447,7 @@
                     type: 'GET',
                     dataType: 'json',
                     success:function(data){
-                        $clickedIcon.closest('.namespaceRow').remove();
-                        if($('.namespaceRow').length === 0) {
-                            $('#namespacesList').html('<p>There is currently no namespace linked to this container.</p>');
-                        }
-
-                        // Mettre à jour le tableau via son ajax
-                        tableContainers.ajax.reload();
+                        refreshContainerNamespaces(containerId);
                     }
                 });
             });
@@ -1321,14 +1457,24 @@
 
                 const containerId = $(this).data("container-id");
                 const url = $(this).data("url");
+                const $pathbuilderRow = $(this).closest('tr.pathbuilderRow');
 
                 $.ajax({
                     url: url,
                     type: 'POST',
                     dataType: 'json',
-                    complete: function() {
-                        $(".edit-container[data-container-id='" + containerId + "']").click();
-                        tableContainers.ajax.reload();
+                    success: function() {
+                        $pathbuilderRow.remove();
+                        if ($('#pathbuildersList tr.pathbuilderRow').length === 0) {
+                            $('#pathbuildersList').replaceWith('<p><em>No pathbuilder linked to this container.</em></p>');
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'An error occurred while deleting the pathbuilder.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
                     }
                 });
             });
@@ -1337,7 +1483,6 @@
             // -----
             // Onglet Profiles
             // -----
-            var projectID = {{ project.id }};
             var urlSelectableProfiles = '{{ path("selectable_profiles_project_json", {'project' : 'projectID'}) }}';
             urlSelectableProfiles = urlSelectableProfiles.replace("projectID", projectID);
 
@@ -1593,7 +1738,6 @@
             });
 
             $(document).on("click", ".pickable-namespace", function() {
-                var projectID = {{ project.id }};
                 var selectedValue = $(this).attr("id");
                 var labelNamespace = $(this).text();
                 var url = '{{ path("project_namespace_association", {'project' : 'projectID' ,'namespace': 'selectedValue'}) }}';

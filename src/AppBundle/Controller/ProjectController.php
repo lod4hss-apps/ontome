@@ -1793,7 +1793,12 @@ class ProjectController  extends Controller
                 $xmlContent = $uploadedContent;
             }
         } elseif ($pathbuilderUrl !== '') {
-            $urlContent = file_get_contents($pathbuilderUrl);
+            try{
+                $urlContent = file_get_contents($pathbuilderUrl);
+            }
+            catch (\Exception $e) {
+                return new JsonResponse(['status' => 'Error', 'message' => 'Unable to retrieve content from the provided URL. Please check the URL and try again.'], 400);
+            }
             if ($urlContent !== false && trim($urlContent) !== '') {
                 // On s'assure que c'est bien du XML
                 $xml = @simplexml_load_string($urlContent);
