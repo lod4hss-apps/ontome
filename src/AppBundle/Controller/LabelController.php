@@ -46,6 +46,7 @@ class LabelController  extends Controller
     public function editAction(Label $label, Request $request)
     {
         $canInverseLabel = false;
+        $allEntities = null;
         $em = $this->getDoctrine()->getManager();
 
         if(!is_null($label->getClass())){
