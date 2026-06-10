@@ -402,6 +402,7 @@
                         data-url-namespace="{{ path('namespace_show', {'id' : '__NAMESPACE_ID__'}) }}" 
                         data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : '__CONTAINER_ID__', 'namespaceId' : '__NAMESPACE_ID__'}) }}"
                         data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : '__CONTAINER_ID__'}) }}"
+                        data-url-api-container="{{ path('api_container', {'container' : '__CONTAINER_ID__'}) }}"
                         >
                         <thead>
                             <tr>
@@ -411,6 +412,7 @@
                                 <th>Pathbuilders</th>
                                 <th>Status</th>
                                 <th>Last updated</th>
+                                <th>Container API</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -838,7 +840,7 @@
                                 return '<em>No namespaces linked to this container.</em>';
                             }
                             else {
-                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' namespace' + (data.length > 1 ? 's' : '') + ' linked to this container';
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' namespace' + (data.length > 1 ? 's' : '');
                             }
                         }
                     },
@@ -851,7 +853,7 @@
                             else {
                                 return `
                                     <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
-                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
                                 `;
                             }
                         }
@@ -863,7 +865,7 @@
                                 return '<em>No pathbuilders linked to this container.</em>';
                             }
                             else {
-                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' pathbuilder' + (data.length > 1 ? 's' : '') + ' linked to this container';
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' pathbuilder' + (data.length > 1 ? 's' : '');
                             }
                         }
                     },
@@ -874,6 +876,15 @@
                         }
                     },
                     { data: 'lastUpdate' },
+                    { 
+                        data: null,
+                        render: function ( data, type, row, meta ) {
+                            return `
+                                <span id="api-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-container").replace("__CONTAINER_ID__", row.id)}</span>
+                                <button data-id="api-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                            `;
+                        }
+                    },
                     { 
                         data: null,
                         render: function ( data, type, row, meta ) {

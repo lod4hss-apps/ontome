@@ -472,6 +472,35 @@ class ApiController extends Controller
     }
 
     /**
+    * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(__CONTAINER_ID__){1}$"})
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getApiContainer(Request $request)
+    {
+        try {
+            // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
+            $containerId = intval($request->get('container', 0));
+
+            // Récupérer le container
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Container')->findContainerApi($containerId);
+
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
      * @Route("/api/classes-type-descendants/label/{label}/json", name="classes_type_descendants_json", requirements={"label"="^[a-zA-Z0-9 -]+$"})
      * @Method("GET")
      * @param String $label the class label to find

@@ -26,4 +26,24 @@ class ContainerRepository extends EntityRepository
 
         return $stmt->fetchAll();
     }
+    /**
+     * @param $lang string the language iso code
+     * @param $container int the ID of the container
+     * @return string XML (OWL format)
+     * @throws DBALException
+     */
+    public function findContainerApi($container)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        $sql = "SELECT result::text FROM api.get_xml_api_container(:container) as result;";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array(
+            'container' => $container
+        ));
+
+        return $stmt->fetchAll();
+    }
 }
