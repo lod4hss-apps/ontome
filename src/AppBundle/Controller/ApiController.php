@@ -443,7 +443,7 @@ class ApiController extends Controller
      * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container")
      * @Method("GET")
      * @param Request $request
-     * @return Response
+     * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
      */
     public function getOwlWisskiByContainer(Request $request)
     {
@@ -475,7 +475,7 @@ class ApiController extends Controller
     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(__CONTAINER_ID__){1}$"})
      * @Method("GET")
      * @param Request $request
-     * @return Response
+     * @return Response a XML formatted response of namespaces and pathbuilders related to this container
      */
     public function getApiContainer(Request $request)
     {

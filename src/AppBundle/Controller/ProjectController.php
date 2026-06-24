@@ -193,7 +193,7 @@ class ProjectController  extends Controller
 
         return $this->render('project/show.html.twig', array(
             'project' => $project,
-            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject,
+            'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject
         ));
     }
 
@@ -1701,6 +1701,9 @@ class ProjectController  extends Controller
     {        
         try{
             $em = $this->getDoctrine()->getManager();
+            $containers = [];
+
+            // Récupérer les containers associés au projet, triés par création décroissante (ID)
             $containersResponse = $em->getRepository('AppBundle:Container')->createQueryBuilder('c')
                 ->join('c.project', 'p')
                 ->where('p.id = :projectId')
@@ -1708,6 +1711,8 @@ class ProjectController  extends Controller
                 ->orderBy('c.id', 'DESC')
                 ->getQuery()
                 ->getResult();
+
+            // Construction d'une réponse JSON avec les informations des containers, namespaces et pathbuilders
             foreach ($containersResponse as $container) {
                 $namespaces = [];
                 $namespacesResponse = $container->getNamespaces();
@@ -1741,10 +1746,6 @@ class ProjectController  extends Controller
             return new JsonResponse(null,404, 'content-type:application/problem+json');
         }
 
-        if(empty($containers)) {
-            return new JsonResponse(null,204, array());
-        }
-
         return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
     }
 
@@ -1764,6 +1765,7 @@ class ProjectController  extends Controller
 
         return $response;
     }
+
     /**
      * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"})
      * @Method("POST")

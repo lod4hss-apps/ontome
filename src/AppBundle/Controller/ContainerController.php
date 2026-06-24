@@ -15,6 +15,8 @@ class ContainerController extends Controller
     /**
      * @Route("/container/{id}/fetch", name="container")
      * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
     public function getContainer(Request $request)
     {
@@ -70,6 +72,8 @@ class ContainerController extends Controller
     /**
      * @Route("/container/{id}/root-namespaces-not-associated/fetch", name="container_root_namespaces_not_associated")
      * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
     public function getRootNamespacesNotAssociated(Request $request)
     {
@@ -119,6 +123,8 @@ class ContainerController extends Controller
     /**
      * @Route("/container/create", name="container_create")
      * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
     public function createContainer(Request $request)
     {
@@ -157,6 +163,8 @@ class ContainerController extends Controller
     /**
      * @Route("/association_container_namespace/create", name="association_container_namespace_create")
      * @Method("POST")
+     * @param Request $request
+     * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
     public function createAssociationContainerNamespace(Request $request)
     {
@@ -185,6 +193,8 @@ class ContainerController extends Controller
     /**
      * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete")
      * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
     public function deleteAssociationContainerNamespace(Request $request)
     {

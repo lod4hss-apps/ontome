@@ -1,4 +1,6 @@
 {% extends 'base.html.twig' %}
+{# "uri": pour renvoyer les bons liens d'API quand on est en dev ou en prod #}
+{% set uri = app.request.host %}
 
 {% block title %}
     {{ project.standardLabel }}
@@ -254,7 +256,7 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
-                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
+                <span id="api-owl-url">https://{{ uri }}{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
                 <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
                 <table class="table table-striped" id="api-namespaces-project-table">
                     <thead>
@@ -539,20 +541,7 @@
 
             const defaultContainerMessage = '<p><em>Please select a container to see its content.</em></p>';
 
-            function resetContainerActionButtons() {
-                $('#table-containers .view-container')
-                    .prop('disabled', false)
-                    .removeClass('active');
-            }
-
-            function setActiveContainerActionButton(containerId) {
-                resetContainerActionButtons();
-
-                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
-                    .prop('disabled', true)
-                    .addClass('active');
-            }
-
+            // Actions pour normaliser le titre du container sélectionné et ajouter un bouton pour le fermer
             function setSelectedContainerTitle(containerContentNode, containerLabel) {
                 let $title = containerContentNode.prev('.selected-container-title');
 
@@ -571,6 +560,7 @@
                 $title.find('.selected-container-label').text('Selected: ' + containerLabel);
             }
 
+            // Actions lorsqu'on ferme le container sélectionné
             $(document).on('click', '.close-selected-container', function() {
                 const containerContentNode = $('#containerContent');
                 $('#table-containers tbody tr').removeClass('info');
@@ -579,12 +569,34 @@
                 containerContentNode.html(defaultContainerMessage);
                 resetContainerActionButtons();
             });
+
+            // Gestion du bouton Disabled ou non
+            function resetContainerActionButtons() {
+                $('#table-containers .view-container')
+                    .prop('disabled', false)
+                    .removeClass('active');
+            }
+
+            // Réinitialisation de tous les boutons lorsque l'on clique sur un autre container
+            function setActiveContainerActionButton(containerId) {
+                resetContainerActionButtons();
+
+                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+            }
             
+            // Actions lorsqu'on clique sur un container dans le tableau
             $(document).on("click", ".view-container", function() {
                 // Changer la couleur de la ligne.
                 $(this).closest('tr').addClass('info').siblings().removeClass('info');
                 var containerId = $(this).data("container-id");
                 setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, true);
+            });
+
+            // Fonction pour charger le contenu d'un container via AJAX
+            function loadContainerContent(containerId) {
                 var url = '{{ path("container", {'id' : 'containerID'}) }}';
                 const urlNamespace = $('#table-containers').data("url-namespace");
                 const containerContentNode = $('#containerContent');
@@ -662,7 +674,7 @@
                         containerContentNode.html(contentHtml);
                     }
                 });
-            });
+            }
 
             //confirmation box for profile recreate action
             $('.recreate-btn').on('click', function() {
@@ -721,7 +733,7 @@
                             }
                             else {
                                 return `
-                                    <span id="api-owl-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
+                                    <span id="api-owl-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-owl-container").replace("__CONTAINER_ID__", row.id)}</span>
                                     <button data-id="api-owl-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
                                 `;
                             }
@@ -749,7 +761,7 @@
                         data: null,
                         render: function ( data, type, row, meta ) {
                             return `
-                                <span id="api-container-url-${row.id}" style="display:none;">https://ontome.net${$('#table-containers').data("url-api-container").replace("__CONTAINER_ID__", row.id)}</span>
+                                <span id="api-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-container").replace("__CONTAINER_ID__", row.id)}</span>
                                 <button data-id="api-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
                             `;
                         }
