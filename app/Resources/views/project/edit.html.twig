@@ -1079,11 +1079,9 @@
             // Drag & Drop pour l'import de fichier - initialisé uniquement quand l'onglet est affiché
             var fileUploadInitialized = false;
 
-            $('a[href="#import"]').on('shown.bs.tab', function (e) {
-                console.log('Onglet import affiché');
-                
+            $('a[href="#import"]').on('shown.bs.tab', function (e) {       
+                // Eviter de réinitialiser les événements si l'import a déjà été initialisé
                 if (fileUploadInitialized) {
-                    console.log('Déjà initialisé');
                     return;
                 }
                 
@@ -1096,11 +1094,6 @@
                 var dropTitle = $('#drop-title');
                 var dropText = $('#drop-text');
 
-                console.log('dropZone:', dropZone.length, 'fileInput:', fileInput);
-                if (fileInput) {
-                    console.log('fileInput ID:', fileInput.id, 'fileInput name:', fileInput.name);
-                }
-
                 if (dropZone.length && fileInput) {
                     fileUploadInitialized = true;
                     
@@ -1112,13 +1105,11 @@
 
                     // Clic sur la zone
                     dropZone.on('click', function(e) {
-                        console.log('click détecté sur drop-zone');
                         fileInput.click();
                     });
 
                     // Changement de fichier
                     $(fileInput).on('change', function() {
-                        console.log('change détecté', this.files);
                         if (this.files && this.files.length > 0) {
                             var file = this.files[0];
                             if (file.name.toLowerCase().endsWith('.xml')) {
@@ -1129,7 +1120,7 @@
                                 dropTitle.hide();
                                 dropText.hide();
                             } else {
-                                alert('Veuillez sélectionner un fichier XML.');
+                                alert('Please select an XML file.');
                                 $(fileInput).val('');
                             }
                         }
@@ -1158,7 +1149,6 @@
 
                     // Drop
                     dropZone.on('drop', function(e) {
-                        console.log('drop détecté');
                         e.preventDefault();
                         e.stopPropagation();
                         $(this).css({'background': '#f8f9fa', 'border-color': '#007bff'});
@@ -1175,7 +1165,7 @@
                                 dropTitle.hide();
                                 dropText.hide();
                             } else {
-                                alert('Veuillez sélectionner un fichier XML.');
+                                alert('Please select an XML file.');
                             }
                         }
                     });
@@ -1190,8 +1180,6 @@
                         dropTitle.show();
                         dropText.show();
                     });
-
-                    console.log('File upload initialisé avec succès');
                 }
             });
         } );

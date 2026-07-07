@@ -585,7 +585,7 @@ class ProjectController extends Controller
                             $contextNote->setCreator($this->getUser());
                             $contextNote->setModifier($this->getUser());
                             $contextNote->setCreationTime(new \DateTime('now'));
-                            $contextNote->setModificationTime(new \DateTime('now'));;
+                            $contextNote->setModificationTime(new \DateTime('now'));
 
                             $class->addTextProperty($contextNote);
 
@@ -660,7 +660,7 @@ class ProjectController extends Controller
                     if (!is_null($defaultStandardLabelEn)) {
                         $newClassVersion->setStandardLabel($defaultStandardLabelEn);
                     } elseif (!is_null($defaultStandardLabelFr)) {
-                        $newClassVersion->setStandardLabel($defaultStandardLabelEn);
+                        $newClassVersion->setStandardLabel($defaultStandardLabelFr);
                     } else {
                         $newClassVersion->setStandardLabel($defaultStandardLabel);
                     }
@@ -881,7 +881,7 @@ class ProjectController extends Controller
                     if (!is_null($defaultStandardLabelEn)) {
                         $newPropertyVersion->setStandardLabel($defaultStandardLabelEn);
                     } elseif (!is_null($defaultStandardLabelFr)) {
-                        $newPropertyVersion->setStandardLabel($defaultStandardLabelEn);
+                        $newPropertyVersion->setStandardLabel($defaultStandardLabelFr);
                     } else {
                         $newPropertyVersion->setStandardLabel($defaultStandardLabel);
                     }
@@ -899,7 +899,7 @@ class ProjectController extends Controller
                             if (!$langCollection->contains((string) $nodeXmlScopeNote->attributes()->lang)) {
                                 $langCollection->add((string) $nodeXmlScopeNote->attributes()->lang);
                             } else {
-                                $this->addFlash('error', "2 scope notes at least have the same language " . (string) $nodeXmlScopeNote->attributes()->lang . " for class " . $newClassVersion->getClass()->getIdentifierInNamespace());
+                                $this->addFlash('error', "At least 2 scope notes have the same language " . (string) $nodeXmlScopeNote->attributes()->lang . " for class " . $newClassVersion->getClass()->getIdentifierInNamespace());
                                 return $redirectRoute;
                             }
                             $scopeNote = new TextProperty();
@@ -1288,7 +1288,7 @@ class ProjectController extends Controller
                                 }
                             }
                             if (is_null($childProperty)) {
-                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Child property " . (string) $nodeXmlParentPropertyOf . " n'a pas été trouvé");
+                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Child property " . (string) $nodeXmlParentPropertyOf . " was not found");
                                 return $redirectRoute;
                             }
 
@@ -1301,7 +1301,7 @@ class ProjectController extends Controller
                                 }
                             }
                             if (is_null($parentProperty)) {
-                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Parent property " . (string) $nodeXmlProperty->identifierInNamespace . " n'a pas été trouvé");
+                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Parent property " . (string) $nodeXmlProperty->identifierInNamespace . " was not found");
                                 return $redirectRoute;
                             }
                             //TODO Justification PropertyAssociation?
@@ -1370,7 +1370,7 @@ class ProjectController extends Controller
                                 }
                             }
                             if (is_null($sourceProperty)) {
-                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Source property " . (string) $nodeXmlProperty->identifierInNamespace . " n'a pas été trouvé");
+                                $this->addFlash('error', (string) $nodeXmlProperty->identifierInNamespace . " Source property " . (string) $nodeXmlProperty->identifierInNamespace . " was not found");
                                 return $redirectRoute;
                             }
                             $entityAssociation->setSourceProperty($sourceProperty);
@@ -1580,7 +1580,7 @@ class ProjectController extends Controller
 
         if (!is_null($projectAssociation)) {
             $status = 'Error';
-            $message = 'This user is already member of this project.';
+            $message = 'This namespace is already associated with this project.';
         } else {
             $em = $this->getDoctrine()->getManager();
 
@@ -1624,7 +1624,7 @@ class ProjectController extends Controller
         if ($userProjectAssociation->getUser() == $this->getUser()) {
             //l'utilisateur connecté ne peut pas changer ses propres permissions
             $status = 'Error';
-            $message = 'The current user cannot change his own permission.';
+            $message = 'The current user cannot change his own permissions.';
         } else {
             try {
                 $em = $this->getDoctrine()->getManager();
