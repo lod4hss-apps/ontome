@@ -425,38 +425,20 @@ class NamespaceRepository extends EntityRepository
      * @param $namespace int the ID of the namespace
      * @return array
      */
-    public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace)
+    public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace, $withInverseProperties = 0, $withSpecificUri = 0)
     {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
+        //$sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
+        $sql = "SELECT result::text FROM api.get_export_namespace_rdfs(:lang, :namespace, :withInverseProperties, :withSpecificUri) as result;";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute(array(
             'lang' => $lang,
-            'namespace' => $namespace
-        ));
-
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * @param $lang string the language iso code
-     * @param $namespace int the ID of the namespace
-     * @return array
-     */
-    public function findClassesAndPropertiesByNamespaceIdApiRdfsInverseProperties($lang, $namespace)
-    {
-        $conn = $this->getEntityManager()
-            ->getConnection();
-
-        $sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace_inv_prop(:lang, :namespace) as result;";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
-            'lang' => $lang,
-            'namespace' => $namespace
+            'namespace' => $namespace,
+            'withInverseProperties' => $withInverseProperties ? true : 0,
+            'withSpecificUri' => $withSpecificUri ? true : 0
         ));
 
         return $stmt->fetchAll();
