@@ -495,8 +495,6 @@ class Project
             return;
         }
         $this->containers->removeElement($container);
-        // needed to update the owning side of the relationship!
-        $container->setProject(null);
     }
 
     public function getContainers()

@@ -27,7 +27,6 @@ class ContainerRepository extends EntityRepository
         return $stmt->fetchAll();
     }
     /**
-     * @param $lang string the language iso code
      * @param $container int the ID of the container
      * @return string XML (OWL format)
      * @throws DBALException

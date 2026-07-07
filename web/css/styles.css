@@ -970,3 +970,7 @@ FOOTER Styling
 #addNamespaceSelectDiv button{
     flex-shrink: 1;
 }
+
+.small-margin-right{
+    margin-right: 0.75rem;
+}

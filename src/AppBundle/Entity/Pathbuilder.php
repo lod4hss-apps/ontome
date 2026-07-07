@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Pathbuilder
- * @ORM\Entity(repositoryClass="AppBundle\Repository\PathbuilderRepository")
+ * @ORM\Entity
  * @ORM\Table(schema="che", name="pathbuilder")
  */
 class Pathbuilder
@@ -32,7 +32,7 @@ class Pathbuilder
     private $container;
 
     /**
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Label", inversedBy="pathbuilders")
+     * @ORM\ManyToOne(targetEntity="Label", inversedBy="pathbuilders")
      * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label")
      */
     private $label;
@@ -94,15 +94,15 @@ class Pathbuilder
      * @return mixed
      */
     public function getXmlContent()
-    {       
-         return $this->xmlContent;
+    {
+        return $this->xmlContent;
     }
 
     /**
      * @param mixed $xmlContent
-     */    
+     */
     public function setXmlContent($xmlContent)
-    {        
+    {
         $this->xmlContent = $xmlContent;
     }
 
@@ -138,9 +138,9 @@ class Pathbuilder
         $this->modificationTime = $modificationTime;
     }
 
-        /**
-        * @param mixed $container
-        */
+    /**
+     * @param mixed $container
+     */
     public function setContainer($container)
     {
         $this->container = $container;

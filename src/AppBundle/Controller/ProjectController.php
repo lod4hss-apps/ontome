@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
-class ProjectController  extends Controller
+class ProjectController extends Controller
 {
     /**
      * @Route("/project")
@@ -48,15 +48,15 @@ class ProjectController  extends Controller
     public function listAction()
     {
         $displayDomains = $this->get('request_stack')->getCurrentRequest()->attributes->get('_route') === 'domain_list';
-        
+
         $em = $this->getDoctrine()->getManager();
 
         $projects = $em->getRepository('AppBundle:Project')
             ->findAll();
 
-        if($displayDomains){
-            $projects = array_filter($projects, function($project){
-                return in_array('domain', (array) $project->getProjectTypes(), true);
+        if ($displayDomains) {
+            $projects = array_filter($projects, function ($project) {
+                return in_array('domain', (array)$project->getProjectTypes(), true);
             });
         }
 
@@ -74,7 +74,7 @@ class ProjectController  extends Controller
 
         $tokenInterface = $this->get('security.token_storage')->getToken();
         $isAuthenticated = $tokenInterface->isAuthenticated();
-        if(!$isAuthenticated) throw new AccessDeniedException('You must be an authenticated user to access this page.');
+        if (!$isAuthenticated) throw new AccessDeniedException('You must be an authenticated user to access this page.');
 
         $project = new Project();
 
@@ -111,8 +111,8 @@ class ProjectController  extends Controller
         $allProjects = $em->getRepository('AppBundle:Project')->findAll();
 
         $allLabels = new ArrayCollection();
-        foreach ($allProjects as $var_project){
-            foreach ($var_project->getLabels() as $label){
+        foreach ($allProjects as $var_project) {
+            foreach ($var_project->getLabels() as $label) {
                 $allLabels->add($label->getLabel());
             }
         }
@@ -123,10 +123,10 @@ class ProjectController  extends Controller
 
         //Vérification si le label n'a jamais été utilisé ailleurs
         $isLabelValid = true;
-        if($form->isSubmitted()){
+        if ($form->isSubmitted()) {
             $labels = $form->get('labels');
-            foreach ($labels as $label){
-                if($allLabels->contains($label->get('label')->getData())){
+            foreach ($labels as $label) {
+                if ($allLabels->contains($label->get('label')->getData())) {
                     $label->get('label')->addError(new FormError('This label is already used by another project, please enter a different one.'));
                     $isLabelValid = false;
                 }
@@ -160,7 +160,7 @@ class ProjectController  extends Controller
             $em->flush();
 
             return $this->redirectToRoute('user_show', [
-                'id' =>$userProjectAssociation->getUser()->getId()
+                'id' => $userProjectAssociation->getUser()->getId()
             ]);
 
         }
@@ -187,7 +187,7 @@ class ProjectController  extends Controller
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
 
-        foreach ($associatedNamespacesForAPIProject as &$associate){
+        foreach ($associatedNamespacesForAPIProject as &$associate) {
             $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
         }
 
@@ -217,7 +217,7 @@ class ProjectController  extends Controller
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
 
-        foreach ($associatedNamespacesForAPIProject as &$associate){
+        foreach ($associatedNamespacesForAPIProject as &$associate) {
             $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
         }
 
@@ -226,20 +226,22 @@ class ProjectController  extends Controller
         $formImport->handleRequest($request);
         if ($formImport->isSubmitted() && $formImport->isValid()) {
             $file = $formImport['uploadXMLFile']->getData();
-            if($file->getClientMimeType() == "text/xml"){
+            if ($file->getClientMimeType() == "text/xml") {
                 $nodeXmlNamespace = @simplexml_load_file($file->getPathname());
-                if($nodeXmlNamespace !== false){
-                    $dom=new \DOMDocument();
+                if ($nodeXmlNamespace !== false) {
+                    $dom = new \DOMDocument();
                     $dom->loadXML($nodeXmlNamespace->asXML());
                     // Import XSD
                     $pathXMLSchema = "../web/documents/schemaImportXmlwithReferences.xml";
                     $simpleXMLElementSchema = @simplexml_load_file($pathXMLSchema);
-                    if($dom->schemaValidateSource($simpleXMLElementSchema->asXML())){
+                    if ($dom->schemaValidateSource($simpleXMLElementSchema->asXML())) {
                         //Schema valide - on commence donc à mettre dans l'entité Namespace version (non root)
                         // Vérifier si le namespace root existe sinon on arrête tout.
                         $namespaceRoot = $project->getManagedNamespaces()
-                            ->filter(function($v){return $v->getIsTopLevelNamespace();})->first();
-                        if(!$namespaceRoot){
+                            ->filter(function ($v) {
+                                return $v->getIsTopLevelNamespace();
+                            })->first();
+                        if (!$namespaceRoot) {
                             echo "Il faut créer un namespace root";
                             die;
                         }
@@ -258,7 +260,7 @@ class ProjectController  extends Controller
                         // Scope note: un par langue
                         $langCollection = new ArrayCollection();
                         $defaultStandardLabel = null;
-                        foreach($nodeXmlNamespace->standardLabel as $keySl => $nodeXmlStandardLabel) {
+                        foreach ($nodeXmlNamespace->standardLabel as $keySl => $nodeXmlStandardLabel) {
                             if (!$langCollection->contains((string)$nodeXmlStandardLabel->attributes()->lang)) {
                                 $langCollection->add((string)$nodeXmlStandardLabel->attributes()->lang);
                             } else {
@@ -276,22 +278,21 @@ class ProjectController  extends Controller
                             $newNamespaceVersion->addLabel($namespaceLabel);
                             $em->persist($namespaceLabel);
 
-                            if($namespaceLabel->getLanguageIsoCode() == "en" || (is_null($defaultStandardLabel) && $namespaceLabel->getLanguageIsoCode() == "fr")){
+                            if ($namespaceLabel->getLanguageIsoCode() == "en" || (is_null($defaultStandardLabel) && $namespaceLabel->getLanguageIsoCode() == "fr")) {
                                 $defaultStandardLabel = (string)$nodeXmlStandardLabel;
                             }
                         }
 
                         // StandardLabel
-                        if(is_null($defaultStandardLabel)){
+                        if (is_null($defaultStandardLabel)) {
                             $newNamespaceVersion->setStandardLabel((string)$nodeXmlNamespace->standardLabel);
-                        }
-                        else{
+                        } else {
                             $newNamespaceVersion->setStandardLabel($defaultStandardLabel);
                         }
 
                         // Description : un par langue
                         $langCollection = new ArrayCollection();
-                        foreach($nodeXmlNamespace->description as $keyD => $nodeXmlDescription) {
+                        foreach ($nodeXmlNamespace->description as $keyD => $nodeXmlDescription) {
                             if (!$langCollection->contains((string)$nodeXmlDescription->attributes()->lang)) {
                                 $langCollection->add((string)$nodeXmlDescription->attributes()->lang);
                             } else {
@@ -322,16 +323,15 @@ class ProjectController  extends Controller
                         $em->persist($txtpVersion);
 
                         // published_at
-                        if(!empty((string)$nodeXmlNamespace->publishedAt)){
+                        if (!empty((string)$nodeXmlNamespace->publishedAt)) {
                             $newNamespaceVersion->setPublishedAt(new \DateTime((string)$nodeXmlNamespace->publishedAt));
-                        }
-                        else{
+                        } else {
                             $now = new \DateTime('now');
                             $newNamespaceVersion->setPublishedAt($now);
                         }
 
                         // Contributors
-                        if(!empty((string)$nodeXmlNamespace->contributors)){
+                        if (!empty((string)$nodeXmlNamespace->contributors)) {
                             $txtpContributors = new TextProperty();
                             $txtpContributors->setTextProperty((string)$nodeXmlNamespace->contributors);
                             $txtpContributors->setSystemType($systemTypeContributors);
@@ -345,19 +345,19 @@ class ProjectController  extends Controller
 
                         // Références
                         $idsReferences = new ArrayCollection();
-                        foreach($nodeXmlNamespace->referenceNamespace as $keyRefNs => $nodeXmlReferenceNamespace){
-                            if(!$idsReferences->contains((string)$nodeXmlReferenceNamespace)){
+                        foreach ($nodeXmlNamespace->referenceNamespace as $keyRefNs => $nodeXmlReferenceNamespace) {
+                            if (!$idsReferences->contains((string)$nodeXmlReferenceNamespace)) {
                                 $idsReferences->add((integer)$nodeXmlReferenceNamespace);
                             }
                             $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
                             $referencedNamespaceAssociation->setNamespace($newNamespaceVersion);
                             $referencedNamespace = $em->getRepository('AppBundle:OntoNamespace')->findOneBy(array("id" => (integer)$nodeXmlReferenceNamespace));
-                            if(is_null($referencedNamespace)){
-                                echo "Le namespace de référence ".(integer)$nodeXmlReferenceNamespace." n'a pas été trouvé.";
+                            if (is_null($referencedNamespace)) {
+                                echo "Le namespace de référence " . (integer)$nodeXmlReferenceNamespace . " n'a pas été trouvé.";
                                 die;
                             }
-                            if($referencedNamespace->getIsTopLevelNamespace()){
-                                echo "Le namespace  ".(integer)$nodeXmlReferenceNamespace." est root et ne peut etre utilisé comme reference.";
+                            if ($referencedNamespace->getIsTopLevelNamespace()) {
+                                echo "Le namespace  " . (integer)$nodeXmlReferenceNamespace . " est root et ne peut etre utilisé comme reference.";
                                 die;
                             }
                             $referencedNamespaceAssociation->setReferencedNamespace($referencedNamespace);
@@ -374,28 +374,27 @@ class ProjectController  extends Controller
                         // Vérificateurs
                         $arrayIdentifiers = new ArrayCollection();
 
-                        foreach($nodeXmlClasses->children() as $key => $nodeXmlClass){
+                        foreach ($nodeXmlClasses->children() as $key => $nodeXmlClass) {
                             // Pour vérification de l'unicité des identifiers
-                            if(!$arrayIdentifiers->contains((string)$nodeXmlClass->identifierInNamespace)){
+                            if (!$arrayIdentifiers->contains((string)$nodeXmlClass->identifierInNamespace)) {
                                 $arrayIdentifiers->add((string)$nodeXmlClass->identifierInNamespace);
-                            }
-                            else{
+                            } else {
                                 echo "2 classes au moins ont le même identifiants";
                                 die;
                             }
                             // Class "Root"
                             $class = null;
                             // Vérifier si la classe n'existe déjà pas dans un des namespaces du root namespace (comparaison par identifierInNamespace)
-                            foreach($namespaceRoot->getChildVersions() as $childNamespace){
-                                foreach($childNamespace->getClasses() as $tempClass){
-                                    if($tempClass->getIdentifierInNamespace() == (string)$nodeXmlClass->identifierInNamespace){
+                            foreach ($namespaceRoot->getChildVersions() as $childNamespace) {
+                                foreach ($childNamespace->getClasses() as $tempClass) {
+                                    if ($tempClass->getIdentifierInNamespace() == (string)$nodeXmlClass->identifierInNamespace) {
                                         $class = $tempClass;
                                         break; // Inutile d'aller plus loin la première vraie égalité suffit
                                     }
                                 }
                             }
 
-                            if(is_null($class)){
+                            if (is_null($class)) {
                                 // On a donc une nouvelle classe
                                 $class = new OntoClass();
                                 $class->setIdentifierInNamespace((string)$nodeXmlClass->identifierInNamespace);
@@ -422,15 +421,14 @@ class ProjectController  extends Controller
 
                             // Scope note: un par langue
                             $langCollection = new ArrayCollection();
-                            if(!is_null($nodeXmlClass->textProperties->scopeNote)){
-                                foreach($nodeXmlClass->textProperties->scopeNote as $keySn => $nodeXmlScopeNote) {
-                                    if(!$langCollection->contains((string)$nodeXmlScopeNote->attributes()->lang)){
+                            if (!is_null($nodeXmlClass->textProperties->scopeNote)) {
+                                foreach ($nodeXmlClass->textProperties->scopeNote as $keySn => $nodeXmlScopeNote) {
+                                    if (!$langCollection->contains((string)$nodeXmlScopeNote->attributes()->lang)) {
                                         $langCollection->add((string)$nodeXmlScopeNote->attributes()->lang);
-                                    }
-                                    else{
+                                    } else {
                                         var_dump($langCollection);
                                         echo (string)$nodeXmlScopeNote->attributes()->lang;
-                                        echo "- 2 scopes notes au moins ont la même langue. ".$newClassVersion->getClass()->getIdentifierInNamespace();
+                                        echo "- 2 scopes notes au moins ont la même langue. " . $newClassVersion->getClass()->getIdentifierInNamespace();
                                         die;
                                     }
                                     $scopeNote = new TextProperty();
@@ -450,7 +448,7 @@ class ProjectController  extends Controller
                             }
 
                             // Examples
-                            if(!is_null($nodeXmlClass->textProperties->example)) {
+                            if (!is_null($nodeXmlClass->textProperties->example)) {
                                 foreach ($nodeXmlClass->textProperties->example as $keyEx => $nodeXmlExample) {
                                     $example = new TextProperty();
                                     $example->setClass($class);
@@ -469,7 +467,7 @@ class ProjectController  extends Controller
                             }
 
                             // Context note
-                            if(!is_null($nodeXmlClass->textProperties->contextNote)) {
+                            if (!is_null($nodeXmlClass->textProperties->contextNote)) {
                                 foreach ($nodeXmlClass->textProperties->contextNote as $keyEx => $nodeXmlContextNote) {
                                     $contextNote = new TextProperty();
                                     $contextNote->setClass($class);
@@ -489,7 +487,7 @@ class ProjectController  extends Controller
                             }
 
                             // Bibliographical note
-                            if(!is_null($nodeXmlClass->textProperties->bibliographicalNote)) {
+                            if (!is_null($nodeXmlClass->textProperties->bibliographicalNote)) {
                                 foreach ($nodeXmlClass->textProperties->bibliographicalNote as $keyEx => $nodeXmlBibliographicalNote) {
                                     $bibliographicalNote = new TextProperty();
                                     $bibliographicalNote->setClass($class);
@@ -513,17 +511,16 @@ class ProjectController  extends Controller
                             $defaultStandardLabelEn = null;
                             $defaultStandardLabelFr = null;
                             $defaultStandardLabel = null;
-                            foreach($nodeXmlClass->standardLabel as $keyLabel => $nodeXmlLabel){
+                            foreach ($nodeXmlClass->standardLabel as $keyLabel => $nodeXmlLabel) {
                                 $classLabel = new Label();
                                 $classLabel->setClass($class);
                                 $classLabel->setNamespaceForVersion($newNamespaceVersion);
                                 $classLabel->setLabel((string)$nodeXmlLabel);
                                 $classLabel->setLanguageIsoCode((string)$nodeXmlLabel->attributes()->lang);
-                                if(!$langs->contains((string)$nodeXmlLabel->attributes()->lang)){
+                                if (!$langs->contains((string)$nodeXmlLabel->attributes()->lang)) {
                                     $langs->add((string)$nodeXmlLabel->attributes()->lang);
                                     $classLabel->setIsStandardLabelForLanguage(true);
-                                }
-                                else{
+                                } else {
                                     $classLabel->setIsStandardLabelForLanguage(false);
                                 }
                                 $classLabel->setCreator($this->getUser());
@@ -535,28 +532,26 @@ class ProjectController  extends Controller
                                 $em->persist($classLabel);
 
 
-                                if(is_null($defaultStandardLabelEn) || $classLabel->getLanguageIsoCode() == "en"){
+                                if (is_null($defaultStandardLabelEn) || $classLabel->getLanguageIsoCode() == "en") {
                                     $defaultStandardLabelEn = (string)$nodeXmlLabel;
                                 }
-                                if(is_null($defaultStandardLabelFr) || $classLabel->getLanguageIsoCode() == "fr"){
+                                if (is_null($defaultStandardLabelFr) || $classLabel->getLanguageIsoCode() == "fr") {
                                     $defaultStandardLabelFr = (string)$nodeXmlLabel;
                                 }
-                                if(is_null($defaultStandardLabel)){
+                                if (is_null($defaultStandardLabel)) {
                                     $defaultStandardLabel = (string)$nodeXmlLabel;
                                 }
                             }
-                            if(!is_null($defaultStandardLabelEn)){
+                            if (!is_null($defaultStandardLabelEn)) {
                                 $newClassVersion->setStandardLabel($defaultStandardLabelEn);
-                            }
-                            elseif(!is_null($defaultStandardLabelFr)){
+                            } elseif (!is_null($defaultStandardLabelFr)) {
                                 $newClassVersion->setStandardLabel($defaultStandardLabelEn);
-                            }
-                            else{
+                            } else {
                                 $newClassVersion->setStandardLabel($defaultStandardLabel);
                             }
                         }
 
-                        foreach($nodeXmlProperties->children() as $key => $nodeXmlProperty) {
+                        foreach ($nodeXmlProperties->children() as $key => $nodeXmlProperty) {
                             if (!$arrayIdentifiers->contains((string)$nodeXmlProperty->identifierInNamespace)) {
                                 $arrayIdentifiers->add((string)$nodeXmlProperty->identifierInNamespace);
                             } else {
@@ -809,7 +804,7 @@ class ProjectController  extends Controller
                             }
 
                             // Context note
-                            if(!is_null($nodeXmlProperty->textProperties->contextNote)) {
+                            if (!is_null($nodeXmlProperty->textProperties->contextNote)) {
                                 foreach ($nodeXmlProperty->textProperties->contextNote as $keyEx => $nodeXmlContextNote) {
                                     $contextNote = new TextProperty();
                                     $contextNote->setProperty($property);
@@ -829,7 +824,7 @@ class ProjectController  extends Controller
                             }
 
                             // Bibliographical note
-                            if(!is_null($nodeXmlProperty->textProperties->bibliographicalNote)) {
+                            if (!is_null($nodeXmlProperty->textProperties->bibliographicalNote)) {
                                 foreach ($nodeXmlProperty->textProperties->bibliographicalNote as $keyEx => $nodeXmlBibliographicalNote) {
                                     $bibliographicalNote = new TextProperty();
                                     $bibliographicalNote->setProperty($property);
@@ -850,13 +845,12 @@ class ProjectController  extends Controller
                         }
 
 
-
                         // Les entités ont été créées. Maintenant on passe aux relations hierarchiques/autres
-                        foreach($nodeXmlClasses->children() as $key => $nodeXmlClass) {
+                        foreach ($nodeXmlClasses->children() as $key => $nodeXmlClass) {
 
                             //SubClassOf
                             if (!empty($nodeXmlClass->subClassOf)) {
-                                foreach($nodeXmlClass->subClassOf as $keySub => $nodeXmlSubClassOf){
+                                foreach ($nodeXmlClass->subClassOf as $keySub => $nodeXmlSubClassOf) {
                                     $classAssociation = new ClassAssociation();
                                     // Quelle version Parent ?
                                     $xmlParentClassNamespace = $nodeXmlSubClassOf->attributes()->referenceNamespace;
@@ -864,7 +858,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlParentClassNamespace)) {
                                         $parentClassNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlParentClassNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlParentClassNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlParentClassNamespace)) {
                                             echo "Un namespace de référence pour subclassOf n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -880,7 +874,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($parentClass)) {
-                                        echo (string)$nodeXmlClass->identifierInNamespace." Parent class " . (string)$nodeXmlSubClassOf . " (".$parentClassNamespace->getId().") n'a pas été trouvé";
+                                        echo (string)$nodeXmlClass->identifierInNamespace . " Parent class " . (string)$nodeXmlSubClassOf . " (" . $parentClassNamespace->getId() . ") n'a pas été trouvé";
                                         die;
                                     }
 
@@ -893,7 +887,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($childClass)) {
-                                        echo (string)$nodeXmlClass->identifierInNamespace." Child class " . (string)$nodeXmlClass->identifierInNamespace . " n'a pas été trouvé";
+                                        echo (string)$nodeXmlClass->identifierInNamespace . " Child class " . (string)$nodeXmlClass->identifierInNamespace . " n'a pas été trouvé";
                                         die;
                                     }
 
@@ -917,7 +911,7 @@ class ProjectController  extends Controller
 
                             //parentClassOf
                             if (!empty($nodeXmlClass->parentClassOf)) {
-                                foreach($nodeXmlClass->parentClassOf as $keySub => $nodeXmlParentClassOf){
+                                foreach ($nodeXmlClass->parentClassOf as $keySub => $nodeXmlParentClassOf) {
                                     $classAssociation = new ClassAssociation();
                                     // Quelle version Child ?
                                     $xmlChildClassNamespace = $nodeXmlParentClassOf->attributes()->referenceNamespace;
@@ -925,7 +919,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlChildClassNamespace)) {
                                         $childClassNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlChildClassNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlChildClassNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlChildClassNamespace)) {
                                             echo "Un namespace de référence pour parentClassOf n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -941,7 +935,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($childClass)) {
-                                        echo (string)$nodeXmlClass->identifierInNamespace." Parent class " . (string)$nodeXmlParentClassOf . " (".$childClassNamespace->getId().") n'a pas été trouvé";
+                                        echo (string)$nodeXmlClass->identifierInNamespace . " Parent class " . (string)$nodeXmlParentClassOf . " (" . $childClassNamespace->getId() . ") n'a pas été trouvé";
                                         die;
                                     }
 
@@ -954,7 +948,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($parentClass)) {
-                                        echo (string)$nodeXmlClass->identifierInNamespace." Parent class " . (string)$nodeXmlClass->identifierInNamespace . " n'a pas été trouvé";
+                                        echo (string)$nodeXmlClass->identifierInNamespace . " Parent class " . (string)$nodeXmlClass->identifierInNamespace . " n'a pas été trouvé";
                                         die;
                                     }
 
@@ -981,10 +975,10 @@ class ProjectController  extends Controller
                                 if ($key == "equivalentClass" || $key == "disjointWith") {
                                     $entityAssociation = new EntityAssociation();
                                     // Quelle version Target ?
-                                    if($key == "equivalentClass"){
+                                    if ($key == "equivalentClass") {
                                         $nodeXmlEntityAssociation = $nodeXmlClass->equivalentClass;
                                     }
-                                    if($key == "disjointWith"){
+                                    if ($key == "disjointWith") {
                                         $nodeXmlEntityAssociation = $nodeXmlClass->disjointWith;
                                     }
                                     $xmlTargetClassNamespace = $nodeXmlEntityAssociation->attributes()->referenceNamespace;
@@ -992,7 +986,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlTargetClassNamespace)) {
                                         $targetClassNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlTargetClassNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlTargetClassNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlTargetClassNamespace)) {
                                             echo "Un namespace de référence pour targetClass equivalentClass ou disjointWith n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -1052,10 +1046,10 @@ class ProjectController  extends Controller
                                 }
                             }
                         }
-                        foreach($nodeXmlProperties->children() as $key => $nodeXmlProperty) {
+                        foreach ($nodeXmlProperties->children() as $key => $nodeXmlProperty) {
                             //subPropertyOf
                             if (!empty($nodeXmlProperty->subPropertyOf)) {
-                                foreach ($nodeXmlProperty->subPropertyOf as $keySub => $nodeXmlSubPropertyOf){
+                                foreach ($nodeXmlProperty->subPropertyOf as $keySub => $nodeXmlSubPropertyOf) {
                                     $propertyAssociation = new PropertyAssociation();
                                     // Quelle version Parent ?
                                     $xmlParentPropertyNamespace = $nodeXmlSubPropertyOf->attributes()->referenceNamespace;
@@ -1063,7 +1057,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlParentPropertyNamespace)) {
                                         $parentPropertyNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlParentPropertyNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlParentPropertyNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlParentPropertyNamespace)) {
                                             echo "Un namespace de référence pour subPropertyOf n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -1116,7 +1110,7 @@ class ProjectController  extends Controller
 
                             //parentPropertyOf
                             if (!empty($nodeXmlProperty->parentPropertyOf)) {
-                                foreach ($nodeXmlProperty->parentPropertyOf as $keySub => $nodeXmlParentPropertyOf){
+                                foreach ($nodeXmlProperty->parentPropertyOf as $keySub => $nodeXmlParentPropertyOf) {
                                     $propertyAssociation = new PropertyAssociation();
                                     // Quelle version Child ?
                                     $xmlChildPropertyNamespace = $nodeXmlParentPropertyOf->attributes()->referenceNamespace;
@@ -1124,7 +1118,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlChildPropertyNamespace)) {
                                         $childPropertyNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlChildPropertyNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlChildPropertyNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlChildPropertyNamespace)) {
                                             echo "Un namespace de référence pour parentPropertyOf n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -1177,13 +1171,13 @@ class ProjectController  extends Controller
 
                             //equivalentProperty or inverseOf
                             foreach ($nodeXmlProperty->children() as $key => $value) {
-                                if($key=="equivalentProperty" || $key=="inverseOf"){
+                                if ($key == "equivalentProperty" || $key == "inverseOf") {
                                     $entityAssociation = new EntityAssociation();
                                     // Quelle version Target ?
-                                    if($key=="equivalentProperty"){
+                                    if ($key == "equivalentProperty") {
                                         $nodeXmlEntityAssociation = $nodeXmlProperty->equivalentProperty;
                                     }
-                                    if($key=="inverseOf"){
+                                    if ($key == "inverseOf") {
                                         $nodeXmlEntityAssociation = $nodeXmlProperty->inverseOf;
                                     }
                                     $xmlTargetPropertyNamespace = $nodeXmlEntityAssociation->attributes()->referenceNamespace;
@@ -1191,7 +1185,7 @@ class ProjectController  extends Controller
                                     if (!is_null($xmlTargetPropertyNamespace)) {
                                         $targetPropertyNamespace = $em->getRepository("AppBundle:OntoNamespace")
                                             ->findOneBy(array("id" => (integer)$xmlTargetPropertyNamespace));
-                                        if(!$idsReferences->contains((integer)$xmlTargetPropertyNamespace)){
+                                        if (!$idsReferences->contains((integer)$xmlTargetPropertyNamespace)) {
                                             echo "Un namespace de référence pour targetProperty equivalentProperty ou inverseOf n'a pas été déclaré avec la balise referenceNamespace";
                                             die;
                                         }
@@ -1207,7 +1201,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($targetProperty)) {
-                                        echo (string)$nodeXmlProperty->identifierInNamespace." Target property " . (string)$nodeXmlEntityAssociation . " n'a pas été trouvé";
+                                        echo (string)$nodeXmlProperty->identifierInNamespace . " Target property " . (string)$nodeXmlEntityAssociation . " n'a pas été trouvé";
                                         die;
                                     }
 
@@ -1220,7 +1214,7 @@ class ProjectController  extends Controller
                                         }
                                     }
                                     if (is_null($sourceProperty)) {
-                                        echo (string)$nodeXmlProperty->identifierInNamespace." Source property " . (string)$nodeXmlProperty->identifierInNamespace . " n'a pas été trouvé";
+                                        echo (string)$nodeXmlProperty->identifierInNamespace . " Source property " . (string)$nodeXmlProperty->identifierInNamespace . " n'a pas été trouvé";
                                         die;
                                     }
                                     $entityAssociation->setSourceProperty($sourceProperty);
@@ -1237,11 +1231,11 @@ class ProjectController  extends Controller
 
                                     $entityAssociation->setDirected(false);
 
-                                    if($key=="equivalentProperty"){
+                                    if ($key == "equivalentProperty") {
                                         $systemTypeEquivalentProperty = $em->getRepository('AppBundle:SystemType')->find(18); //owl:equivalentProperty
                                         $entityAssociation->setSystemType($systemTypeEquivalentProperty);
                                     }
-                                    if($key=="inverseOf"){
+                                    if ($key == "inverseOf") {
                                         $systemTypeInverseOf = $em->getRepository('AppBundle:SystemType')->find(20); //owl:inverseOf
                                         $entityAssociation->setSystemType($systemTypeInverseOf);
                                     }
@@ -1266,13 +1260,11 @@ class ProjectController  extends Controller
                         $em->flush();
                         $this->addFlash('success', 'Namespace imported!');
                     }
-                }
-                else{
+                } else {
                     echo "Erreur dans le fichier XML";
                     die;
                 }
-            }
-            else{
+            } else {
                 echo "Ce n'est pas du XML";
                 die;
             }
@@ -1285,7 +1277,9 @@ class ProjectController  extends Controller
 
         $rootNamespaces = $em->getRepository('AppBundle:OntoNamespace')
             ->findBy(array('isTopLevelNamespace' => true));
-        $rootNamespaces = array_filter($rootNamespaces, function($v){return $v->getId() != 5;});
+        $rootNamespaces = array_filter($rootNamespaces, function ($v) {
+            return $v->getId() != 5;
+        });
 
         return $this->render('project/edit.html.twig', array(
             'project' => $project,
@@ -1305,22 +1299,21 @@ class ProjectController  extends Controller
      */
     public function getSelectableMembersByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $users = $em->getRepository('AppBundle:User')
                 ->findAllNotInProject($project);
             $data['data'] = $users;
             $data = json_encode($data);
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($users)) {
-            return new JsonResponse(null,204, array());
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($data,200, array(), true);
+        if (empty($users)) {
+            return new JsonResponse(null, 204, array());
+        }
+
+        return new JsonResponse($data, 200, array(), true);
     }
 
     /**
@@ -1331,31 +1324,30 @@ class ProjectController  extends Controller
      */
     public function getAssociatedMembersByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $classes = $em->getRepository('AppBundle:User')
                 ->findUsersInProject($project);
             $data['data'] = $classes;
             $data = json_encode($data);
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($classes)) {
-            return new JsonResponse(null,204, array());
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($data,200, array(), true);
+        if (empty($classes)) {
+            return new JsonResponse(null, 204, array());
+        }
+
+        return new JsonResponse($data, 200, array(), true);
     }
 
     /**
      * @Route("/project/{project}/user/{user}/add", name="project_user_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "user"="^([0-9]+)|(id){1}$"})
      * @Method({ "POST"})
-     * @param User  $user    The user to be associated with a project
-     * @param Project  $project    The project to be associated with a user
-     * @throws \Exception in case of unsuccessful association
+     * @param User $user The user to be associated with a project
+     * @param Project $project The project to be associated with a user
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectUserAssociationAction(Project $project, User $user, Request $request)
     {
@@ -1368,8 +1360,7 @@ class ProjectController  extends Controller
         if (!is_null($userProjectAssociation)) {
             $status = 'Error';
             $message = 'This user is already member of this project.';
-        }
-        else {
+        } else {
             $em = $this->getDoctrine()->getManager();
 
             $userProjectAssociation = new UserProjectAssociation();
@@ -1399,10 +1390,10 @@ class ProjectController  extends Controller
     /**
      * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"})
      * @Method({ "POST"})
-     * @param OntoNamespace $namespace    The namespace to be associated with a project API
-     * @param Project  $project    The project API to be associated with a namespace
-     * @throws \Exception in case of unsuccessful association
+     * @param OntoNamespace $namespace The namespace to be associated with a project API
+     * @param Project $project The project API to be associated with a namespace
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request)
     {
@@ -1418,8 +1409,7 @@ class ProjectController  extends Controller
         if (!is_null($projectAssociation)) {
             $status = 'Error';
             $message = 'This user is already member of this project.';
-        }
-        else {
+        } else {
             $em = $this->getDoctrine()->getManager();
 
             $projectAssociation = new ProjectAssociation();
@@ -1450,22 +1440,21 @@ class ProjectController  extends Controller
     /**
      * @Route("/user-project-association/{id}/permission/{permission}/edit", name="project_member_permission_edit", requirements={"id"="^([0-9]+)|(associationId){1}$", "permission"="^([1-4])|(permissionToken){1}$"})
      * @Method({ "POST"})
-     * @param UserProjectAssociation  $userProjectAssociation   The user to project association to be edited
-     * @param int  $permission    The permission to
-     * @throws \Exception in case of unsuccessful association
+     * @param UserProjectAssociation $userProjectAssociation The user to project association to be edited
+     * @param int $permission The permission to
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, $permission, Request $request)
     {
         $this->denyAccessUnlessGranted('full_edit', $userProjectAssociation->getProject());
 
-        if($userProjectAssociation->getUser() == $this->getUser()) {
+        if ($userProjectAssociation->getUser() == $this->getUser()) {
             //l'utilisateur connecté ne peut pas changer ses propres permissions
             $status = 'Error';
             $message = 'The current user cannot change his own permission.';
-        }
-        else {
-            try{
+        } else {
+            try {
                 $em = $this->getDoctrine()->getManager();
 
                 $userProjectAssociation->setPermission($permission);
@@ -1474,8 +1463,7 @@ class ProjectController  extends Controller
                 $em->flush();
                 $status = 'Success';
                 $message = 'Permission successfully edited.';
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 return new JsonResponse(null, 400, 'content-type:application/problem+json');
             }
         }
@@ -1491,7 +1479,7 @@ class ProjectController  extends Controller
     /**
      * @Route("/user-project-association/{id}/delete", name="project_member_disassociation", requirements={"id"="^([0-9]+)|(associationId){1}$"})
      * @Method({ "POST"})
-     * @param UserProjectAssociation  $userProjectAssociation   The user to project association to be deleted
+     * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request)
@@ -1503,7 +1491,7 @@ class ProjectController  extends Controller
             $user = $userProjectAssociation->getUser();
 
             // Si l'utilisateur l'a en projet actif, modifier pour éviter qu'il se retrouve bloqué
-            if($user->getCurrentActiveProject() == $project){
+            if ($user->getCurrentActiveProject() == $project) {
                 $publicProject = $em->getRepository('AppBundle:Project')->find(21);
                 $user->setCurrentActiveProject($publicProject);
                 $em->persist($user);
@@ -1511,13 +1499,12 @@ class ProjectController  extends Controller
 
             $entityUserProjectsAssociations = $em->getRepository('AppBundle:EntityUserProjectAssociation')
                 ->findBy(array('userProjectAssociation' => $userProjectAssociation->getId()));
-            foreach ($entityUserProjectsAssociations as $eupa){
+            foreach ($entityUserProjectsAssociations as $eupa) {
                 $em->remove($eupa);
             }
             $em->remove($userProjectAssociation);
             $em->flush();
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return new JsonResponse($e->getMessage(), 400, array('content-type:application/problem+json'));
         }
         return new JsonResponse(null, 204);
@@ -1532,22 +1519,21 @@ class ProjectController  extends Controller
      */
     public function getSelectableProfilesByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $profiles = $em->getRepository('AppBundle:Profile')
                 ->findProfilesForAssociationWithProjectByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($profiles)) {
-            return new JsonResponse(null,204, array());
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($data,200, array(), true);
+        if (empty($profiles)) {
+            return new JsonResponse(null, 204, array());
+        }
+
+        return new JsonResponse($data, 200, array(), true);
     }
 
     /**
@@ -1558,31 +1544,30 @@ class ProjectController  extends Controller
      */
     public function getAssociatedProfilesByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $profiles = $em->getRepository('AppBundle:Profile')
                 ->findProfilesByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($profiles)) {
-            return new JsonResponse('{"data":[]}',200, array(), true);
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($data,200, array(), true);
+        if (empty($profiles)) {
+            return new JsonResponse('{"data":[]}', 200, array(), true);
+        }
+
+        return new JsonResponse($data, 200, array(), true);
     }
 
     /**
      * @Route("/project/{project}/profile/{profile}/add", name="project_profile_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
      * @Method({ "POST"})
-     * @param Profile  $profile The profile to be associated with a project
-     * @param Project  $project   The project to be associated with a profile
-     * @throws \Exception in case of unsuccessful association
+     * @param Profile $profile The profile to be associated with a project
+     * @param Project $project The project to be associated with a profile
      * @return JsonResponse a Json formatted namespaces list
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
     {
@@ -1593,11 +1578,10 @@ class ProjectController  extends Controller
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
 
         if (!is_null($projectAssociation)) {
-            if($projectAssociation->getSystemType()->getId() == 11) {
+            if ($projectAssociation->getSystemType()->getId() == 11) {
                 $status = 'Error';
                 $message = 'This profile is already used by this project';
-            }
-            else {
+            } else {
                 $systemType = $em->getRepository('AppBundle:SystemType')->find(11); //systemType 11 = Used by project
                 $projectAssociation->setSystemType($systemType);
 
@@ -1607,8 +1591,7 @@ class ProjectController  extends Controller
                 $status = 'Success';
                 $message = 'Profile successfully re-associated';
             }
-        }
-        else {
+        } else {
             $em = $this->getDoctrine()->getManager();
 
             $projectAssociation = new ProjectAssociation();
@@ -1639,8 +1622,8 @@ class ProjectController  extends Controller
     /**
      * @Route("/project/{project}/profile/{profile}/delete", name="project_profile_disassociation", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
      * @Method({ "POST"})
-     * @param Profile  $profile    The profile to be disassociated from a project
-     * @param Project  $project    The project to be disassociated from a profile
+     * @param Profile $profile The profile to be disassociated from a project
+     * @param Project $project The project to be disassociated from a profile
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
@@ -1664,7 +1647,7 @@ class ProjectController  extends Controller
      * @param Project $project The project for which the URI is to be edited
      * @param Request $request
      * @return JsonResponse a Json response with the new project URI
-    */
+     */
     public function editProjectURIAction(Project $project, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -1692,14 +1675,14 @@ class ProjectController  extends Controller
     }
 
     /**
-     * @Route("/project/{id}/containers/datatable", name="containers_by_project_datatable", requirements={"id"="^([0-9]+)|(projectID){1}$"})
+     * @Route("/project/{id}/containers/json", name="containers_by_project_json", requirements={"id"="^([0-9]+)|(projectID){1}$"})
      * @Method("GET")
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Containers selected by Project
      */
     public function getContainersByProjectForDatatable(Project $project)
-    {        
-        try{
+    {
+        try {
             $em = $this->getDoctrine()->getManager();
             $containers = [];
 
@@ -1741,9 +1724,8 @@ class ProjectController  extends Controller
                     'isOngoing' => $container->getIsOngoing()
                 );
             }
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
         return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
@@ -1753,15 +1735,16 @@ class ProjectController  extends Controller
      * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"})
      * @Method("GET")
      * @param Pathbuilder $pathbuilder
-    * @return Response an XML file response with the content of the pathbuilder to export
+     * @return Response an XML file response with the content of the pathbuilder to export
      */
     public function exportPathbuilderAction(Pathbuilder $pathbuilder)
     {
         $xmlContent = $pathbuilder->getXmlContent();
 
         $response = new Response($xmlContent);
+        $filename = rawurlencode($pathbuilder->getLabel()->getLabel()) . '.xml';
         $response->headers->set('Content-Type', 'application/xml');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $pathbuilder->getLabel()->getLabel() . '.xml"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
         return $response;
     }
@@ -1786,7 +1769,7 @@ class ProjectController  extends Controller
         $uploadedFile = $request->files->get('file');
         $pathbuilderUrl = trim((string)$request->request->get('url', ''));
 
-        
+
         $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>';
 
         if (!is_null($uploadedFile)) {
@@ -1795,15 +1778,44 @@ class ProjectController  extends Controller
                 $xmlContent = $uploadedContent;
             }
         } elseif ($pathbuilderUrl !== '') {
-            try{
+            try {
+                // Vérifier si l'URL est valide et est dans la liste blanche des domaines autorisées
+                $allowedDomains = ['lod4hss.cloud', 'wisski.cloud'];
+                $parsedUrl = parse_url($pathbuilderUrl);
+                $host = isset($parsedUrl['host']) ? $parsedUrl['host'] : '';
+
+                $isAllowed = false;
+                foreach ($allowedDomains as $domain) {
+                    // On vérifie le domaine mais aussi les sous-domaines
+                    if ($host === $domain || substr($host, -strlen($domain) - 1) === '.' . $domain) {
+                        $isAllowed = true;
+                        break;
+                    }
+                }
+
+                if (!isset($parsedUrl['host']) || !$isAllowed) {
+                    return new JsonResponse([
+                        'status' => 'Error',
+                        'message' => 'The provided URL is not allowed. Please use a URL from the allowed domains.'
+                    ], 400);
+                }
+
                 $urlContent = file_get_contents($pathbuilderUrl);
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 return new JsonResponse(['status' => 'Error', 'message' => 'Unable to retrieve content from the provided URL. Please check the URL and try again.'], 400);
             }
             if ($urlContent !== false && trim($urlContent) !== '') {
                 // On s'assure que c'est bien du XML
+                if (\PHP_VERSION_ID < 80000) {
+                    $previousEntityLoaderState = libxml_disable_entity_loader(true);
+                }
+
                 $xml = @simplexml_load_string($urlContent);
+
+                if (\PHP_VERSION_ID < 80000) {
+                    libxml_disable_entity_loader($previousEntityLoaderState); // Restauration de l'état
+                }
+
                 if ($xml !== false) {
                     $xmlContent = $urlContent;
                 } else {
@@ -1845,9 +1857,10 @@ class ProjectController  extends Controller
     }
 
     // Supprimer un pathbuilder d'un container
+
     /**
      * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"})
-     * @Method("POST")
+     * @Method("DELETE")
      * @param Container $container
      * @param Pathbuilder $pathbuilder
      * @return JsonResponse a Json 204 HTTP response
@@ -1857,9 +1870,6 @@ class ProjectController  extends Controller
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
         $em = $this->getDoctrine()->getManager();
-
-        $container->removePathbuilder($pathbuilder);
-        $em->persist($container);
 
         $em->remove($pathbuilder);
         $em->flush();

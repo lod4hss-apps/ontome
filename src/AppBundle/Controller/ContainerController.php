@@ -1,4 +1,5 @@
 <?php
+
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Label;
@@ -23,6 +24,10 @@ class ContainerController extends Controller
         $id = $request->get('id');
 
         $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($id);
+
+        if (!$container) {
+            throw new NotFoundHttpException("Container not found");
+        }
 
         $label = $container->getLabel()->getLabel();
 
@@ -62,10 +67,6 @@ class ContainerController extends Controller
             'pathbuilders' => $pathbuildersData,
             'isOngoing' => $container->getIsOngoing()
         ];
-
-        if (!$container) {
-            throw new NotFoundHttpException("Container not found");
-        }
         return new JsonResponse($containerData);
     }
 
@@ -104,7 +105,7 @@ class ContainerController extends Controller
 
         if (!empty($idRootNamespacesAssociated)) {
             $qb->andWhere('n.id NOT IN (:ids)')
-            ->setParameter('ids', $idRootNamespacesAssociated);
+                ->setParameter('ids', $idRootNamespacesAssociated);
         }
 
         $rootNamespacesNotAssociated = $qb->getQuery()->getResult();
@@ -158,7 +159,7 @@ class ContainerController extends Controller
             'status' => 'Success',
             'message' => 'Container created successfully'
         ]);
-    }   
+    }
 
     /**
      * @Route("/association_container_namespace/create", name="association_container_namespace_create")
@@ -168,13 +169,19 @@ class ContainerController extends Controller
      */
     public function createAssociationContainerNamespace(Request $request)
     {
-        // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
 
         $containerId = $request->get('container_id');
         $namespaceId = $request->get('namespace_id');
 
         $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($containerId);
         $namespace = $this->getDoctrine()->getRepository('AppBundle:OntoNamespace')->find($namespaceId);
+
+        if (!$container || !$namespace) {
+            return new JsonResponse(['status' => 'Error', 'message' => 'Container or Namespace not found'], 404);
+        }
+
+        // Droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
+        $this->denyAccessUnlessGranted('edit', $container->getProject());
 
         $container->addNamespace($namespace);
         $container->setModifier($this->getUser());
@@ -192,14 +199,14 @@ class ContainerController extends Controller
 
     /**
      * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete")
-     * @Method("GET")
+     * @Method("DELETE")
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
     public function deleteAssociationContainerNamespace(Request $request)
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
-        
+
         $containerId = $request->get('containerId');
         $namespaceId = $request->get('namespaceId');
 

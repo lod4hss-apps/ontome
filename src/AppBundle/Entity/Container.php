@@ -47,7 +47,7 @@ class Container
     private $pathbuilders;
 
     /**
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Label", inversedBy="containers")
+     * @ORM\ManyToOne(targetEntity="Label", inversedBy="containers")
      * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label")
      */
     private $label;
@@ -115,15 +115,15 @@ class Container
      * @return mixed
      */
     public function getIsOngoing()
-    {       
-         return $this->isOngoing;
+    {
+        return $this->isOngoing;
     }
 
     /**
      * @param mixed $isOngoing
-     */    
+     */
     public function setIsOngoing($isOngoing)
-    {        
+    {
         $this->isOngoing = $isOngoing;
     }
 
@@ -159,9 +159,9 @@ class Container
         $this->modificationTime = $modificationTime;
     }
 
-        /**
-        * @param mixed $project
-        */
+    /**
+     * @param mixed $project
+     */
     public function setProject($project)
     {
         $this->project = $project;
@@ -176,50 +176,50 @@ class Container
     }
 
     /**
-    * @param mixed $namespace
-    */
+     * @param mixed $namespace
+     */
     public function addNamespace($namespace)
     {
-        if(!$this->namespaces->contains($namespace)){
+        if (!$this->namespaces->contains($namespace)) {
             $this->namespaces->add($namespace);
         }
     }
 
     public function removeNamespace($namespace)
     {
-        if($this->namespaces->contains($namespace)){
+        if ($this->namespaces->contains($namespace)) {
             $this->namespaces->removeElement($namespace);
         }
     }
 
     /**
-    * @return mixed
-    */
+     * @return mixed
+     */
     public function getNamespaces()
     {
         return $this->namespaces;
     }
 
     /**
-    * @param mixed $pathbuilder
-    */
+     * @param mixed $pathbuilder
+     */
     public function addPathbuilder($pathbuilder)
     {
-        if(!$this->pathbuilders->contains($pathbuilder)){
+        if (!$this->pathbuilders->contains($pathbuilder)) {
             $this->pathbuilders->add($pathbuilder);
         }
     }
 
     public function removePathbuilder($pathbuilder)
     {
-        if($this->pathbuilders->contains($pathbuilder)){
+        if ($this->pathbuilders->contains($pathbuilder)) {
             $this->pathbuilders->removeElement($pathbuilder);
         }
     }
 
     /**
-    * @return mixed
-    */
+     * @return mixed
+     */
     public function getPathbuilders()
     {
         return $this->pathbuilders;
