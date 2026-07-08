@@ -25,13 +25,18 @@
                             </a>
                         </li>
                         <li>
+                            <a  href="{{ path('api_classes_and_properties_by_namespace_xml_rdfs_inverse_properties', {namespace: namespace.id}) }}" download="namespace-{{ namespace.standardLabel }}-inverse-properties.rdf">
+                                <i class="fas fa-code"></i> RDFS-inverse-properties
+                            </a>
+                        </li>
+                        <li>
                             <a  href="{{ path('api_classes_and_properties_by_namespace_xml', {namespace: namespace.id}) }}" download="namespace-{{ namespace.standardLabel }}.rdf">
                                 <i class="fas fa-code"></i> OWL-DL
                             </a>
                         </li>
                         <li>
                             <a  href="{{ path('api_owl_wisski_by_namespace', {namespace: namespace.id}) }}" download="namespace-{{ namespace.standardLabel }}.rdf">
-                                <i class="fas fa-code"></i> OWL-WissKI (Test)
+                                <i class="fas fa-code"></i> OWL-WissKI
                             </a>
                         </li>
                         <li>
