@@ -452,7 +452,7 @@
             </div>
             <div id="import" class="tab-pane fade">
                 <h3>Import (only admin can see this page)</h3>
-                {% if project.managedNamespaces is not empty or 1==1 %}
+                {% if project.managedNamespaces is not empty %}
                     {{ form_start(formImport) }}
                     {{ form_row(formImport.uploadXMLFile) }}
                     <p>
