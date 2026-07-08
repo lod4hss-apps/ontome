@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityRepository;
 class PropertyVersionRepository extends EntityRepository
 {
     /**
-     * @param OntoClass $class
+     * @param Property $property
      * @param array $namespacesId
      * @return object|null
      * @throws \Doctrine\DBAL\DBALException
@@ -32,6 +32,27 @@ class PropertyVersionRepository extends EntityRepository
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
         $stmt->execute(array_merge(array($property->getId()), $namespacesId));
+
+        return $em->getRepository('AppBundle:PropertyVersion')->find($stmt->fetch()['pk_property_version']);
+    }
+
+    /**
+     * @param int $propertyId
+     * @return object|null
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function findOngoingVersion($propertyId)
+    {
+        $sql = "SELECT pk_property_version 
+                FROM che.property_version pv
+                LEFT JOIN che.namespace ns ON pv.fk_namespace_for_version = ns.pk_namespace
+                WHERE fk_property = ? AND ns.is_ongoing = true
+                LIMIT 1";
+
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array($propertyId));
 
         return $em->getRepository('AppBundle:PropertyVersion')->find($stmt->fetch()['pk_property_version']);
     }

@@ -307,12 +307,24 @@ class NamespaceRepository extends EntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT  nsp.pk_namespace AS id,
-                        nsp.standard_label AS \"standardLabel\",
-                        aspro.pk_associates_project AS \"associationId\"
+        $sql = "SELECT 
+                    nsp.pk_namespace AS id,
+                    nsp.standard_label AS \"standardLabel\",
+                    aspro.pk_associates_project AS \"associationId\",
+                    json_agg(json_build_object(
+                        'id', nsp_ref.pk_namespace::text,
+                        'label', nsp_ref.standard_label::text
+                    )) AS \"namespacesReferenced\"
                 FROM che.namespace nsp
                 JOIN che.associates_project aspro ON nsp.pk_namespace = aspro.fk_namespace
-                WHERE aspro.fk_project = :id_project AND aspro.fk_system_type = 38;";
+                JOIN che.namespace nsp_ref ON nsp_ref.pk_namespace IN (
+                    SELECT pk_namespace 
+                    FROM che.get_all_references_namespaces_for_namespace(nsp.pk_namespace) 
+                    WHERE pk_namespace <> nsp.pk_namespace
+                )
+                WHERE aspro.fk_project = :id_project
+                    AND aspro.fk_system_type = 38
+                GROUP BY nsp.pk_namespace, nsp.standard_label, aspro.pk_associates_project";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute(array('id_project' => $project->getId()));
@@ -392,17 +404,41 @@ class NamespaceRepository extends EntityRepository
      * @param $namespace int the ID of the namespace
      * @return array
      */
-    public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace)
+    public function findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespace)
     {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
+        $sql = "SELECT result::text FROM api.get_owl_wisski_from_namespace(:lang, :namespace) as result;";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute(array(
             'lang' => $lang,
             'namespace' => $namespace
+        ));
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * @param $lang string the language iso code
+     * @param $namespace int the ID of the namespace
+     * @return array
+     */
+    public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace, $withInverseProperties = 0, $withSpecificUri = 0)
+    {
+        $conn = $this->getEntityManager()
+            ->getConnection();
+
+        //$sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
+        $sql = "SELECT result::text FROM api.get_export_namespace_rdfs(:lang, :namespace, :withInverseProperties, :withSpecificUri) as result;";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array(
+            'lang' => $lang,
+            'namespace' => $namespace,
+            'withInverseProperties' => $withInverseProperties ? true : 0,
+            'withSpecificUri' => $withSpecificUri ? true : 0
         ));
 
         return $stmt->fetchAll();

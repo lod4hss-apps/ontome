@@ -49,7 +49,7 @@ class OntoNamespace
      *     min = 1,
      *     max = 6,
      *     minMessage="Your class prefix must be at least {{ limit }} characters long",
-     *     maxMessage="Your class prefix cannot be loger than {{ limit }} characters"
+     *     maxMessage="Your class prefix cannot be longer than {{ limit }} characters"
      * )
      * @ORM\Column(type="text")
      */
@@ -60,7 +60,7 @@ class OntoNamespace
      *     min = 1,
      *     max = 6,
      *     minMessage="Your property prefix must be at least {{ limit }} characters long",
-     *     maxMessage="Your property prefix cannot be loger than {{ limit }} characters"
+     *     maxMessage="Your property prefix cannot be longer than {{ limit }} characters"
      * )
      * @ORM\Column(type="text")
      */
@@ -178,7 +178,13 @@ class OntoNamespace
     private $modificationTime;
 
     /**
-     * @Assert\NotNull()
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 10,
+     *      minMessage="Your root namespace prefix must be at least {{ limit }} characters long",
+     *      maxMessage="Your root namespace prefix cannot be longer than {{ limit }} characters"
+     *  )
+     * @Assert\NotNull(groups={"RequirePrefix"})
      * @ORM\Column(type="text")
      * @Assert\Regex(
      *     pattern="/^[a-z0-9](-?[a-z0-9])*$/",
@@ -293,6 +299,12 @@ class OntoNamespace
     private $propertyVersions;
 
     /**
+     * @ORM\ManyToMany(targetEntity="Container", mappedBy="namespaces")
+     * @ORM\OrderBy({"id" = "ASC"})
+     */
+    private $containers;
+
+    /**
      * @return mixed
      */
     public function getCurrentClassNumber()
@@ -390,6 +402,7 @@ class OntoNamespace
         $this->projectAssociations = new ArrayCollection();
         $this->classVersions = new ArrayCollection();
         $this->propertyVersions = new ArrayCollection();
+        $this->containers = new ArrayCollection();
     }
 
     /**
@@ -1116,5 +1129,30 @@ class OntoNamespace
                     break;
             }
             return $arrStr;
+    }
+
+    public function addContainer(Container $container)
+    {
+        if ($this->containers->contains($container)) {
+            return;
+        }
+        $this->containers[] = $container;
+        // needed to update the owning side of the relationship!
+        $container->addNamespace($this);
+    }
+
+    public function removeContainer(Container $container)
+    {
+        if (!$this->containers->contains($container)) {
+            return;
+        }
+        $this->containers->removeElement($container);
+        // needed to update the owning side of the relationship!
+        $container->removeNamespace($this);
+    }
+
+    public function getContainers()
+    {
+        return $this->containers;
     }
 }

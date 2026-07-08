@@ -141,6 +141,22 @@ class Project
      */
     private $projectThesaurusAssociations;
 
+    /**
+     * @Assert\Url(message="Please enter a valid URI")
+     * @ORM\Column(type="text", nullable=true, unique=true)
+     */
+    private $uriProject;
+  
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $project_types = [];
+
+    /**
+     * @ORM\OneToMany(targetEntity="Container", mappedBy="project")
+     */
+    private $containers;
+
     public function __construct()
     {
         $this->ownedProfiles = new ArrayCollection();
@@ -153,6 +169,8 @@ class Project
         $this->userProjectAssociations = new ArrayCollection();
         $this->projectAssociations = new ArrayCollection();
         $this->projectThesaurusAssociations = new ArrayCollection();
+        $this->project_types = [];
+        $this->containers = new ArrayCollection();
     }
 
 
@@ -221,7 +239,7 @@ class Project
     }
 
     /**
-     * @return mixed
+     * @return ArrayCollection|Container[]
      */
     public function getCreator()
     {
@@ -250,22 +268,6 @@ class Project
     public function getModificationTime()
     {
         return $this->modificationTime;
-    }
-
-    /**
-     * @return ArrayCollection|OntoClass[]
-     */
-    public function getClasses()
-    {
-        return $this->classes;
-    }
-
-    /**
-     * @return ArrayCollection|Property[]
-     */
-    public function getProperties()
-    {
-        return $this->properties;
     }
 
     /**
@@ -439,9 +441,64 @@ class Project
         $label->setProject($this);
     }
 
+    /**
+     * @return array
+     */
+    public function getProjectTypes()
+    {
+        return $this->project_types ?: [];
+    }
+
+    /**
+     * @param array|null $projectTypes
+     */
+    public function setProjectTypes(array $projectTypes = null)
+    {
+        $this->project_types = $projectTypes ?: [];
+    }
+
     public function __toString()
     {
         $s = $this->getStandardLabel();
         return (string) $s;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUriProject()
+    {
+        return $this->uriProject;
+    }
+
+    /**
+     * @param mixed $uriProject
+     */
+    public function setUriProject($uriProject)
+    {
+        $this->uriProject = $uriProject;
+    }
+
+    public function addContainer(Container $container)
+    {
+        if ($this->containers->contains($container)) {
+            return;
+        }
+        $this->containers[] = $container;
+        // needed to update the owning side of the relationship!
+        $container->setProject($this);
+    }
+
+    public function removeContainer(Container $container)
+    {
+        if (!$this->containers->contains($container)) {
+            return;
+        }
+        $this->containers->removeElement($container);
+    }
+
+    public function getContainers()
+    {
+        return $this->containers;
     }
 }

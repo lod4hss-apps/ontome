@@ -37,6 +37,27 @@ class ClassVersionRepository extends EntityRepository
         return $em->getRepository('AppBundle:OntoClassVersion')->find($stmt->fetch()['pk_class_version']);
     }
 
+    /**
+     * @param int $classId
+     * @return object|null
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function findOngoingVersion($classId)
+    {
+        $sql = "SELECT pk_class_version 
+                FROM che.class_version cv
+                LEFT JOIN che.namespace ns ON cv.fk_namespace_for_version = ns.pk_namespace
+                WHERE fk_class = ? AND ns.is_ongoing = true
+                LIMIT 1";
+
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array($classId));
+
+        return $em->getRepository('AppBundle:OntoClassVersion')->find($stmt->fetch()['pk_class_version']);
+    }
+
     public function findIdAndStandardLabelOfClassesVersionByNamespacesId(array $namespacesId)
     {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL

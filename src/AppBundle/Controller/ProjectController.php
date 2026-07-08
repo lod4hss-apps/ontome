@@ -13,11 +13,13 @@ use AppBundle\Entity\ClassAssociation;
 use AppBundle\Entity\EntityAssociation;
 use AppBundle\Entity\Label;
 use AppBundle\Entity\OntoClass;
+use AppBundle\Entity\Container;
 use AppBundle\Entity\OntoClassVersion;
 use AppBundle\Entity\OntoNamespace;
 use AppBundle\Entity\Profile;
 use AppBundle\Entity\Project;
 use AppBundle\Entity\ProjectAssociation;
+use AppBundle\Entity\Pathbuilder;
 use AppBundle\Entity\Property;
 use AppBundle\Entity\PropertyAssociation;
 use AppBundle\Entity\PropertyVersion;
@@ -42,16 +44,26 @@ class ProjectController extends Controller
 {
     /**
      * @Route("/project")
+     * @Route("/domains", name="domain_list")
      */
     public function listAction()
     {
+        $displayDomains = $this->get('request_stack')->getCurrentRequest()->attributes->get('_route') === 'domain_list';
+
         $em = $this->getDoctrine()->getManager();
 
         $projects = $em->getRepository('AppBundle:Project')
             ->findAll();
 
+        if ($displayDomains) {
+            $projects = array_filter($projects, function ($project) {
+                return in_array('domain', (array)$project->getProjectTypes(), true);
+            });
+        }
+
         return $this->render('project/list.html.twig', [
-            'projects' => $projects
+            'projects' => $projects,
+            'title' => $displayDomains ? 'Domains' : 'Projects'
         ]);
     }
 
@@ -175,6 +187,10 @@ class ProjectController extends Controller
 
         $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
             ->findApiNamespacesProject($project);
+
+        foreach ($associatedNamespacesForAPIProject as &$associate) {
+            $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
+        }
 
         return $this->render('project/show.html.twig', array(
             'project' => $project,
@@ -326,7 +342,7 @@ class ProjectController extends Controller
                             }
                         }
                     }
-                    
+
 
                     $namespaceLabel = new Label();
                     $namespaceLabel->setIsStandardLabelForLanguage(true);
@@ -353,7 +369,7 @@ class ProjectController extends Controller
                 } else {
                     $newNamespaceVersion->setStandardLabel($defaultStandardLabel);
                 }
-                
+
 
                 // Description : un par langue
                 $langCollection = new ArrayCollection();
@@ -1516,10 +1532,10 @@ class ProjectController extends Controller
     /**
      * @Route("/project/{project}/user/{user}/add", name="project_user_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "user"="^([0-9]+)|(id){1}$"})
      * @Method({ "POST"})
-     * @param User  $user    The user to be associated with a project
-     * @param Project  $project    The project to be associated with a user
-     * @throws \Exception in case of unsuccessful association
+     * @param User $user The user to be associated with a project
+     * @param Project $project The project to be associated with a user
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectUserAssociationAction(Project $project, User $user, Request $request)
     {
@@ -1562,10 +1578,10 @@ class ProjectController extends Controller
     /**
      * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"})
      * @Method({ "POST"})
-     * @param OntoNamespace $namespace    The namespace to be associated with a project API
-     * @param Project  $project    The project API to be associated with a namespace
-     * @throws \Exception in case of unsuccessful association
+     * @param OntoNamespace $namespace The namespace to be associated with a project API
+     * @param Project $project The project API to be associated with a namespace
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request)
     {
@@ -1612,10 +1628,10 @@ class ProjectController extends Controller
     /**
      * @Route("/user-project-association/{id}/permission/{permission}/edit", name="project_member_permission_edit", requirements={"id"="^([0-9]+)|(associationId){1}$", "permission"="^([1-4])|(permissionToken){1}$"})
      * @Method({ "POST"})
-     * @param UserProjectAssociation  $userProjectAssociation   The user to project association to be edited
-     * @param int  $permission    The permission to
-     * @throws \Exception in case of unsuccessful association
+     * @param UserProjectAssociation $userProjectAssociation The user to project association to be edited
+     * @param int $permission The permission to
      * @return JsonResponse $response
+     * @throws \Exception in case of unsuccessful association
      */
     public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, $permission, Request $request)
     {
@@ -1625,8 +1641,9 @@ class ProjectController extends Controller
             //l'utilisateur connecté ne peut pas changer ses propres permissions
             $status = 'Error';
             $message = 'The current user cannot change his own permissions.';
-        } else {
-            try {
+        }
+        else {
+            try{
                 $em = $this->getDoctrine()->getManager();
 
                 $userProjectAssociation->setPermission($permission);
@@ -1651,7 +1668,7 @@ class ProjectController extends Controller
     /**
      * @Route("/user-project-association/{id}/delete", name="project_member_disassociation", requirements={"id"="^([0-9]+)|(associationId){1}$"})
      * @Method({ "POST"})
-     * @param UserProjectAssociation  $userProjectAssociation   The user to project association to be deleted
+     * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request)
@@ -1735,10 +1752,10 @@ class ProjectController extends Controller
     /**
      * @Route("/project/{project}/profile/{profile}/add", name="project_profile_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
      * @Method({ "POST"})
-     * @param Profile  $profile The profile to be associated with a project
-     * @param Project  $project   The project to be associated with a profile
-     * @throws \Exception in case of unsuccessful association
+     * @param Profile $profile The profile to be associated with a project
+     * @param Project $project The project to be associated with a profile
      * @return JsonResponse a Json formatted namespaces list
+     * @throws \Exception in case of unsuccessful association
      */
     public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
     {
@@ -1793,8 +1810,8 @@ class ProjectController extends Controller
     /**
      * @Route("/project/{project}/profile/{profile}/delete", name="project_profile_disassociation", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
      * @Method({ "POST"})
-     * @param Profile  $profile    The profile to be disassociated from a project
-     * @param Project  $project    The project to be disassociated from a profile
+     * @param Profile $profile The profile to be disassociated from a project
+     * @param Project $project The project to be disassociated from a profile
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
@@ -1806,6 +1823,243 @@ class ProjectController extends Controller
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
 
         $em->remove($projectAssociation);
+        $em->flush();
+
+        return new JsonResponse(null, 204);
+
+    }
+
+    /**
+     * @Route("/project-uri-edit/{project}", name="project_uri_edit", requirements={"project"="^([0-9]+)|(projectID){1}$"})
+     * @Method({ "POST"})
+     * @param Project $project The project for which the URI is to be edited
+     * @param Request $request
+     * @return JsonResponse a Json response with the new project URI
+     */
+    public function editProjectURIAction(Project $project, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $project);
+        $em = $this->getDoctrine()->getManager();
+
+        $newURI = $request->request->get('newUriProject');
+
+        // Si l'url est bien vide ou si elle est au format URL valide
+        if (filter_var($newURI, FILTER_VALIDATE_URL) === false && !empty(trim($newURI))) {
+            return new JsonResponse(['status' => 'Error', 'message' => 'Invalid URI format. Please provide a valid URL.']);
+        }
+
+        try {
+            // Si l'url est vide mettre null
+            if (empty(trim($newURI))) {
+                $newURI = null;
+            }
+            $project->setUriProject($newURI);
+            $em->persist($project);
+            $em->flush();
+            return new JsonResponse(['status' => 'Success', 'message' => 'Project URI successfully updated.', 'newURI' => $newURI]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['status' => 'Error', 'message' => 'An error occurred while updating the project URI.']);
+        }
+    }
+
+    /**
+     * @Route("/project/{id}/containers/json", name="containers_by_project_json", requirements={"id"="^([0-9]+)|(projectID){1}$"})
+     * @Method("GET")
+     * @param Project $project
+     * @return JsonResponse a Json formatted list representation of Containers selected by Project
+     */
+    public function getContainersByProjectForDatatable(Project $project)
+    {
+        try {
+            $em = $this->getDoctrine()->getManager();
+            $containers = [];
+
+            // Récupérer les containers associés au projet, triés par création décroissante (ID)
+            $containersResponse = $em->getRepository('AppBundle:Container')->createQueryBuilder('c')
+                ->join('c.project', 'p')
+                ->where('p.id = :projectId')
+                ->setParameter('projectId', $project->getId())
+                ->orderBy('c.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            // Construction d'une réponse JSON avec les informations des containers, namespaces et pathbuilders
+            foreach ($containersResponse as $container) {
+                $namespaces = [];
+                $namespacesResponse = $container->getNamespaces();
+                foreach ($namespacesResponse as $namespace) {
+                    $namespaces[] = array(
+                        'id' => $namespace->getId(),
+                        'label' => $namespace->getStandardLabel()
+                    );
+                }
+
+                $pathbuilders = [];
+                $pathbuildersResponse = $container->getPathbuilders();
+                foreach ($pathbuildersResponse as $pathbuilder) {
+                    $pathbuilders[] = array(
+                        'id' => $pathbuilder->getId(),
+                        'label' => $pathbuilder->getLabel()->getLabel()
+                    );
+                }
+
+                $containers[] = array(
+                    'id' => $container->getId(),
+                    'label' => $container->getLabel()->getLabel(),
+                    'lastUpdate' => $container->getModificationTime()->format('Y-m-d H:i:s'),
+                    'namespaces' => $namespaces,
+                    'pathbuilders' => $pathbuilders,
+                    'isOngoing' => $container->getIsOngoing()
+                );
+            }
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+        }
+
+        return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
+    }
+
+    /**
+     * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"})
+     * @Method("GET")
+     * @param Pathbuilder $pathbuilder
+     * @return Response an XML file response with the content of the pathbuilder to export
+     */
+    public function exportPathbuilderAction(Pathbuilder $pathbuilder)
+    {
+        $xmlContent = $pathbuilder->getXmlContent();
+
+        $response = new Response($xmlContent);
+        $filename = rawurlencode($pathbuilder->getLabel()->getLabel()) . '.xml';
+        $response->headers->set('Content-Type', 'application/xml');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
+    }
+
+    /**
+     * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"})
+     * @Method("POST")
+     * @param Container $container
+     * @return JsonResponse a Json response with the id and label of the created pathbuilder
+     */
+    public function createAssociationContainerPathbuilderAction(Container $container, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $container->getProject());
+
+        $em = $this->getDoctrine()->getManager();
+        $pathbuilderLabel = trim((string)$request->request->get('label', ''));
+        if ($pathbuilderLabel === '') {
+            $pathbuilderLabel = $container->getLabel()->getLabel();
+        }
+
+        // Soit on a un fichier, soit on a un url
+        $uploadedFile = $request->files->get('file');
+        $pathbuilderUrl = trim((string)$request->request->get('url', ''));
+
+
+        $xmlContent = '<?xml version="1.0" encoding="UTF-8"?>';
+
+        if (!is_null($uploadedFile)) {
+            $uploadedContent = file_get_contents($uploadedFile->getPathname());
+            if ($uploadedContent !== false && trim($uploadedContent) !== '') {
+                $xmlContent = $uploadedContent;
+            }
+        } elseif ($pathbuilderUrl !== '') {
+            try {
+                // Vérifier si l'URL est valide et est dans la liste blanche des domaines autorisées
+                $allowedDomains = ['lod4hss.cloud', 'wisski.cloud'];
+                $parsedUrl = parse_url($pathbuilderUrl);
+                $host = isset($parsedUrl['host']) ? $parsedUrl['host'] : '';
+
+                $isAllowed = false;
+                foreach ($allowedDomains as $domain) {
+                    // On vérifie le domaine mais aussi les sous-domaines
+                    if ($host === $domain || substr($host, -strlen($domain) - 1) === '.' . $domain) {
+                        $isAllowed = true;
+                        break;
+                    }
+                }
+
+                if (!isset($parsedUrl['host']) || !$isAllowed) {
+                    return new JsonResponse([
+                        'status' => 'Error',
+                        'message' => 'The provided URL is not allowed. Please use a URL from the allowed domains.'
+                    ], 400);
+                }
+
+                $urlContent = file_get_contents($pathbuilderUrl);
+            } catch (\Exception $e) {
+                return new JsonResponse(['status' => 'Error', 'message' => 'Unable to retrieve content from the provided URL. Please check the URL and try again.'], 400);
+            }
+            if ($urlContent !== false && trim($urlContent) !== '') {
+                // On s'assure que c'est bien du XML
+                if (\PHP_VERSION_ID < 80000) {
+                    $previousEntityLoaderState = libxml_disable_entity_loader(true);
+                }
+
+                $xml = @simplexml_load_string($urlContent);
+
+                if (\PHP_VERSION_ID < 80000) {
+                    libxml_disable_entity_loader($previousEntityLoaderState); // Restauration de l'état
+                }
+
+                if ($xml !== false) {
+                    $xmlContent = $urlContent;
+                } else {
+                    return new JsonResponse(['status' => 'Error', 'message' => 'The content retrieved from the URL is not valid XML.'], 400);
+                }
+            }
+        }
+
+        $newPathbuilderLabel = new Label();
+        $newPathbuilderLabel->setLabel($pathbuilderLabel);
+        $newPathbuilderLabel->setInverseLabel('');
+        $newPathbuilderLabel->setLanguageIsoCode($container->getLabel()->getLanguageIsoCode());
+        $newPathbuilderLabel->setIsStandardLabelForLanguage(true);
+        $newPathbuilderLabel->setCreator($this->getUser());
+        $newPathbuilderLabel->setModifier($this->getUser());
+        $newPathbuilderLabel->setCreationTime(new \DateTime('now'));
+        $newPathbuilderLabel->setModificationTime(new \DateTime('now'));
+        $em->persist($newPathbuilderLabel);
+
+        $pathbuilder = new Pathbuilder();
+        $pathbuilder->setLabel($newPathbuilderLabel);
+        $pathbuilder->setContainer($container);
+        $pathbuilder->setXmlContent($xmlContent);
+        $pathbuilder->setCreator($this->getUser());
+        $pathbuilder->setModifier($this->getUser());
+        $pathbuilder->setCreationTime(new \DateTime('now'));
+        $pathbuilder->setModificationTime(new \DateTime('now'));
+        $em->persist($pathbuilder);
+
+        $container->addPathbuilder($pathbuilder);
+        $em->persist($container);
+
+        $em->flush();
+
+        return new JsonResponse(array(
+            'id' => $pathbuilder->getId(),
+            'label' => $pathbuilder->getLabel()->getLabel()
+        ));
+    }
+
+    // Supprimer un pathbuilder d'un container
+
+    /**
+     * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"})
+     * @Method("DELETE")
+     * @param Container $container
+     * @param Pathbuilder $pathbuilder
+     * @return JsonResponse a Json 204 HTTP response
+     */
+    public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request)
+    {
+        $this->denyAccessUnlessGranted('edit', $container->getProject());
+
+        $em = $this->getDoctrine()->getManager();
+
+        $em->remove($pathbuilder);
         $em->flush();
 
         return new JsonResponse(null, 204);

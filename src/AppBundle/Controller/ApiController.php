@@ -29,22 +29,21 @@ class ApiController extends Controller
      */
     public function getClassesByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $classes = $em->getRepository('AppBundle:OntoClass')
                 ->findClassesByProjectId($project);
 
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse(null, 204, array());
         }
 
         //return new JsonResponse(null,404, array('content-type'=>'application/problem+json'));
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
     /**
@@ -60,16 +59,15 @@ class ApiController extends Controller
             $properties = $em->getRepository('AppBundle:Property')
                 ->findPropertiesByProjectId($project);
 
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($properties[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($properties[0]['json'],200, array(), true);
+        if (empty($properties[0]['json'])) {
+            return new JsonResponse(null, 204, array());
+        }
+
+        return new JsonResponse($properties[0]['json'], 200, array(), true);
     }
 
     /**
@@ -96,14 +94,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($profiles[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($profiles[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($profiles[0]['json'],200, array(), true);
+        return new JsonResponse($profiles[0]['json'], 200, array(), true);
     }
 
     /**
@@ -130,14 +128,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
     /**
@@ -164,14 +162,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($properties[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($properties[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($properties[0]['json'],200, array(), true);
+        return new JsonResponse($properties[0]['json'], 200, array(), true);
     }
 
     /**
@@ -189,7 +187,7 @@ class ApiController extends Controller
                 ->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
-            $message = "# Error: (PHP" . phpversion() .")" . $e->getMessage(); // Commentaire en Turtle
+            $message = "# Error: (PHP" . phpversion() . ")" . $e->getMessage(); // Commentaire en Turtle
             return new Response($message, 500, ['Content-Type' => 'text/turtle']);
         }
 
@@ -199,7 +197,6 @@ class ApiController extends Controller
 
         return new Response($output, 200, ['Content-Type' => 'text/turtle']);
     }
-
 
 
     /**
@@ -217,8 +214,76 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:OntoNamespace')
                 ->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response
+     */
+    public function getOwlWisskiByNamespace(Request $request)
+    {
+        // Let's see what environment we're in. If dev, we do not persist files
+        $persistent = true;
+        $currentEnv = $this->getParameter('kernel.environment');
+        if ($currentEnv === 'dev') {
+            $persistent = false;
+        }
+
+        try {
+            $lang = $request->get('lang', 'en');
+            $namespaceId = intval($request->get('namespace', 0));
+
+            // Check if we need to reload the file (so with a query SQL)
+            $reload = boolval($request->get('reload', false));
+
+            // Build the path to the expected file (web/documents/files-owl/namespace-<id>.owl)
+            $owlFilePath = 'documents/files-owl/namespace-' . $namespaceId . '.owl';
+
+            // If we don't want to persist, delete the file if it exists
+            if (!$persistent && file_exists($owlFilePath)) {
+                unlink($owlFilePath);
+            }
+
+            // If the file does not exist or if reloading is forced
+            if (!file_exists($owlFilePath) || $reload) {
+                // In this case, we generate the XML with the SQL query.
+                $em = $this->getDoctrine()->getManager();
+                $xml = $em->getRepository('AppBundle:OntoNamespace')
+                    ->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
+
+                // The file is saved if the namespace is not ongoing.
+                // unless $persistent is false, we do not save
+                if ($persistent) {
+                    $isOngoing = $em->getRepository('AppBundle:OntoNamespace')->find($namespaceId)->getIsOngoing();
+                    if (!$isOngoing) {
+                        $xmlContent = simplexml_load_string($xml[0]['result']);
+                        if ($xmlContent !== false) {
+                            // Save the owl file (or overwrite completely in case of reload)
+                            $xmlContent->asXML($owlFilePath);
+                        }
+                    }
+                }
+            } else {
+                // Otherwise, the file exists and we return the content of the owl file
+                $xmlContent = simplexml_load_file($owlFilePath);
+                $xml = [];
+                $xml[0]['result'] = $xmlContent !== false ? $xmlContent->asXML() : '';
+            }
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -244,8 +309,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Project')
                 ->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -271,8 +336,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Profile')
                 ->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -294,12 +359,14 @@ class ApiController extends Controller
         try {
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('namespace', 0));
+            $withInverseProperties = intval($request->get('withInverseProperties', 0));
+            $withSpecificUri = intval($request->get('withSpecificUri', 0));
             $em = $this->getDoctrine()->getManager();
             $xml = $em->getRepository('AppBundle:OntoNamespace')
-                ->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId);
+                ->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId, $withInverseProperties, $withSpecificUri);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -312,7 +379,7 @@ class ApiController extends Controller
         $response->headers->set('Content-Type', 'application/rdf+xml');
         return $response;
     }
-
+    
     /**
      * @Route("/api/profile-rdfs.rdf", name="api_classes_and_properties_by_profile_xml_rdfs")
      * @Method("GET")
@@ -328,8 +395,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Profile')
                 ->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -345,7 +412,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_project")
+     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project")
      * @Method("GET")
      * @param Request $request
      * @return Response
@@ -359,8 +426,74 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Project')
                 ->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
+     */
+    public function getOwlWisskiByContainer(Request $request)
+    {
+        try {
+            // Langue par défaut: en, sinon celle passée en paramètre
+            $lang = $request->get('lang', 'en');
+
+            // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
+            $containerId = intval($request->get('container', 0));
+
+            // Récupérer le container
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Container')->findNamespacesByContainerIdApi($lang, $containerId);
+
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        if (empty($xml) || !isset($xml[0]['result'])) {
+            $xmlError = '<?xml version="1.0" encoding="UTF-8" ?><error code="404" message="Container data not found"/>';
+            return new Response($xmlError, 404, ['Content-Type' => 'application/rdf+xml']);
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(containerId){1}$"})
+     * @Method("GET")
+     * @param Request $request
+     * @return Response a XML formatted response of namespaces and pathbuilders related to this container
+     */
+    public function getApiContainer(Request $request)
+    {
+        try {
+            // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
+            $containerId = intval($request->get('container', 0));
+
+            // Récupérer le container
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Container')->findContainerApi($containerId);
+
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -379,12 +512,11 @@ class ApiController extends Controller
      */
     public function getE55ChildrenClassesByLabel($label)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $classes = $em->getRepository('AppBundle:OntoClass')
                 ->findE55ChildClassesFromLabel($label);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             $status = 'Error';
             $response = array(
@@ -394,12 +526,36 @@ class ApiController extends Controller
             return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse(null, 204, array());
         }
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
+    /**
+     * @Route("/api/get-ontome-uri", name="api_get_ontome_uri")
+     * @Method("GET")
+     * @param Request $request the request containing the officialUri parameter
+     * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
+     * This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
+     */
+    public function getOntoMeUriFromOfficialUri(Request $request)
+    {
+        $officialUri = rawurldecode($request->query->get('officialUri'));
 
+        if (!$officialUri) {
+            return new JsonResponse(['error' => 'Missing officialUri parameter'], 400, array('content-type:application/problem+json'));
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $ontomeUri = $em->getRepository('AppBundle:Project')
+            ->findOntoMeUriFromOfficialUri($officialUri);
+
+        if (!$ontomeUri) {
+            return new JsonResponse(['error' => 'OntoME URI not found'], 404, array('content-type:application/problem+json'));
+        }
+
+        return new JsonResponse(['ontome_uri' => $ontomeUri], 200, array('content-type:application/json'));
+    }
 }
