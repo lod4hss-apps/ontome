@@ -152,6 +152,11 @@ class Project
      */
     private $project_types = [];
 
+    /**
+     * @ORM\OneToMany(targetEntity="Container", mappedBy="project")
+     */
+    private $containers;
+
     public function __construct()
     {
         $this->ownedProfiles = new ArrayCollection();
@@ -165,6 +170,7 @@ class Project
         $this->projectAssociations = new ArrayCollection();
         $this->projectThesaurusAssociations = new ArrayCollection();
         $this->project_types = [];
+        $this->containers = new ArrayCollection();
     }
 
 
@@ -233,7 +239,7 @@ class Project
     }
 
     /**
-     * @return mixed
+     * @return ArrayCollection|Container[]
      */
     public function getCreator()
     {
@@ -262,22 +268,6 @@ class Project
     public function getModificationTime()
     {
         return $this->modificationTime;
-    }
-
-    /**
-     * @return ArrayCollection|OntoClass[]
-     */
-    public function getClasses()
-    {
-        return $this->classes;
-    }
-
-    /**
-     * @return ArrayCollection|Property[]
-     */
-    public function getProperties()
-    {
-        return $this->properties;
     }
 
     /**
@@ -487,5 +477,28 @@ class Project
     public function setUriProject($uriProject)
     {
         $this->uriProject = $uriProject;
+    }
+
+    public function addContainer(Container $container)
+    {
+        if ($this->containers->contains($container)) {
+            return;
+        }
+        $this->containers[] = $container;
+        // needed to update the owning side of the relationship!
+        $container->setProject($this);
+    }
+
+    public function removeContainer(Container $container)
+    {
+        if (!$this->containers->contains($container)) {
+            return;
+        }
+        $this->containers->removeElement($container);
+    }
+
+    public function getContainers()
+    {
+        return $this->containers;
     }
 }

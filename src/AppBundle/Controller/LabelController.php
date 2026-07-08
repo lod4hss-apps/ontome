@@ -46,6 +46,7 @@ class LabelController  extends Controller
     public function editAction(Label $label, Request $request)
     {
         $canInverseLabel = false;
+        $allEntities = null;
         $em = $this->getDoctrine()->getManager();
 
         if(!is_null($label->getClass())){
@@ -166,21 +167,29 @@ class LabelController  extends Controller
         $canInverseLabel = false;
 
         if($object === 'class') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoClass')->find($objectId);
+            // Récupérer la version ongoing de la classe identifiée par objectId
+            $associatedEntity = $em->getRepository('AppBundle:OntoClassVersion')->findOngoingVersion($objectId);
+
             if (!$associatedEntity) {
-                throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
+                throw $this->createNotFoundException('The ongoing version of class n° '.$objectId.' does not exist');
             }
-            $label->setClass($associatedEntity);
+
+            $label->setClass($associatedEntity->getClass());
+            $label->setNamespaceForVersion($associatedEntity->getNamespaceForVersion());
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'class_edit';
             $redirectToRouteFragment = 'identification';
         }
         else if($object === 'property') {
-            $associatedEntity = $em->getRepository('AppBundle:Property')->find($objectId);
+            // Récupérer la version ongoing de la propriété identifiée par objectId
+            $associatedEntity = $em->getRepository('AppBundle:PropertyVersion')->findOngoingVersion($objectId);
+
             if (!$associatedEntity) {
-                throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
+                throw $this->createNotFoundException('The ongoing version of property n° '.$objectId.' does not exist');
             }
-            $label->setProperty($associatedEntity);
+
+            $label->setProperty($associatedEntity->getProperty());
+            $label->setNamespaceForVersion($associatedEntity->getNamespaceForVersion());
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'property_edit';
             $redirectToRouteFragment = 'identification';
