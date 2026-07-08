@@ -1,6 +1,10 @@
 {% extends 'base.html.twig' %}
+{# "uri": pour renvoyer les bons liens d'API quand on est en dev ou en prod #}
+{% set uri = app.request.host %}
 
-{% block title %}{{ project.standardLabel }}{% endblock %}
+{% block title %}
+    {{ project.standardLabel }}
+{% endblock %}
 
 {% block body %}
 
@@ -21,8 +25,9 @@
             <li><a data-toggle="tab" href="#identification">Identification</a></li>
             <li><a data-toggle="tab" href="#definition">Definition</a></li>
             <li><a data-toggle="tab" href="#project-hierarchy">Hierarchy</a></li>
-            <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
+            <li><a data-toggle="tab" href="#containers">Containers</a></li>
             <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
+            <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
             <li><a data-toggle="tab" href="#vocabulary">Vocabulary</a></li>
             <li><a data-toggle="tab" href="#members">Members</a></li>
             <!-- <li><a data-toggle="tab" href="#comments-list">Comments list</a></li> -->
@@ -51,7 +56,7 @@
                             {% endfor %}
 
                             {% if description is not null %}
-                                {{ description|raw }}
+                                {{ description|striptags }}
                             {% else %}
                                 <p><i>No description yet.</i></p>
                             {% endif %}
@@ -74,7 +79,7 @@
                             </div>
                             <div class="col-lg-10">
                                 {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
-                                    {{ textProperty.textProperty|raw }}
+                                    {{ textProperty.textProperty|striptags }}
                                 {% endfor %}
                             </div>
                         </div>
@@ -96,11 +101,13 @@
                     {% for textProperty in project.textProperties if textProperty.systemType.id == 16 %}
                         {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
                         <tr>
-                            <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                            <td><a class="btn" href="#" data-toggle="modal"
+                                   data-target="#modal-text-property-{{ textProperty.id }}"><span
+                                            class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                             <td class="truncated-text">
-                                <span>{{ textProperty.textProperty|striptags|raw}}</span>
+                                <span>{{ textProperty.textProperty|striptags|striptags }}</span>
                             </td>
-                            <td>{{ textProperty.languageIsoCode}}</td>
+                            <td>{{ textProperty.languageIsoCode }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -128,11 +135,13 @@
                         {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
                             {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
                             <tr>
-                                <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                                <td><a class="btn" href="#" data-toggle="modal"
+                                       data-target="#modal-text-property-{{ textProperty.id }}"><span
+                                                class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                                 <td class="truncated-text">
-                                    <span>{{ textProperty.textProperty|striptags|raw }}</span>
+                                    <span>{{ textProperty.textProperty|striptags|striptags }}</span>
                                 </td>
-                                <td>{{ textProperty.languageIsoCode}}</td>
+                                <td>{{ textProperty.languageIsoCode }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -169,7 +178,7 @@
                                     {{ label.label }}
                                 </a> {% if label.isStandardLabelForLanguage %}*{% endif %}
                             </td>
-                            <td>{{ label.languageIsoCode}}</td>
+                            <td>{{ label.languageIsoCode }}</td>
                             <td>{{ label.modificationTime|date('Y-m-d') }}</td>
                         </tr>
                     {% endfor %}
@@ -180,8 +189,9 @@
             </div>
             <div id="project-hierarchy" class="tab-pane fade">
                 <h3>Hierarchy</h3>
-                {% if project.parentProject is null  %}
-                    <p>{{ project.standardLabel }} is a <b>master project</b>{% if project.childProjects|length == 0 %} and has no subproject{% endif %}.</p>
+                {% if project.parentProject is null %}
+                    <p>{{ project.standardLabel }} is a <b>master
+                            project</b>{% if project.childProjects|length == 0 %} and has no subproject{% endif %}.</p>
                     {% if project.childProjects|length != 0 %}
                         <h3>Subprojects</h3>
                         <table class="table table-striped" id="child-projects-table">
@@ -192,7 +202,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for childProject in project.childProjects  %}
+                            {% for childProject in project.childProjects %}
                                 <tr>
                                     <td>
                                         <a href="{{ path('project_show', {
@@ -220,10 +230,13 @@
             <div id="managed-namespaces" class="tab-pane fade">
                 {% if project.managedNamespaces is not empty %}
                     <h3>Root namespace</h3>
-                    <p>This project manages the <strong><a href="{{ path('namespace_show', {'id':project.managedNamespaces|first.topLevelNamespace.id}) }}">{{ project.managedNamespaces|first.topLevelNamespace }}</a></strong> namespace.</p>
+                    <p>This project manages the <strong><a
+                                    href="{{ path('namespace_show', {'id':project.managedNamespaces|first.topLevelNamespace.id}) }}">{{ project.managedNamespaces|first.topLevelNamespace }}</a></strong>
+                        namespace.</p>
                     {% set ongoingNamespace = project.managedNamespaces|filter(v => v.isOngoing)|first %}
                     {% if ongoingNamespace %}
-                        Ongoing namespace: <a href="{{ path('namespace_show', {'id': ongoingNamespace.id}) }}">{{ ongoingNamespace }}</a>
+                        Ongoing namespace: <a
+                            href="{{ path('namespace_show', {'id': ongoingNamespace.id}) }}">{{ ongoingNamespace }}</a>
                     {% endif %}
                     <h3>Published versions</h3>
                     <table class="table table-striped" id="managed-namespaces-table">
@@ -251,8 +264,11 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
-                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
-                <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
+                <span id="api-owl-url">https://{{ uri }}{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
+                <h3>Namespaces available in the owl:imports API
+                    <button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy
+                        URL <i class="fas fa-copy"></i></button>
+                </h3>
                 <table class="table table-striped" id="api-namespaces-project-table">
                     <thead>
                     <tr>
@@ -271,7 +287,8 @@
                                 <div class="small text-muted"><strong><em>Referenced:</em></strong></div>
                                 <ul>
                                     {% for namespaceReferenced in namespace.namespacesReferenced %}
-                                        <li class="list-unstyled" style="border-left: 3px solid darkgrey; padding-left: 5px;">
+                                        <li class="list-unstyled"
+                                            style="border-left: 3px solid darkgrey; padding-left: 5px;">
                                             <em><a href="{{ path('namespace_show', {'id': namespaceReferenced.id}) }}">{{ namespaceReferenced.label }}</a></em>
                                         </li>
                                     {% endfor %}
@@ -281,6 +298,38 @@
                     {% endfor %}
                     </tbody>
                 </table>
+            </div>
+            <div id="containers" class="tab-pane fade">
+                <h3>Containers</h3>
+                <div class="table-responsive">
+                    <table id="table-containers" class="table table-striped"
+                           data-url-namespace="{{ path('namespace_show', {'id' : 'namespaceId'}) }}"
+                           data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : 'containerId', 'namespaceId' : 'namespaceId'}) }}"
+                           data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : 'containerId'}) }}"
+                           data-url-api-container="{{ path('api_container', {'container' : 'containerId'}) }}"
+                    >
+                        <thead>
+                        <tr>
+                            <th>Container name</th>
+                            <th>Namespaces</th>
+                            <th>Namespaces API</th>
+                            <th>Pathbuilders</th>
+                            <th>Status</th>
+                            <th>Last updated</th>
+                            <th>Container API</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Remplissage auto -->
+                        </tbody>
+                    </table>
+                </div>
+                <h3>Content from selected container</h3>
+                <div id="containerContent">
+                    <!-- Remplissage auto -->
+                    <p><em>Please select a container to see its content.</em></p>
+                </div>
             </div>
             <div id="profiles" class="tab-pane fade">
                 <h3>Profiles owned by this project</h3>
@@ -308,18 +357,19 @@
                 </table>
                 {% if app.user is not null %}
                     <div class="pull-right add-div">
-                        <a  href="{{ path('api_classes_and_properties_by_project_xml', {
+                        <a href="{{ path('api_classes_and_properties_by_project_xml', {
                             project: project.id
                         }) }}"
-                            class="btn btn-primary"
-                            download="project-{{ project.standardLabel }}.rdf">
+                           class="btn btn-primary"
+                           download="project-{{ project.standardLabel }}.rdf">
                             <i class="fas fa-code"></i> OWL-RDF
                         </a>
                     </div>
                 {% endif %}
                 <h3>
                     Profiles used by this project
-                    <a data-toggle="tooltip" data-placement="right" title="These profiles are published in the API of the project">
+                    <a data-toggle="tooltip" data-placement="right"
+                       title="These profiles are published in the API of the project">
                         <span class="fas fa-info-circle"></span>
                     </a>
                 </h3>
@@ -365,19 +415,19 @@
                             <td>{{ profile.modificationTime|date('Y-m-d') }}</td>
                             <td>
                                 {% if (not profile.isOngoing and profile.wasClosedAt is not null and profile.endDate is null) or (profile.isForcedPublication and profile.isOngoing ) %}
-                                    <a  href="{{ path('api_classes_profile_json', {
+                                    <a href="{{ path('api_classes_profile_json', {
                                         'lang': 'en',
                                         'available-in-profile': profile.id
                                     }) }}"
-                                        class="btn btn-primary">
+                                       class="btn btn-primary">
                                         <i class="fas fa-microchip"></i> JSON Classes
                                     </a>
                                     &nbsp;
-                                    <a  href="{{ path('api_properties_profile_json', {
+                                    <a href="{{ path('api_properties_profile_json', {
                                         'lang': 'en',
                                         'available-in-profile': profile.id
                                     }) }}"
-                                        class="btn btn-primary">
+                                       class="btn btn-primary">
                                         <i class="fas fa-microchip"></i> JSON Properties
                                     </a>
                                 {% else %}
@@ -385,27 +435,27 @@
                                 {% endif %}
                             </td>
                             {% if app.user is not null %}
-                            <td>
-                                {% if (not profile.isOngoing and profile.wasClosedAt is not null and profile.endDate is null) or (profile.isForcedPublication and profile.isOngoing ) %}
-                                    <a  href="{{ path('api_classes_and_properties_by_profile_xml', {
-                                        'profile': profile.id
-                                    }) }}"
-                                        class="btn btn-primary"
-                                        download="profile-{{ profile.standardLabel }}.rdf">
-                                        <i class="fas fa-code"></i> OWL-RDF
-                                    </a>
-                                    <a  href="{{ path('api_shacl_profile', {
-                                        'lang': 'en',
-                                        'profile-id': profile.id
-                                    }) }}"
-                                        class="btn btn-primary"
-                                        download="profile-{{ profile.standardLabel }}-{{ profile.version}}.ttl">
-                                        <i class="fas fa-microchip"></i> SHACL
-                                    </a>
-                                {% else %}
-                                    Not available
-                                {% endif %}
-                            </td>
+                                <td>
+                                    {% if (not profile.isOngoing and profile.wasClosedAt is not null and profile.endDate is null) or (profile.isForcedPublication and profile.isOngoing ) %}
+                                        <a href="{{ path('api_classes_and_properties_by_profile_xml', {
+                                            'profile': profile.id
+                                        }) }}"
+                                           class="btn btn-primary"
+                                           download="profile-{{ profile.standardLabel }}.rdf">
+                                            <i class="fas fa-code"></i> OWL-RDF
+                                        </a>
+                                        <a href="{{ path('api_shacl_profile', {
+                                            'lang': 'en',
+                                            'profile-id': profile.id
+                                        }) }}"
+                                           class="btn btn-primary"
+                                           download="profile-{{ profile.standardLabel }}-{{ profile.version }}.ttl">
+                                            <i class="fas fa-microchip"></i> SHACL
+                                        </a>
+                                    {% else %}
+                                        Not available
+                                    {% endif %}
+                                </td>
                             {% endif %}
                         </tr>
                     {% endfor %}
@@ -420,7 +470,8 @@
                     <ul id="project-thesaurus-associations-list" class="project-thesaurus-associations-list">
                         {% for thesaurus in project.projectThesaurusAssociations %}
                             <li>
-                                <p><a href="{{ thesaurus.thesaurusURL }}" target="_blank">{{ thesaurus.thesaurusURL }}</a></p>
+                                <p><a href="{{ thesaurus.thesaurusURL }}"
+                                      target="_blank">{{ thesaurus.thesaurusURL }}</a></p>
                             </li>
                         {% endfor %}
                     </ul>
@@ -457,7 +508,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Onglet Comment List - Retiré par AP - Sauvegardé sous Desktop/commentList.txt -->
         </div>
     </div>
 
@@ -468,7 +518,7 @@
     {{ parent() }}
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#labels-table').DataTable();
             $('#description-table').DataTable();
             $('#additional-notes-table').DataTable();
@@ -498,13 +548,170 @@
                     type: 'GET',
                     dataType: 'json',
                     statusCode: {
-                        204: function () {}
+                        204: function () {
+                        }
                     }
                 });
             });
 
+            const defaultContainerMessage = '<p><em>Please select a container to see its content.</em></p>';
+
+            // Actions pour normaliser le titre du container sélectionné et ajouter un bouton pour le fermer
+            function setSelectedContainerTitle(containerContentNode, containerLabel) {
+                let $title = containerContentNode.prev('.selected-container-title');
+
+                if ($title.length === 0) {
+                    containerContentNode.before(
+                        '<h4 class="selected-container-title clearfix">'
+                        + '<span class="selected-container-label"></span>'
+                        + '<button type="button" class="btn btn-secondary btn-sm pull-right close-selected-container" title="Close selected container" aria-label="Close selected container" style="margin-top:-4px; font-weight:bold;">'
+                        + '<i class="fas fa-times"></i> Close'
+                        + '</button>'
+                        + '</h4>'
+                    );
+                    $title = containerContentNode.prev('.selected-container-title');
+                }
+
+                $title.find('.selected-container-label').text('Selected: ' + containerLabel);
+            }
+
+            // Actions lorsqu'on ferme le container sélectionné
+            $(document).on('click', '.close-selected-container', function () {
+                const containerContentNode = $('#containerContent');
+                $('#table-containers tbody tr').removeClass('info');
+                containerContentNode.removeAttr("data-container-id");
+                containerContentNode.prev('.selected-container-title').remove();
+                containerContentNode.html(defaultContainerMessage);
+                resetContainerActionButtons();
+            });
+
+            // Gestion du bouton Disabled ou non
+            function resetContainerActionButtons() {
+                $('#table-containers .view-container')
+                    .prop('disabled', false)
+                    .removeClass('active');
+            }
+
+            // Réinitialisation de tous les boutons lorsque l'on clique sur un autre container
+            function setActiveContainerActionButton(containerId) {
+                resetContainerActionButtons();
+
+                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+            }
+
+            // Actions lorsqu'on clique sur un container dans le tableau
+            $(document).on("click", ".view-container", function () {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, true);
+            });
+
+            // Fonction pour charger le contenu d'un container via AJAX
+            function loadContainerContent(containerId) {
+                var url = '{{ path("container", {'id' : 'containerID'}) }}';
+                const urlNamespace = $('#table-containers').data("url-namespace");
+                const containerContentNode = $('#containerContent');
+                containerContentNode.attr("data-container-id", containerId);
+
+                containerContentNode.html('<div class="loader"><span class="fas fa-spinner fa-spin"></span> Loading container content...</div>');
+
+                url = url.replace("containerID", containerId);
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (container) {
+                        setSelectedContainerTitle(containerContentNode, container.label);
+
+                        const $containerNamespaces = $('<div>', {id: 'containerNamespaces'});
+                        const $headerContainerNamespaces = $('<div>', {id: 'headerContainerNamespaces'});
+                        $headerContainerNamespaces.append(
+                            $('<h4>').text('Namespaces'),
+                            $('<p>').append($('<em>').text('Available through the owl:imports API for this container'))
+                        );
+                        const $namespacesList = $('<div>', {id: 'namespacesList'});
+                        $containerNamespaces.append($headerContainerNamespaces, $namespacesList);
+
+                        const $containerPathbuilders = $('<div>', {id: 'containerPathbuilders'});
+                        $containerPathbuilders.append($('<h4>').text('Pathbuilders'));
+                        const $pathbuildersList = $('<ul>', {id: 'pathbuildersList'});
+                        $containerPathbuilders.append($pathbuildersList);
+
+                        containerContentNode.empty().append($containerNamespaces, $containerPathbuilders);
+
+                        if (!container.namespaces || container.namespaces.length === 0) {
+                            $namespacesList.append($('<p>').text('There is currently no namespace linked to this container.'));
+                        } else {
+                            for (const namespace of container.namespaces) {
+                                const $namespaceRow = $('<div>', {
+                                    class: 'namespaceRow',
+                                    'data-namespace-id': namespace.id
+                                });
+
+                                const $namespaceLine = $('<div>', {class: 'namespaceRowLine'});
+                                $namespaceLine.append(
+                                    $('<a>', {
+                                        href: urlNamespace.replace('namespaceId', namespace.id),
+                                        text: namespace.standardLabel
+                                    })
+                                );
+
+                                $namespaceRow.append($namespaceLine);
+
+                                if (namespace.referencedNamespaces && namespace.referencedNamespaces.length > 0) {
+                                    const $referencedList = $('<div>', {class: 'referencedNamespacesList'});
+                                    $referencedList.append(
+                                        $('<span>', {class: 'text-muted small'}).append(
+                                            $('<strong>').append($('<em>').text('Referenced:'))
+                                        )
+                                    );
+
+                                    for (const ref of namespace.referencedNamespaces) {
+                                        $referencedList.append(
+                                            $('<div>', {class: 'referencedNamespaceRow'}).append(
+                                                $('<a>', {
+                                                    href: urlNamespace.replace('namespaceId', ref.id),
+                                                    text: ref.standardLabel
+                                                })
+                                            )
+                                        );
+                                    }
+
+                                    $namespaceRow.append($referencedList);
+                                }
+
+                                $namespacesList.append($namespaceRow);
+                            }
+                        }
+
+                        if (!container.pathbuilders || container.pathbuilders.length === 0) {
+                            $pathbuildersList.append($('<li>').text('There is currently no pathbuilder linked to this container.'));
+                        } else {
+                            for (const pathbuilder of container.pathbuilders) {
+                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'
+                                    .replace('pathbuilderID', pathbuilder.id);
+
+                                $pathbuildersList.append(
+                                    $('<li>', {'data-pathbuilder-id': pathbuilder.id}).append(
+                                        $('<a>', {
+                                            href: urlPathbuilderExport,
+                                            download: pathbuilder.label + '.xml',
+                                            text: pathbuilder.label
+                                        })
+                                    )
+                                );
+                            }
+                        }
+                    }
+                });
+            }
+
             //confirmation box for profile recreate action
-            $('.recreate-btn').on('click', function() {
+            $('.recreate-btn').on('click', function () {
                 var profileID = $(this).data("id");
                 bootbox.confirm({
                     message: "This will create a new ongoing version of this profile. Do you wish to proceed?",
@@ -519,7 +726,7 @@
                         }
                     },
                     callback: function (result) {
-                        if(result){
+                        if (result) {
                             var urlProfileRecreate = '{{ path("profile_recreate", {'profile' : 'profileID'}) }}';
                             urlProfileRecreate = urlProfileRecreate.replace("profileID", profileID);
                             window.location = urlProfileRecreate;
@@ -529,7 +736,98 @@
             });
 
             $('#api-owl-url').hide();
-        } );
+
+            /* Container */
+
+            /* Le tableau doit être géré par AJAX afin de faciliter le reload & pagination */
+            tableContainers = $('#table-containers').DataTable({
+                pageLength: 5,
+                autoWidth: false,
+                ajax: '{{ path("containers_by_project_json", {'id' : project.id}) }}',
+                dataSrc: 'data',
+                order: [[4, "desc"]],
+                columns: [
+                    {data: 'label'},
+                    {
+                        data: 'namespaces',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '<em>No namespaces linked to this container.</em>';
+                            } else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' namespace' + (data.length > 1 ? 's' : '') + ' linked to this container';
+                            }
+                        }
+                    },
+                    {
+                        data: 'namespaces',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '';
+                            } else {
+                                return `
+                                    <span id="api-owl-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-owl-container").replace("containerId", row.id)}</span>
+                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                                `;
+                            }
+                        }
+                    },
+                    {
+                        data: 'pathbuilders',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '<em>No pathbuilders linked to this container.</em>';
+                            } else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' pathbuilder' + (data.length > 1 ? 's' : '') + ' linked to this container';
+                            }
+                        }
+                    },
+                    {
+                        data: 'isOngoing',
+                        render: function (data, type, row, meta) {
+                            return data ? 'Ongoing' : 'Published';
+                        }
+                    },
+                    {data: 'lastUpdate'},
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return `
+                                <span id="api-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-container").replace("containerId", row.id)}</span>
+                                <button data-id="api-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return `
+                                <button class="btn btn-primary view-container" data-container-id="${row.id}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-container-id', data.id);
+                }
+            });
+
+            tableContainers.on('draw', function () {
+                const containerId = $('#containerContent').attr("data-container-id");
+
+                if (!containerId) {
+                    return;
+                }
+
+                const $row = $(`#table-containers tbody tr[data-container-id="${containerId}"]`);
+                if ($row.length > 0) {
+                    $row.addClass('info');
+                }
+
+                setActiveContainerActionButton(containerId);
+            });
+        });
     </script>
 
 {% endblock %}

@@ -1,8 +1,10 @@
 {% extends 'base.html.twig' %}
+{# "uri": pour renvoyer les bons liens d'API quand on est en dev ou en prod #}
+{% set uri = app.request.host %}
 
 {% block stylesheets %}
     {{ parent() }}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css" rel="stylesheet"/>
 {% endblock %}
 
 {% block title %}{{ project.standardLabel }}{% endblock %}
@@ -17,11 +19,12 @@
             <li><a data-toggle="tab" href="#identification">Identification</a></li>
             <li><a data-toggle="tab" href="#definition">Definition</a></li>
             <li><a data-toggle="tab" href="#project-hierarchy">Hierarchy</a></li>
+            <li><a data-toggle="tab" href="#containers">Containers</a></li>
+            <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
             <li><a data-toggle="tab" href="#managed-namespaces">Namespaces</a></li>
             {% if app.user is not null and "ROLE_ADMIN" in app.user.roles %}
                 <li><a data-toggle="tab" href="#import">Import (only admin)</a></li>
             {% endif %}
-            <li><a data-toggle="tab" href="#profiles">Profiles</a></li>
             <li><a data-toggle="tab" href="#vocabulary">Vocabulary</a></li>
             <li><a data-toggle="tab" href="#members">Members</a></li>
             <!--<li><a data-toggle="tab" href="#comments-list">Comments list</a></li>-->
@@ -50,7 +53,7 @@
                             {% endfor %}
 
                             {% if description is not null %}
-                                {{ description|raw }}
+                                {{ description|striptags }}
                             {% else %}
                                 <p><i>No description yet.</i></p>
                             {% endif %}
@@ -73,7 +76,7 @@
                             </div>
                             <div class="col-lg-10">
                                 {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
-                                    {{ textProperty.textProperty|raw }}
+                                    {{ textProperty.textProperty|striptags }}
                                 {% endfor %}
                             </div>
                         </div>
@@ -83,7 +86,7 @@
             </div>
             <div id="definition" class="tab-pane fade">
                 <div class="pull-right add-div">
-                    <a href="{{ path('text_property_new', {'type': 'definition', 'object': 'project', 'objectId': project.id })}}"
+                    <a href="{{ path('text_property_new', {'type': 'definition', 'object': 'project', 'objectId': project.id }) }}"
                        class="btn btn-primary pull-right">
                         Add <span class="fa fa-plus-circle"></span>
                     </a>
@@ -102,11 +105,13 @@
                     {% for textProperty in project.textProperties if textProperty.systemType.id == 16 %}
                         {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
                         <tr>
-                            <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                            <td><a class="btn" href="#" data-toggle="modal"
+                                   data-target="#modal-text-property-{{ textProperty.id }}"><span
+                                            class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                             <td class="truncated-text">
-                                <span>{{ textProperty.textProperty|striptags|raw}}</span>
+                                <span>{{ textProperty.textProperty|striptags }}</span>
                             </td>
-                            <td>{{ textProperty.languageIsoCode}}</td>
+                            <td>{{ textProperty.languageIsoCode }}</td>
                             <td>
                                 <a href="{{ path('text_property_edit', {
                                     'id': textProperty.id
@@ -121,7 +126,7 @@
                 </table>
 
                 <div class="pull-right add-div">
-                    <a href="{{ path('text_property_new', {'type': 'internal-note', 'object': 'project', 'objectId': project.id })}}"
+                    <a href="{{ path('text_property_new', {'type': 'internal-note', 'object': 'project', 'objectId': project.id }) }}"
                        class="btn btn-primary pull-right">
                         Add <span class="fa fa-plus-circle"></span>
                     </a>
@@ -140,11 +145,13 @@
                     {% for textProperty in project.textProperties|filter(v => v.systemType.id == 33) %}
                         {{ include('textProperty/modal.html.twig', { 'modalId': textProperty.id }) }}
                         <tr>
-                            <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
+                            <td><a class="btn" href="#" data-toggle="modal"
+                                   data-target="#modal-text-property-{{ textProperty.id }}"><span
+                                            class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                             <td class="truncated-text">
-                                <span>{{ textProperty.textProperty|striptags|raw }}</span>
+                                <span>{{ textProperty.textProperty|striptags }}</span>
                             </td>
-                            <td>{{ textProperty.languageIsoCode}}</td>
+                            <td>{{ textProperty.languageIsoCode }}</td>
                             <td>
                                 <a href="{{ path('text_property_edit', {
                                     'id': textProperty.id
@@ -166,9 +173,11 @@
                 {% if  project.endDate is not null %}
                     <p>End date: {{ project.endDate|date('Y-m-d') }}</p>
                 {% endif %}
-                <p id="project-uri">Project URI: <a href="{{ project.uriProject }}">{{ project.uriProject }}</a> <a id="edit-project-uri" href="#" data-project-uri="{{ project.uriProject }}"><i class="fas fa-pen"></i></a></p>
+                <p id="project-uri">Project URI: <a href="{{ project.uriProject }}">{{ project.uriProject }}</a> <a
+                            id="edit-project-uri" href="#" data-project-uri="{{ project.uriProject }}"><i
+                                class="fas fa-pen"></i></a></p>
                 <div class="pull-right add-div">
-                    <a href="{{ path('label_new', {'object': 'project', 'objectId': project.id })}}"
+                    <a href="{{ path('label_new', {'object': 'project', 'objectId': project.id }) }}"
                        class="btn btn-primary pull-right">
                         Add <span class="fa fa-plus-circle"></span>
                     </a>
@@ -192,7 +201,7 @@
                                     'id': label.id
                                 }) }}">{{ label.label }}</a> {% if label.isStandardLabelForLanguage %}*{% endif %}
                             </td>
-                            <td>{{ label.languageIsoCode}}</td>
+                            <td>{{ label.languageIsoCode }}</td>
                             <td>{{ label.modificationTime|date('Y-m-d') }}</td>
                             <td>
                                 <a href="{{ path('label_edit', {
@@ -206,7 +215,7 @@
                                 <a class="btn" href="{{ path('label_edit', {
                                     'id': label.id
                                 }) }}#comments">
-                                    <span class="badge {% if label.comments|length > 0  %}progress-bar-danger {% endif %}">{{ label.comments|length }}</span>
+                                    <span class="badge {% if label.comments|length > 0 %}progress-bar-danger {% endif %}">{{ label.comments|length }}</span>
                                 </a>
                             </td>
                         </tr>
@@ -217,8 +226,9 @@
             </div>
             <div id="project-hierarchy" class="tab-pane fade">
                 <h3>Hierarchy</h3>
-                {% if project.parentProject is null  %}
-                    <p>{{ project.standardLabel }} is a <b>master project</b>{% if project.childProjects|length == 0 %} and has no subproject{% endif %}.</p>
+                {% if project.parentProject is null %}
+                    <p>{{ project.standardLabel }} is a <b>master
+                            project</b>{% if project.childProjects|length == 0 %} and has no subproject{% endif %}.</p>
                     {% if project.childProjects|length != 0 %}
                         <h3>Subprojects</h3>
                         <table class="table table-striped" id="child-projects-table">
@@ -229,7 +239,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for childProject in project.childProjects  %}
+                            {% for childProject in project.childProjects %}
                                 <tr>
                                     <td>
                                         <a href="{{ path('project_show', {
@@ -257,15 +267,19 @@
             <div id="managed-namespaces" class="tab-pane fade">
                 {% if is_granted('full_edit', project) and project.managedNamespaces is empty and project.id != 21 %}
                     <div class="pull-right add-div">
-                        <a href="{{ path('namespace_new', {'project': project.id}) }}" class="btn btn-primary pull-right">Create <span class="fa fa-plus-circle"></span></a>
+                        <a href="{{ path('namespace_new', {'project': project.id}) }}"
+                           class="btn btn-primary pull-right">Create <span class="fa fa-plus-circle"></span></a>
                     </div>
                 {% endif %}
                 {% if project.managedNamespaces is not empty %}
                     <h3>Root namespace</h3>
-                    <p>This project manages the <strong><a href="{{ path('namespace_show', {'id':project.managedNamespaces|first.topLevelNamespace.id}) }}">{{ project.managedNamespaces|first.topLevelNamespace }}</a></strong> namespace.</p>
+                    <p>This project manages the <strong><a
+                                    href="{{ path('namespace_show', {'id':project.managedNamespaces|first.topLevelNamespace.id}) }}">{{ project.managedNamespaces|first.topLevelNamespace }}</a></strong>
+                        namespace.</p>
                     {% set ongoingNamespace = project.managedNamespaces|filter(v => v.isOngoing)|first %}
                     {% if ongoingNamespace %}
-                        Ongoing namespace: <a href="{{ path('namespace_show', {'id': ongoingNamespace.id}) }}">{{ ongoingNamespace }}</a>
+                        Ongoing namespace: <a
+                            href="{{ path('namespace_show', {'id': ongoingNamespace.id}) }}">{{ ongoingNamespace }}</a>
                     {% endif %}
                     <h3>Published versions</h3>
                     <table class="table table-striped" id="managed-namespaces-table">
@@ -293,8 +307,11 @@
                 {% else %}
                     <h3><em>There is currently no namespace managed by this project.</em></h3>
                 {% endif %}
-                <span id="api-owl-url">https://ontome.net{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
-                <h3>Namespaces available in the owl:imports API<button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy URL <i class="fas fa-copy"></i></button></h3>
+                <span id="api-owl-url">https://{{ uri }}{{ path('api_owl_wisski_by_project', {project: project.id}) }}</span>
+                <h3>Namespaces available in the owl:imports API
+                    <button data-id="api-owl-url" class="btn btn-link copyToClipboard" title="Copy to clipboard">Copy
+                        URL <i class="fas fa-copy"></i></button>
+                </h3>
                 <div class="row">
                     <div class="col-lg-7">
                         <table class="table table-striped" id="api-namespaces-project-table" style="width: 100%">
@@ -316,7 +333,8 @@
                                         <div class="small text-muted"><strong><em>Referenced:</em></strong></div>
                                         <ul>
                                             {% for namespaceReferenced in namespace.namespacesReferenced %}
-                                                <li class="list-unstyled" style="border-left: 3px solid darkgrey; padding-left: 5px;">
+                                                <li class="list-unstyled"
+                                                    style="border-left: 3px solid darkgrey; padding-left: 5px;">
                                                     <em><a href="{{ path('namespace_show', {'id': namespaceReferenced.id}) }}">{{ namespaceReferenced.label }}</a></em>
                                                 </li>
                                             {% endfor %}
@@ -326,7 +344,8 @@
                                         <a href="{{ path('project_association_delete', {
                                             'id' : namespace.associationId
                                         }) }}">
-                                            <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+                                            <span class="glyphicon glyphicon-remove text-danger"
+                                                  aria-hidden="true"></span>
                                         </a>
                                     </td>
                                 </tr>
@@ -353,7 +372,8 @@
                 </div>
                 {% if is_granted('full_edit', project) and project.id == 21 %}
                     <div class="pull-right add-div">
-                        <a href="{{ path('public_project_namespace_association_new') }}" class="btn btn-primary pull-right">Add <span class="fa fa-plus-circle"></span></a>
+                        <a href="{{ path('public_project_namespace_association_new') }}"
+                           class="btn btn-primary pull-right">Add <span class="fa fa-plus-circle"></span></a>
                     </div>
                     <h3>Namespaces for the Public project</h3>
                     <table class="table table-striped" id="public-project-namespaces-table">
@@ -386,14 +406,59 @@
                     </table>
                 {% endif %}
             </div>
+            <div id="containers" class="tab-pane fade">
+                <div class="d-flex justify-content-between align-items-center align-content-center">
+                    <h3>Containers</h3>
+                    <button type="button" class="btn btn-primary" id="button-new-container"><span
+                                class="fa fa-plus-circle"></span> Create a new container
+                    </button>
+                </div>
+                <div id="createContainer" style="display: none;">
+                    <label for="new-container-label">New container name</label>
+                    <input type="text" id="new-container-label" class="form-control" placeholder="Enter container name">
+                    <button type="button" class="btn btn-primary" id="submit-new-container" style="margin-top: 10px;">
+                        Submit
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table id="table-containers" class="table table-striped"
+                           data-url-namespace="{{ path('namespace_show', {'id' : 'namespaceId'}) }}"
+                           data-url-delete-association-container-namespace="{{ path('association_container_namespace_delete', {'containerId' : 'containerId', 'namespaceId' : 'namespaceId'}) }}"
+                           data-url-api-owl-container="{{ path('api_owl_wisski_by_container', {'container' : 'containerId'}) }}"
+                           data-url-api-container="{{ path('api_container', {'container' : 'containerId'}) }}"
+                    >
+                        <thead>
+                        <tr>
+                            <th>Container name</th>
+                            <th>Namespaces</th>
+                            <th>Namespaces API</th>
+                            <th>Pathbuilders</th>
+                            <th>Status</th>
+                            <th>Last updated</th>
+                            <th>Container API</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Remplissage auto -->
+                        </tbody>
+                    </table>
+                </div>
+                <h3>Content from selected container</h3>
+                <div id="containerContent">
+                    <!-- Remplissage auto -->
+                    <p><em>Please create or select a container to see its content.</em></p>
+                </div>
+            </div>
             <div id="import" class="tab-pane fade">
                 <h3>Import (only admin can see this page)</h3>
-                {% if project.managedNamespaces is not empty or 1==1 %}
+                {% if project.managedNamespaces is not empty %}
                     {{ form_start(formImport) }}
                     {{ form_row(formImport.uploadXMLFile) }}
                     <p>
                         <button type="submit" class="btn btn-primary" formnovalidate>Import</button>
-                        <button type="reset" class="btn btn-default">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button>
+                        <button type="reset" class="btn btn-default">Cancel&nbsp;<i class="fas fa-undo-alt"></i>
+                        </button>
                         <!-- <button type="button" class="btn btn-default" onclick="window.location.reload();">Cancel&nbsp;<i class="fas fa-undo-alt"></i></button> -->
                     </p>
                     {{ form_end(formImport) }}
@@ -404,7 +469,8 @@
             <div id="profiles" class="tab-pane fade">
                 {% if is_granted('edit', project) %}
                     <div class="pull-right add-div">
-                        <a href="{{ path('profile_new', {'project': project.id}) }}" class="btn btn-primary pull-right">Create <span class="fa fa-plus-circle"></span></a>
+                        <a href="{{ path('profile_new', {'project': project.id}) }}" class="btn btn-primary pull-right">Create
+                            <span class="fa fa-plus-circle"></span></a>
                     </div>
                 {% endif %}
                 <h3>Profiles owned by this project</h3>
@@ -434,18 +500,19 @@
                     <div class="col-lg-8">
                         {% if app.user is not null %}
                             <div class="pull-right add-div">
-                                <a  href="{{ path('api_classes_and_properties_by_project_xml', {
+                                <a href="{{ path('api_classes_and_properties_by_project_xml', {
                                     project: project.id
                                 }) }}"
-                                    class="btn btn-primary"
-                                    download="project-{{ project.standardLabel }}.rdf">
+                                   class="btn btn-primary"
+                                   download="project-{{ project.standardLabel }}.rdf">
                                     <i class="fas fa-code"></i> OWL-RDF
                                 </a>
                             </div>
                         {% endif %}
                         <h3>
                             Profiles used by this project
-                            <a data-toggle="tooltip" data-placement="right" title="These profiles are published in the API of the project">
+                            <a data-toggle="tooltip" data-placement="right"
+                               title="These profiles are published in the API of the project">
                                 <span class="fas fa-info-circle"></span>
                             </a>
                         </h3>
@@ -487,7 +554,16 @@
                     <ul id="project-thesaurus-associations-list" class="project-thesaurus-associations-list">
                         {% for thesaurus in project.projectThesaurusAssociations %}
                             <li id="li-thesaurus-association-id-{{ thesaurus.id }}">
-                                <p><a href="{{ thesaurus.thesaurusURL }}" target="_blank">{{ thesaurus.thesaurusURL }}</a>&nbsp;<a data-id="{{ thesaurus.id }}" data-url="{{ path("project_thesaurus_association_delete", {'id' : thesaurus.id}) }}" class="remove-thesaurus"><span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span></a><span class="remove-thesaurus-loading-icon" data-id="{{ thesaurus.id }}" style="display: none"><span class="fas fa-spinner fa-spin"></span></span></p>
+                                <p><a href="{{ thesaurus.thesaurusURL }}"
+                                      target="_blank">{{ thesaurus.thesaurusURL }}</a>&nbsp;<a
+                                            data-id="{{ thesaurus.id }}"
+                                            data-url="{{ path("project_thesaurus_association_delete", {'id' : thesaurus.id}) }}"
+                                            class="remove-thesaurus"><span
+                                                class="glyphicon glyphicon-remove text-danger"
+                                                aria-hidden="true"></span></a><span
+                                            class="remove-thesaurus-loading-icon" data-id="{{ thesaurus.id }}"
+                                            style="display: none"><span class="fas fa-spinner fa-spin"></span></span>
+                                </p>
                             </li>
                         {% endfor %}
                     </ul>
@@ -536,10 +612,12 @@
 {% endblock %}
 
 {% block javascripts %}
+
     {{ parent() }}
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var projectID = {{ project.id }};
             var urlSelectableMembers = '{{ path("selectable_members_project_json", {'project' : 'projectID'}) }}';
             urlSelectableMembers = urlSelectableMembers.replace("projectID", projectID);
@@ -548,17 +626,15 @@
             urlAssociatedMembers = urlAssociatedMembers.replace("projectID", projectID);
 
             var isAdmin = "{{ is_granted('full_edit', project) }}";
-            if(isAdmin == '') {
+            if (isAdmin == '') {
                 isAdmin = false;
-            }
-            else if (isAdmin == '1') {
+            } else if (isAdmin == '1') {
                 isAdmin = true;
             }
             var isManager = "{{ is_granted('edit_manager', project) }}"; //an admin IS a manager too
-            if(isManager == '') {
+            if (isManager == '') {
                 isManager = false;
-            }
-            else if (isManager == '1') {
+            } else if (isManager == '1') {
                 isManager = true;
             }
             var currentUserId = {{ app.user.id }};
@@ -583,41 +659,38 @@
             $('#comments-list-table').DataTable();
             $('#owned-profiles-table').DataTable();
             var associatedMembersTable = $('#members-of-the-project-table').DataTable({
-                order: [[ 4, "asc" ]],
+                order: [[4, "asc"]],
                 ajax: urlAssociatedMembers,
                 dataSrc: 'data',
                 columns: [
-                    { data: 'associationId' },
-                    { data: 'id' },
-                    { data: 'fullname' },
-                    { data: 'institution' },
-                    { data: 'permission' }
+                    {data: 'associationId'},
+                    {data: 'id'},
+                    {data: 'fullname'},
+                    {data: 'institution'},
+                    {data: 'permission'}
                 ],
                 columnDefs: [
                     {
                         targets: 0,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
 
                             var urlRemoveMember = '{{ path("project_member_disassociation", {'id' : 'associationId'}) }}';
                             urlRemoveMember = urlRemoveMember.replace("associationId", data);
 
                             var renderedRemoveIcon = '';
 
-                            if(isAdmin && currentUserId != row.id) {
+                            if (isAdmin && currentUserId != row.id) {
                                 renderedRemoveIcon = '<a data-id="' + data + '" data-url="' + urlRemoveMember + '" class="remove-member"><span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span></a><span class="remove-member-loading-icon" data-id="' + row.data + '" style="display: none"><span class="fas fa-spinner fa-spin"></span></span>';
-                            }
-                            else if(isManager && !isAdmin && row.permission == 3)
-                            {
+                            } else if (isManager && !isAdmin && row.permission == 3) {
                                 renderedRemoveIcon = '<a data-id="' + data + '" data-url="' + urlRemoveMember + '" class="remove-member"><span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span></a><span class="remove-member-loading-icon" data-id="' + row.data + '" style="display: none"><span class="fas fa-spinner fa-spin"></span></span>';
-                            }
-                            else renderedRemoveIcon = '';
+                            } else renderedRemoveIcon = '';
 
                             return renderedRemoveIcon;
                         }
                     },
                     {
                         targets: 4,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             var urlEditAssociationPermission = '{{ path("project_member_permission_edit", {'id' : 'associationId', 'permission' : 'permissionToken'}) }}';
                             urlEditAssociationPermission = urlEditAssociationPermission.replace("associationId", row.associationId);
                             var urlEditAssociationPermissionAdmin = urlEditAssociationPermission.replace("permissionToken", 1);
@@ -627,27 +700,23 @@
 
 
                             var renderedPermissionsBlock;
-                            if(!isAdmin || currentUserId == row.id){
+                            if (!isAdmin || currentUserId == row.id) {
                                 //l'utilisateur courrant n'a pas le droit de modifier son propre rôle pour éviter qu'un admin s'enlève lui même les droits et que le projet se retrouve sans aucun admin
                                 var permissionBadge = '';
-                                if(data == 1){
+                                if (data == 1) {
                                     permissionBadge = '<span class="label label-danger">Administrator</span>';
-                                }
-                                else if(data == 2){
+                                } else if (data == 2) {
                                     permissionBadge = '<span class="label label-warning">Manager</span>';
-                                }
-                                else if(data == 3){
+                                } else if (data == 3) {
                                     permissionBadge = '<span class="label label-success">Member</span>';
-                                }
-                                else if(data == 4){
+                                } else if (data == 4) {
                                     permissionBadge = '<span class="label label-info">Observer</span>';
                                 }
 
                                 renderedPermissionsBlock = permissionBadge;
-                            }
-                            else {
+                            } else {
                                 var permissionButtonGroup = '';
-                                if(data == 1){
+                                if (data == 1) {
                                     permissionButtonGroup = '<div class="btn-group">\n' +
                                         '  <button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\n' +
                                         '    Administrator <span class="caret"></span>\n' +
@@ -658,8 +727,7 @@
                                         '    <li><a data-url="' + urlEditAssociationPermissionObserver + '" class="edit-association-permission">Observer</a></li>\n' +
                                         '  </ul>\n' +
                                         '</div>';
-                                }
-                                else if(data == 2){
+                                } else if (data == 2) {
                                     permissionButtonGroup = '<div class="btn-group">\n' +
                                         '  <button type="button" class="btn btn-xs btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\n' +
                                         '    Manager <span class="caret"></span>\n' +
@@ -670,8 +738,7 @@
                                         '    <li><a data-url="' + urlEditAssociationPermissionObserver + '" class="edit-association-permission">Observer</a></li>\n' +
                                         '  </ul>\n' +
                                         '</div>';
-                                }
-                                else if(data == 3){
+                                } else if (data == 3) {
                                     permissionButtonGroup = '<div class="btn-group">\n' +
                                         '  <button type="button" class="btn btn-xs btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\n' +
                                         '    Member <span class="caret"></span>\n' +
@@ -682,8 +749,7 @@
                                         '    <li><a data-url="' + urlEditAssociationPermissionObserver + '" class="edit-association-permission">Observer</a></li>\n' +
                                         '  </ul>\n' +
                                         '</div>';
-                                }
-                                else if(data == 4){
+                                } else if (data == 4) {
                                     permissionButtonGroup = '<div class="btn-group">\n' +
                                         '  <button type="button" class="btn btn-xs btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\n' +
                                         '    Observer <span class="caret"></span>\n' +
@@ -711,20 +777,20 @@
             var selectableMembersTable = $('#ontome-users-table').DataTable({
                 ajax: urlSelectableMembers,
                 dataSrc: 'data',
-                order: [[ 1, "asc" ]],
+                order: [[1, "asc"]],
                 columns: [
-                    { data: 'id' },
-                    { data: 'fullname' },
-                    { data: 'institution' },
+                    {data: 'id'},
+                    {data: 'fullname'},
+                    {data: 'institution'},
                 ],
                 columnDefs: [
                     {
                         targets: 1,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             var urlSelectMember = '{{ path("project_user_association", {'project' : 'projectID', 'user' : 'id'}) }}';
                             urlSelectMember = urlSelectMember.replace("projectID", projectID);
                             urlSelectMember = urlSelectMember.replace("id", row.id);
-                            return '<a data-id="'+row.id+'" data-url="'+urlSelectMember+'" class="select-member"><span class="plus-icon" data-id="'+row.id+'"><span class="fas fa-plus"></span></span><span class="select-member-loading-icon" data-id="'+row.id+'" style="display: none"><span class="fas fa-spinner fa-spin"></span></span></a>&nbsp;' + data;
+                            return '<a data-id="' + row.id + '" data-url="' + urlSelectMember + '" class="select-member"><span class="plus-icon" data-id="' + row.id + '"><span class="fas fa-plus"></span></span><span class="select-member-loading-icon" data-id="' + row.id + '" style="display: none"><span class="fas fa-spinner fa-spin"></span></span></a>&nbsp;' + data;
                         }
                     },
                     {
@@ -734,54 +800,837 @@
                 ]
             });
 
-            $(document).on("click", ".select-member", function() {
+            $(document).on("click", ".select-member", function () {
                 var selectedValue = $(this).data("id");
-                $(".plus-icon[data-id='"+selectedValue+"']").hide(0);
-                $(".select-member-loading-icon[data-id='"+selectedValue+"']").css('display','inline');
-                var url =  $(this).data("url");
+                $(".plus-icon[data-id='" + selectedValue + "']").hide(0);
+                $(".select-member-loading-icon[data-id='" + selectedValue + "']").css('display', 'inline');
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         selectableMembersTable.ajax.reload();
                         associatedMembersTable.ajax.reload();
                     }
                 });
             });
 
-            $(document).on("click", ".edit-association-permission", function() {
-                var url =  $(this).data("url");
+            $(document).on("click", ".edit-association-permission", function () {
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         associatedMembersTable.ajax.reload();
                     }
                 });
             });
 
-            $(document).on("click", ".remove-member", function() {
+            $(document).on("click", ".remove-member", function () {
                 var selectedValue = $(this).data("id");
-                $(".remove-member[data-id='"+selectedValue+"']").hide(0);
-                $(".remove-member-loading-icon[data-id='"+selectedValue+"']").css('display','inline');
-                var url =  $(this).data("url");
+                $(".remove-member[data-id='" + selectedValue + "']").hide(0);
+                $(".remove-member-loading-icon[data-id='" + selectedValue + "']").css('display', 'inline');
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         associatedMembersTable.ajax.reload();
                         selectableMembersTable.ajax.reload();
                     }
                 });
             });
+
+            // -----
+            // Onglet Containers
+            // -----
+
+            /* Le tableau doit être géré par AJAX afin de faciliter le reload & pagination */
+            tableContainers = $('#table-containers').DataTable({
+                pageLength: 5,
+                autoWidth: false,
+                ajax: '{{ path("containers_by_project_json", {'id' : project.id}) }}',
+                dataSrc: 'data',
+                order: [[4, "desc"]],
+                columns: [
+                    {data: 'label'},
+                    {
+                        data: 'namespaces',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '<em>No namespaces linked to this container.</em>';
+                            } else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' namespace' + (data.length > 1 ? 's' : '');
+                            }
+                        }
+                    },
+                    {
+                        data: 'namespaces',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '';
+                            } else {
+                                return `
+                                    <span id="api-owl-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-owl-container").replace("containerId", row.id)}</span>
+                                    <button data-id="api-owl-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                                `;
+                            }
+                        }
+                    },
+                    {
+                        data: 'pathbuilders',
+                        render: function (data, type, row, meta) {
+                            if (data.length === 0) {
+                                return '<em>No pathbuilders linked to this container.</em>';
+                            } else {
+                                return '<i class="fas fa-check text-success"></i> ' + data.length + ' pathbuilder' + (data.length > 1 ? 's' : '');
+                            }
+                        }
+                    },
+                    {
+                        data: 'isOngoing',
+                        render: function (data, type, row, meta) {
+                            return data ? 'Ongoing' : 'Published';
+                        }
+                    },
+                    {data: 'lastUpdate'},
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return `
+                                <span id="api-container-url-${row.id}" style="display:none;">https://{{ uri }}${$('#table-containers').data("url-api-container").replace("containerId", row.id)}</span>
+                                <button data-id="api-container-url-${row.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>
+                            `;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            // Si ongoing, on peut éditer le container, sinon non
+                            if (!row.isOngoing) {
+                                return `
+                                    <button class="btn btn-primary view-container" data-container-id="${row.id}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                `;
+                            }
+                            return `
+                                <button class="btn btn-success edit-container" data-container-id="${row.id}">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                createdRow: function (row, data, dataIndex) {
+                    $(row).attr('data-container-id', data.id);
+                },
+            });
+
+            /* Remettre la ligne sélectionnée après un reload */
+            tableContainers.on('draw', function () {
+                // Récupérer le containerId dans containerContent s'il existe
+                const containerId = $('#containerContent').attr("data-container-id");
+
+                if (!containerId) {
+                    return;
+                }
+
+
+                // Chercher la ligne du tableau
+                const $row = $(`#table-containers tbody tr[data-container-id="${containerId}"]`);
+                if ($row.length > 0) {
+                    $row.addClass('info');
+                }
+
+                setActiveContainerActionButton(containerId);
+            });
+
+            const defaultContainerMessage = '<p><em>Please create or select a container to see its content.</em></p>';
+
+            // Actions pour normaliser le titre du container sélectionné et ajouter un bouton pour le fermer
+            function setSelectedContainerTitle(containerContentNode, containerLabel) {
+                let title = containerContentNode.prev('.selected-container-title');
+                if (title.length === 0) {
+                    containerContentNode.before(
+                        '<h4 class="selected-container-title clearfix">'
+                        + '<span class="selected-container-label"></span>'
+                        + '<button type="button" class="btn btn-secondary btn-sm pull-right close-selected-container" title="Close selected container" aria-label="Close selected container" style="margin-top:-4px; font-weight:bold;">'
+                        + '<i class="fas fa-times"></i> Close'
+                        + '</button>'
+                        + '</h4>'
+                    );
+                    title = containerContentNode.prev('.selected-container-title');
+                }
+
+                title.find('.selected-container-label').text('Selected: ' + containerLabel);
+            }
+
+            // Actions lorsqu'on ferme le container sélectionné
+            $(document).on('click', '.close-selected-container', function () {
+                const containerContentNode = $('#containerContent');
+                $('#table-containers tbody tr').removeClass('info');
+                containerContentNode.removeAttr('data-container-id');
+                containerContentNode.prev('.selected-container-title').remove();
+                containerContentNode.html(defaultContainerMessage);
+                $('#btnPublish').remove();
+                $('.publish-container-help').remove();
+                resetContainerActionButtons();
+            });
+
+            // Gestion du bouton Disabled ou non
+            function resetContainerActionButtons() {
+                $('#table-containers .view-container, #table-containers .edit-container')
+                    .prop('disabled', false)
+                    .removeClass('active');
+            }
+
+            // Réinitialisation de tous les boutons lorsque l'on clique sur un autre container
+            function setActiveContainerActionButton(containerId) {
+                resetContainerActionButtons();
+
+                $('#table-containers .view-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+
+                $('#table-containers .edit-container[data-container-id="' + containerId + '"]')
+                    .prop('disabled', true)
+                    .addClass('active');
+            }
+
+            // Actions lorsqu'on clique sur un container dans le tableau
+            $(document).on("click", ".view-container", function () {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, true);
+            });
+
+            // Fonction pour charger le contenu d'un container via AJAX
+            function loadContainerContent(containerId, readOnlyMode) {
+                var url = '{{ path("container", {'id' : 'containerID'}) }}';
+                const urlNamespace = $('#table-containers').data("url-namespace");
+                const containerContentNode = $('#containerContent');
+                containerContentNode.attr("data-container-id", containerId);
+
+                $('#btnPublish').remove();
+                $('.publish-container-help').remove();
+
+                containerContentNode.html('<div class="loader"><span class="fas fa-spinner fa-spin"></span> Loading container content...</div>');
+
+                url = url.replace("containerID", containerId);
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (container) {
+                        setSelectedContainerTitle(containerContentNode, container.label);
+
+                        if (!readOnlyMode) {
+                            if ($('#btnPublish').length === 0) {
+                                const $publishHelp = $('<p>', {class: 'text-muted publish-container-help'}).append(
+                                    $('<em>').text('Once published, the container will be read-only.')
+                                );
+                                const $publishButton = $('<button>', {
+                                    class: 'btn btn-primary',
+                                    id: 'btnPublish',
+                                    type: 'button'
+                                }).attr('data-container-id', container.id).append(
+                                    'Publish this container ',
+                                    $('<i>', {class: 'fas fa-upload'})
+                                );
+
+                                containerContentNode.after($publishHelp, $publishButton);
+                            } else {
+                                $('#btnPublish').data('container-id', container.id);
+                            }
+                        }
+
+                        const $containerNamespaces = $('<div>', {id: 'containerNamespaces'});
+                        const $headerContainerNamespaces = $('<div>', {id: 'headerContainerNamespaces'}).append(
+                            $('<h4>').text('Namespaces'),
+                            $('<p>').append($('<em>').text('Available through the owl:imports API for this container'))
+                        );
+                        const $namespacesList = $('<div>', {id: 'namespacesList'});
+                        $containerNamespaces.append($headerContainerNamespaces, $namespacesList);
+
+                        if (!container.namespaces || container.namespaces.length === 0) {
+                            $namespacesList.append($('<p>').text('There is currently no namespace linked to this container.'));
+                        } else {
+                            for (const namespace of container.namespaces) {
+                                const $namespaceRow = $('<div>', {
+                                    class: 'namespaceRow',
+                                    'data-namespace-id': namespace.id
+                                });
+                                const $namespaceLine = $('<div>', {class: 'namespaceRowLine'});
+
+                                if (!readOnlyMode) {
+                                    $namespaceLine.append(
+                                        $('<i>', {
+                                            class: 'fas fa-times text-danger delete-association-container-namespace small-margin-right',
+                                            title: 'Delete this namespace association'
+                                        })
+                                            .attr('data-container-id', container.id)
+                                            .attr('data-namespace-id', namespace.id)
+                                    );
+                                }
+
+                                $namespaceLine.append(
+                                    $('<a>', {
+                                        href: urlNamespace.replace('namespaceId', namespace.id),
+                                        text: namespace.standardLabel
+                                    })
+                                );
+                                $namespaceRow.append($namespaceLine);
+
+                                if (namespace.referencedNamespaces && namespace.referencedNamespaces.length > 0) {
+                                    const $referencedList = $('<div>', {class: 'referencedNamespacesList'}).append(
+                                        $('<span>', {class: 'text-muted small'}).append(
+                                            $('<strong>').append($('<em>').text('Referenced:'))
+                                        )
+                                    );
+
+                                    for (const ref of namespace.referencedNamespaces) {
+                                        $referencedList.append(
+                                            $('<div>', {class: 'referencedNamespaceRow'}).append(
+                                                $('<a>', {
+                                                    href: urlNamespace.replace('namespaceId', ref.id),
+                                                    text: ref.standardLabel
+                                                })
+                                            )
+                                        );
+                                    }
+
+                                    $namespaceRow.append($referencedList);
+                                }
+
+                                $namespacesList.append($namespaceRow);
+                            }
+                        }
+
+                        if (!readOnlyMode) {
+                            $containerNamespaces.append(
+                                $('<div>', {
+                                    id: 'addNamespaceContainerDiv',
+                                    'data-container-id': container.id
+                                }).append(
+                                    $('<button>', {
+                                        class: 'btn btn-primary add-namespace-to-container-btn',
+                                        type: 'button'
+                                    }).append(
+                                        $('<i>', {class: 'fas fa-plus'}),
+                                        ' Add a namespace'
+                                    )
+                                )
+                            );
+                        }
+
+                        const $containerPathbuilders = $('<div>', {id: 'containerPathbuilders'}).append(
+                            $('<h4>').text('Pathbuilders')
+                        );
+
+                        if (!container.pathbuilders || container.pathbuilders.length === 0) {
+                            $containerPathbuilders.append(
+                                $('<p>').append($('<em>').text('No pathbuilder linked to this container.'))
+                            );
+                        } else {
+                            const $pathbuildersWrapper = $('<div>', {
+                                class: 'table-responsive',
+                                id: 'pathbuildersList'
+                            });
+                            const $pathbuildersTable = $('<table>', {class: 'table table-striped'});
+                            const $pathbuildersBody = $('<tbody>');
+
+                            for (const pathbuilder of container.pathbuilders) {
+                                const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
+                                const urlPathbuilderDelete = '{{ path("association_container_pathbuilder_delete", {"container": "containerID", "pathbuilder": "pathbuilderID"}) }}'
+                                    .replace('containerID', container.id)
+                                    .replace('pathbuilderID', pathbuilder.id);
+
+                                const $pathbuilderRow = $('<tr>', {class: 'pathbuilderRow'});
+
+                                if (!readOnlyMode) {
+                                    $pathbuilderRow.append(
+                                        $('<td>').append(
+                                            $('<a>', {
+                                                href: '#',
+                                                class: 'delete-pathbuilder',
+                                                'data-url': urlPathbuilderDelete,
+                                                'data-container-id': container.id,
+                                                'data-pathbuilder-id': pathbuilder.id
+                                            }).append(
+                                                $('<i>', {
+                                                    class: 'fas fa-times text-danger',
+                                                    title: 'Delete this pathbuilder'
+                                                })
+                                            )
+                                        )
+                                    );
+                                }
+
+                                $pathbuilderRow.append(
+                                    $('<td>').text(pathbuilder.label),
+                                    $('<td>').append(
+                                        $('<a>', {
+                                            href: urlPathbuilderExport,
+                                            download: pathbuilder.label + '.xml'
+                                        }).append(
+                                            $('<i>', {
+                                                class: 'fas fa-file-export',
+                                                title: 'Export this pathbuilder'
+                                            })
+                                        )
+                                    )
+                                );
+
+                                $pathbuildersBody.append($pathbuilderRow);
+                            }
+
+                            $pathbuildersWrapper.append($pathbuildersTable.append($pathbuildersBody));
+                            $containerPathbuilders.append($pathbuildersWrapper);
+                        }
+
+                        if (!readOnlyMode) {
+                            $containerPathbuilders.append(
+                                $('<div>', {
+                                    id: 'addPathbuilderContainerDiv',
+                                    'data-container-id': container.id
+                                }).append(
+                                    $('<button>', {
+                                        class: 'btn btn-primary add-pathbuilder-to-container-btn',
+                                        type: 'button'
+                                    }).append(
+                                        $('<i>', {class: 'fas fa-plus'}),
+                                        ' Add a pathbuilder'
+                                    )
+                                )
+                            );
+                        }
+
+                        containerContentNode.empty().append($containerNamespaces, $containerPathbuilders);
+                    }
+                });
+            }
+
+            // Fonction pour charger le contenu d'un container via AJAX
+            $(document).on("click", ".edit-container", function () {
+                // Changer la couleur de la ligne.
+                $(this).closest('tr').addClass('info').siblings().removeClass('info');
+                var containerId = $(this).data("container-id");
+                setActiveContainerActionButton(containerId);
+                loadContainerContent(containerId, false);
+            });
+
+            // Ouverture de la zone de création d'un nouveau container
+            $(document).on("click", "#button-new-container", function () {
+                const newContainerForm = $('#createContainer');
+
+                newContainerForm.slideToggle(300);
+            });
+
+            // Création d'un nouveau container via AJAX
+            $(document).on("click", "#submit-new-container", function () {
+                const containerLabel = $('#new-container-label').val();
+                if (containerLabel.trim() === '') {
+                    alert('Please enter a name for the container.');
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ path("container_create") }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        project_id: {{ project.id }},
+                        label: containerLabel
+                    },
+                    success: function (container) {
+                        // Recharge la page pour afficher le nouveau container dans la liste et éviter les problèmes de cache
+                        location.reload();
+                    }
+                });
+            });
+
+            // Fonction pour restaurer le bouton d'ajout de namespace
+            function restoreAddNamespaceButton(containerId) {
+                let addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+
+                if (addNamespaceContainerDiv.length === 0) {
+                    $('#containerNamespaces').append('<div id="addNamespaceContainerDiv"></div>');
+                    addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+                }
+
+                addNamespaceContainerDiv
+                    .attr('data-container-id', containerId)
+                    .html(`
+                        <button class="btn btn-primary add-namespace-to-container-btn">
+                            <i class="fas fa-plus"></i> Add a namespace
+                        </button>
+                    `);
+            }
+
+            // Fonction pour rafraîchir les namespaces d'un container
+            function refreshContainerNamespaces(containerId) {
+                let containerUrl = '{{ path("container", {'id' : 'containerID'}) }}';
+                containerUrl = containerUrl.replace("containerID", containerId);
+                const urlNamespace = $('#table-containers').data("url-namespace");
+
+                $.ajax({
+                    url: containerUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (container) {
+                        const namespaces = container.namespaces || [];
+                        const namespacesList = $('#namespacesList');
+                        namespacesList.empty();
+
+                        if (namespaces.length === 0) {
+                            namespacesList.html('<p>There is currently no namespace linked to this container.</p>');
+                            restoreAddNamespaceButton(container.id || containerId);
+                            return;
+                        }
+
+                        let namespacesHtml = '';
+                        for (const namespace of namespaces) {
+
+                            // Création d'une ligne pour chaque namespace avec un lien vers le namespace et un bouton de suppression si le mode lecture seule n'est pas activé
+                            const $namespaceRow = $('<div>', {
+                                class: 'namespaceRow',
+                                'data-namespace-id': namespace.id
+                            });
+
+                            const $namespaceLine = $('<div>', {class: 'namespaceRowLine'});
+
+                            $namespaceLine.append(
+                                $('<i>', {
+                                    class: 'fas fa-times text-danger delete-association-container-namespace small-margin-right',
+                                    'data-container-id': container.id,
+                                    'data-namespace-id': namespace.id
+                                })
+                            );
+
+                            $namespaceLine.append(
+                                $('<a>', {
+                                    href: urlNamespace.replace('namespaceId', namespace.id),
+                                    text: namespace.standardLabel
+                                })
+                            );
+
+                            $namespaceRow.append($namespaceLine);
+
+                            if (namespace.referencedNamespaces && namespace.referencedNamespaces.length > 0) {
+                                const $referencedList = $('<div>', {class: 'referencedNamespacesList'})
+                                    .append(
+                                        $('<span>', {class: 'text-muted small'}).append(
+                                            $('<strong><em>Referenced:</em></strong>')
+                                        )
+                                    );
+
+                                for (const ref of namespace.referencedNamespaces) {
+                                    $referencedList.append(
+                                        $('<div>', {class: 'referencedNamespaceRow'}).append(
+                                            $('<a>', {
+                                                href: urlNamespace.replace('namespaceId', ref.id),
+                                                text: ref.standardLabel
+                                            })
+                                        )
+                                    );
+                                }
+
+                                $namespaceRow.append($referencedList);
+                            }
+
+                            namespacesHtml += $namespaceRow.prop('outerHTML');
+                        }
+
+                        namespacesList.html(namespacesHtml);
+                        restoreAddNamespaceButton(container.id || containerId);
+                    },
+                    error: function () {
+                        restoreAddNamespaceButton(containerId);
+                    }
+                });
+            }
+
+            // Ouverture de la zone de sélection d'un namespace à ajouter à un container
+            $(document).on("click", ".add-namespace-to-container-btn", function () {
+                const addNamespaceContainerDiv = $('#addNamespaceContainerDiv');
+
+                // Récupérer les Root namespaces déjà associés au container pour les exclure du select
+                const containerId = $("#addNamespaceContainerDiv").data("container-id");
+                $.ajax({
+                    url: '{{ path("container_root_namespaces_not_associated", {'id' : 'containerID'}) }}'.replace("containerID", containerId),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Ajouter un select pour choisir le namespace à ajouter
+                        const selectHtml = `
+                            <label for="addRootNamespaceSelect">Pick a namespace:</label>
+                            <select id="addRootNamespaceSelect" class="form-control">
+                                <option value="">Select a root namespace to find a namespace version</option>
+                                ${data.map(nsRoot => `<option value="${nsRoot.id}">${nsRoot.standardLabel}</option>`).join('')}
+                            </select>
+                        `;
+
+                        addNamespaceContainerDiv.html(selectHtml);
+                    }
+                });
+            });
+
+            // Ouverture de la zone de création d'un nouveau pathbuilder
+            $(document).on("click", ".add-pathbuilder-to-container-btn", function () {
+                const addPathbuilderContainerDiv = $('#addPathbuilderContainerDiv');
+
+                const formHtml = `
+                    <label for="addPathbuilderForm">Create a new pathbuilder:</label>
+                    <input type="text" id="newPathbuilderLabel" class="form-control" placeholder="Enter the label of the pathbuilder to add">
+                    <div><b>Option 1:</b> upload an XML file from your computer</div>
+                    <input type="file" id="newPathbuilderFile" class="form-control-file" accept=".xml">
+                    <div><b>Option 2:</b> or put an url to an existing pathbuilder xml file</div>
+                    <input type="text" id="newPathbuilderUrl" class="form-control" placeholder="Enter the URL of the pathbuilder XML file">
+                    <button class="btn btn-primary" id="confirmAddPathbuilderToContainerBtn">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                `;
+                addPathbuilderContainerDiv.html(formHtml);
+            });
+
+            // Ajouter un pathbuilder à un container via AJAX + actions
+            $(document).on("click", "#confirmAddPathbuilderToContainerBtn", function () {
+                const containerId = $("#addPathbuilderContainerDiv").data("container-id");
+                const pathbuilderLabel = $('#newPathbuilderLabel').val();
+                const pathbuilderFile = $('#newPathbuilderFile')[0].files[0];
+                const pathbuilderUrl = $('#newPathbuilderUrl').val();
+
+                if (pathbuilderLabel.trim() === '') {
+                    alert('Please enter a label for the pathbuilder.');
+                    return;
+                }
+
+                if (!pathbuilderFile && !pathbuilderUrl) {
+                    alert('Please select an XML file or enter a URL for the pathbuilder.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('label', pathbuilderLabel);
+                formData.append('file', pathbuilderFile);
+                formData.append('url', pathbuilderUrl);
+
+                const createPathbuilderUrl = '{{ path("association_container_pathbuilder_create", {"container": "containerID"}) }}'.replace('containerID', containerId);
+
+                $.ajax({
+                    url: createPathbuilderUrl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function (data) {
+                        // Close form: restore the "Add a pathbuilder" button.
+                        $('#addPathbuilderContainerDiv').html(`
+                            <button class="btn btn-primary add-pathbuilder-to-container-btn">
+                                <i class="fas fa-plus"></i> Add a pathbuilder
+                            </button>
+                        `);
+
+                        // Refresh only the pathbuilders section.
+                        let containerUrl = '{{ path("container", {'id' : 'containerID'}) }}';
+                        containerUrl = containerUrl.replace("containerID", containerId);
+                        $.ajax({
+                            url: containerUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (container) {
+                                const pathbuilders = container.pathbuilders || [];
+                                const pathbuilderSection = $('#containerPathbuilders');
+                                pathbuilderSection.find('#pathbuildersList').remove();
+                                pathbuilderSection.find('p.pathbuilders-empty-message').remove();
+
+                                if (pathbuilders.length === 0) {
+                                    pathbuilderSection.find('#addPathbuilderContainerDiv').before('<p class="pathbuilders-empty-message"><em>No pathbuilder linked to this container.</em></p>');
+                                    return;
+                                }
+
+                                let pathbuildersHtml = `
+                                    <div class="table-responsive" id="pathbuildersList">
+                                        <table class="table table-striped">
+                                            <tbody>
+                                `;
+
+                                for (const pathbuilder of pathbuilders) {
+                                    const urlPathbuilderExport = '{{ path("export_pathbuilder", {"id": "pathbuilderID"}) }}'.replace('pathbuilderID', pathbuilder.id);
+                                    const urlPathbuilderDelete = '{{ path("association_container_pathbuilder_delete", {"container": "containerID", "pathbuilder": "pathbuilderID"}) }}'
+                                        .replace('containerID', container.id)
+                                        .replace('pathbuilderID', pathbuilder.id);
+
+                                    pathbuildersHtml += `
+                                        <tr class="pathbuilderRow">
+                                            <td>
+                                                <a href="#" class="delete-pathbuilder" data-url="${urlPathbuilderDelete}" data-container-id="${container.id}" data-pathbuilder-id="${pathbuilder.id}">
+                                                    <i class="fas fa-times text-danger" title="Delete this pathbuilder"></i>
+                                                </a>
+                                            </td>
+                                            <td>${pathbuilder.label}</td>
+                                            <td>
+                                                <a href="${urlPathbuilderExport}" download="${pathbuilder.label}.xml">
+                                                    <i class="fas fa-file-export" title="Export this pathbuilder"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }
+
+                                pathbuildersHtml += `
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `;
+
+                                pathbuilderSection.find('#addPathbuilderContainerDiv').before(pathbuildersHtml);
+                                // refresh containers table to reflect new pathbuilder
+                                if (typeof tableContainers !== 'undefined') {
+                                    tableContainers.ajax.reload(null, false);
+                                }
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'An error occurred while adding the pathbuilder to the container.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
+
+            // Ouverture de la zone de sélection d'un namespace à ajouter à un container
+            $(document).on("change", "#addRootNamespaceSelect", function () {
+                $("#addNamespaceSelectDiv").remove();
+                $("#addRootNamespaceSelect").after(`
+                    <div id="addNamespaceSelectDiv">
+                        <select id="addNamespaceSelect" class="form-control">
+                            <option value="">Select a namespace to add it to the container</option>
+                        </select>
+                        <button class="btn btn-primary" id="confirmAddNamespaceToContainerBtn">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                `);
+
+                let selectedValue = $(this).val();
+                let url = '{{ path("namespaces_by_root_id_list_json", {'id': 'selectedValue'}) }}';
+                url = url.replace("selectedValue", selectedValue);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        const namespaces = data.namespaces;
+                        const namespaceSelect = $('#addNamespaceSelect');
+                        namespaceSelect.empty();
+                        for (const namespace of namespaces) {
+                            namespaceSelect.append(`<option value="${namespace.id}">${namespace.standardLabel}</option>`);
+                        }
+                    }
+                });
+            });
+
+            // Ajouter un namespace à un container via AJAX
+            $(document).on("click", "#confirmAddNamespaceToContainerBtn", function () {
+                const selectedNamespaceId = $("#addNamespaceSelect").val();
+                const containerId = $("#addNamespaceContainerDiv").data("container-id");
+                let url = '{{ path("association_container_namespace_create") }}';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        container_id: containerId,
+                        namespace_id: selectedNamespaceId
+                    },
+                    success: function (data) {
+                        refreshContainerNamespaces(containerId);
+                        // refresh the containers table to reflect updated namespace counts
+                        if (typeof tableContainers !== 'undefined') {
+                            tableContainers.ajax.reload(null, false);
+                        }
+                    },
+                    error: function (xhr) {
+                        restoreAddNamespaceButton(containerId);
+                        let errorMessage = 'An error occurred while adding the namespace to the container.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
+
+            // Supprimer l'association d'un namespace à un container via AJAX
+            $(document).on("click", ".delete-association-container-namespace", function () {
+                var containerId = $(this).data("container-id");
+                var namespaceId = $(this).data("namespace-id");
+                var url = $('#table-containers').data("url-delete-association-container-namespace");
+                url = url.replace("containerId", containerId);
+                url = url.replace("namespaceId", namespaceId);
+
+                $.ajax({
+                    url: url,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function (data) {
+                        refreshContainerNamespaces(containerId);
+                        // refresh the containers table to reflect updated namespace counts
+                        if (typeof tableContainers !== 'undefined') {
+                            tableContainers.ajax.reload(null, false);
+                        }
+                    }
+                });
+            });
+
+            // Supprimer un pathbuilder d'un container via AJAX
+            $(document).on("click", ".delete-pathbuilder", function (e) {
+                e.preventDefault();
+
+                const containerId = $(this).data("container-id");
+                const url = $(this).data("url");
+                const $pathbuilderRow = $(this).closest('tr.pathbuilderRow');
+
+                $.ajax({
+                    url: url,
+                    type: 'DELETE',
+                    dataType: 'json',
+                    success: function () {
+                        $pathbuilderRow.remove();
+                        if ($('#pathbuildersList tr.pathbuilderRow').length === 0) {
+                            $('#pathbuildersList').replaceWith('<p><em>No pathbuilder linked to this container.</em></p>');
+                        }
+                        // refresh containers table to update pathbuilder counts
+                        if (typeof tableContainers !== 'undefined') {
+                            tableContainers.ajax.reload(null, false);
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'An error occurred while deleting the pathbuilder.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage += '\nDetails: ' + xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            });
+
 
             // -----
             // Onglet Profiles
             // -----
-            var projectID = {{ project.id }};
             var urlSelectableProfiles = '{{ path("selectable_profiles_project_json", {'project' : 'projectID'}) }}';
             urlSelectableProfiles = urlSelectableProfiles.replace("projectID", projectID);
 
@@ -789,22 +1638,22 @@
             urlAssociatedProfiles = urlAssociatedProfiles.replace("projectID", projectID);
 
             var associatedProfilesTable = $('#associated-profiles-table').DataTable({
-                order: [[ 1, "desc" ]],
+                order: [[1, "desc"]],
                 "autoWidth": true,
                 ajax: urlAssociatedProfiles,
                 dataSrc: 'data',
                 columns: [
-                    { data: 'id' },
-                    { data: 'standardLabel' },
-                    { data: 'version' },
-                    { data: 'isOngoing' },
-                    { data: null },
-                    { data: null },
+                    {data: 'id'},
+                    {data: 'standardLabel'},
+                    {data: 'version'},
+                    {data: 'isOngoing'},
+                    {data: null},
+                    {data: null},
                 ],
                 columnDefs: [
                     {
                         targets: 0,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
 
                             var urlRemoveProfile = '{{ path("project_profile_disassociation", {'project' : 'projectID', 'profile' : 'profileID'}) }}';
                             urlRemoveProfile = urlRemoveProfile.replace("projectID", projectID);
@@ -815,7 +1664,7 @@
                     {
                         targets: 1,
                         className: '',
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             var urlProfile = '{{ path("profile_show", {'id' : 'profileID'}) }}';
                             urlProfile = urlProfile.replace("profileID", row.id);
 
@@ -828,49 +1677,46 @@
                     },
                     {
                         targets: 3,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             if (row.isOngoing) {
                                 return 'Ongoing';
                             }
                             //profile.wasClosedAt is not null and profile.endDate is null
                             else if (row.wasClosedAt != null && row.endDate == null) {
                                 return 'Published';
-                            }
-                            else if (row.endDate != null) {
+                            } else if (row.endDate != null) {
                                 return 'Deprecated';
                             }
                         }
                     },
                     {
                         targets: 4,
-                        render: function ( data, type, row, meta ) {
-                            if((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)){
-                            var urlApiClassesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
-                            var urlApiPropertiesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
-                            urlApiClassesProfileJson = urlApiClassesProfileJson.replace("profileID", row.id);
-                            urlApiPropertiesProfileJson = urlApiPropertiesProfileJson.replace("profileID", row.id);
+                        render: function (data, type, row, meta) {
+                            if ((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)) {
+                                var urlApiClassesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
+                                var urlApiPropertiesProfileJson = '{{ path("api_classes_profile_json", {'lang': 'en', 'available-in-profile' : 'profileID'}) }}';
+                                urlApiClassesProfileJson = urlApiClassesProfileJson.replace("profileID", row.id);
+                                urlApiPropertiesProfileJson = urlApiPropertiesProfileJson.replace("profileID", row.id);
 
-                            return '<a href="' + urlApiClassesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Classes</a>' +
-                                ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>'
-                            }
-                            else{
+                                return '<a href="' + urlApiClassesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Classes</a>' +
+                                    ' <a href="' + urlApiPropertiesProfileJson + '" class="btn btn-primary"><i class="fas fa-microchip"></i> JSON Properties</a>'
+                            } else {
                                 return 'Not published in API';
                             }
                         }
                     },
                     {
                         targets: 5,
-                        render: function ( data, type, row, meta ) {
-                            if((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)){
+                        render: function (data, type, row, meta) {
+                            if ((!row.isOngoing && row.wasClosedAt != null && row.endDate == null) || (row.isForcedPublication && row.isOngoing)) {
                                 var urlApiClassesPropertiesProfileXML = '{{ path("api_classes_and_properties_by_profile_xml", {'profile' : 'profileID'}) }}';
                                 urlApiClassesPropertiesProfileXML = urlApiClassesPropertiesProfileXML.replace("profileID", row.id);
                                 var urlApiShaclProfile = '{{ path("api_shacl_profile", {'lang': 'en', 'profile-id' : 'profileID'}) }}';
                                 urlApiShaclProfile = urlApiShaclProfile.replace("profileID", row.id);
 
-                                return '<a href="' + urlApiClassesPropertiesProfileXML + '" class="btn btn-primary" download="profile-'+ row.standardLabel +'.rdf"><i class="fas fa-code"></i> OWL-RDF</a>' +
-                                ' <a href="' + urlApiShaclProfile + '" class="btn btn-primary" download="profile-'+ row.standardLabel +'-'+ row.version +'.ttl"><i class="fas fa-microchip"></i> SHACL</a>';
-                            }
-                            else{
+                                return '<a href="' + urlApiClassesPropertiesProfileXML + '" class="btn btn-primary" download="profile-' + row.standardLabel + '.rdf"><i class="fas fa-code"></i> OWL-RDF</a>' +
+                                    ' <a href="' + urlApiShaclProfile + '" class="btn btn-primary" download="profile-' + row.standardLabel + '-' + row.version + '.ttl"><i class="fas fa-microchip"></i> SHACL</a>';
+                            } else {
                                 return 'Not available';
                             }
                         }
@@ -883,60 +1729,58 @@
                 "autoWidth": true,
                 dataSrc: 'data',
                 columns: [
-                    { data: 'profileId' },
-                    { data: 'standardLabel' },
-                    { data: 'version' }
+                    {data: 'profileId'},
+                    {data: 'standardLabel'},
+                    {data: 'version'}
                 ],
                 columnDefs: [
                     {
                         targets: 0,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             var urlSelectProfil = '{{ path("project_profile_association", {'project' : 'projectID', 'profile' : 'profileID'}) }}';
                             urlSelectProfil = urlSelectProfil.replace("projectID", projectID);
                             urlSelectProfil = urlSelectProfil.replace("profileID", row.profileId);
-                            return '<a href="#profiles" data-id="'+row.profileId+'" data-url="'+urlSelectProfil+'" class="select-profile"><span class="plus-icon" data-id="'+row.profileId+'"><span class="fas fa-plus"></span></span><span class="select-profile-loading-icon" data-id="'+row.profileId+'" style="display: none"><span class="fas fa-spinner fa-spin"></span></span></a>';
+                            return '<a href="#profiles" data-id="' + row.profileId + '" data-url="' + urlSelectProfil + '" class="select-profile"><span class="plus-icon" data-id="' + row.profileId + '"><span class="fas fa-plus"></span></span><span class="select-profile-loading-icon" data-id="' + row.profileId + '" style="display: none"><span class="fas fa-spinner fa-spin"></span></span></a>';
                         }
                     },
                     {
                         targets: 1,
-                        render: function ( data, type, row, meta ) {
+                        render: function (data, type, row, meta) {
                             var urlProfil = '{{ path("profile_show", {'id' : 'profileID'}) }}';
                             urlProfil = urlProfil.replace("profileID", row.profileId);
-                            return '<a href="'+urlProfil+'">'+data+'</a>';
+                            return '<a href="' + urlProfil + '">' + data + '</a>';
                         }
                     },
                 ]
             });
             selectableProfilesTable.draw();
 
-            $(document).on("click", ".select-profile", function() {
+            $(document).on("click", ".select-profile", function () {
                 var selectedValue = $(this).data("id");
-                $(".plus-icon[data-id='"+selectedValue+"']").hide(0);
-                $(".select-profile-loading-icon[data-id='"+selectedValue+"']").css('display','inline');
-                var url =  $(this).data("url");
-                console.log(url);
+                $(".plus-icon[data-id='" + selectedValue + "']").hide(0);
+                $(".select-profile-loading-icon[data-id='" + selectedValue + "']").css('display', 'inline');
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         selectableProfilesTable.ajax.reload();
                         associatedProfilesTable.ajax.reload();
                     }
                 });
             });
 
-            $(document).on("click", ".remove-profile", function() {
+            $(document).on("click", ".remove-profile", function () {
                 var selectedValue = $(this).data("id");
-                $(".remove-profile[data-id='"+selectedValue+"']").hide(0);
-                $(".remove-profile-loading-icon[data-id='"+selectedValue+"']").css('display','inline');
-                var url =  $(this).data("url");
-                console.log(url);
+                $(".remove-profile[data-id='" + selectedValue + "']").hide(0);
+                $(".remove-profile-loading-icon[data-id='" + selectedValue + "']").css('display', 'inline');
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         associatedProfilesTable.ajax.reload();
                         selectableProfilesTable.ajax.reload();
                     }
@@ -944,7 +1788,7 @@
             });
 
             //confirmation box for profile recreate action
-            $('.recreate-btn').on('click', function() {
+            $('.recreate-btn').on('click', function () {
                 var profileID = $(this).data("id");
                 bootbox.confirm({
                     message: "This will create a new ongoing version of this profile. Do you wish to proceed?",
@@ -959,7 +1803,7 @@
                         }
                     },
                     callback: function (result) {
-                        if(result){
+                        if (result) {
                             var urlProfileRecreate = '{{ path("profile_recreate", {'profile' : 'profileID'}) }}';
                             urlProfileRecreate = urlProfileRecreate.replace("profileID", profileID);
                             window.location = urlProfileRecreate;
@@ -968,17 +1812,17 @@
                 });
             });
 
-            $(document).on("click", ".remove-thesaurus", function() {
+            $(document).on("click", ".remove-thesaurus", function () {
                 var selectedValue = $(this).data("id");
-                $(".remove-thesaurus[data-id='"+selectedValue+"']").hide(0);
-                $(".remove-thesaurus-loading-icon[data-id='"+selectedValue+"']").css('display','inline');
-                var url =  $(this).data("url");
+                $(".remove-thesaurus[data-id='" + selectedValue + "']").hide(0);
+                $(".remove-thesaurus-loading-icon[data-id='" + selectedValue + "']").css('display', 'inline');
+                var url = $(this).data("url");
                 $.ajax({
-                    url: url ,
+                    url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
-                        $("#li-thesaurus-association-id-"+selectedValue).remove();
+                    success: function (data) {
+                        $("#li-thesaurus-association-id-" + selectedValue).remove();
                     }
                 });
             });
@@ -988,7 +1832,7 @@
             $('#select-root-namespace').select2({
                 width: '100%',
                 placeholder: 'Select a root namespace',
-                sorter: function(data) {
+                sorter: function (data) {
                     /* Sort data using lowercase comparison */
                     return data.sort(function (a, b) {
                         a = a.text.toLowerCase();
@@ -1013,31 +1857,35 @@
                     url: url,
                     type: 'GET',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         $('#loading-icon').hide(0);
                         // handling the response data from the controller
-                        if(data.status == 'Error'){
-                            console.log("[API] ERROR: "+data.message);
+                        if (data.status == 'Error') {
+                            console.log("[API] ERROR: " + data.message);
                         }
-                        if(data.status == 'Success'){
-                            $.each(data.namespaces, function(key, val){
-                                $("#chosable-namespaces-list").append($("<a class=\"list-group-item pickable-namespace\" id="+val.id+">"+val.standardLabel+"</a>"));
+                        if (data.status == 'Success') {
+                            $.each(data.namespaces, function (key, val) {
+                                $("#chosable-namespaces-list").append(
+                                    $("<a>", {
+                                        class: "list-group-item pickable-namespace",
+                                        id: String(val.id)
+                                    }).text(val.standardLabel)
+                                );
                             });
                         }
                     }
                 });
             });
 
-            $(document).on("mouseenter touchstart", ".pickable-namespace", function() {
+            $(document).on("mouseenter touchstart", ".pickable-namespace", function () {
                 $(this).prepend($("<span><i class=\"fas fa-plus\"></i>&nbsp;</span>"));
             });
 
-            $(document).on("mouseleave touchend", ".pickable-namespace", function() {
+            $(document).on("mouseleave touchend", ".pickable-namespace", function () {
                 $(this).find(":first-child").remove();
             });
 
-            $(document).on("click", ".pickable-namespace", function() {
-                var projectID = {{ project.id }};
+            $(document).on("click", ".pickable-namespace", function () {
                 var selectedValue = $(this).attr("id");
                 var labelNamespace = $(this).text();
                 var url = '{{ path("project_namespace_association", {'project' : 'projectID' ,'namespace': 'selectedValue'}) }}';
@@ -1050,39 +1898,39 @@
                     url: url,
                     type: 'POST',
                     dataType: 'json',
-                    success:function(data){
+                    success: function (data) {
                         // handling the response data from the controller
-                        if(data.status == 'Error'){
-                            console.log("[API] ERROR: "+data.message);
+                        if (data.status == 'Error') {
+                            console.log("[API] ERROR: " + data.message);
                         }
-                        if(data.status == 'Success'){
+                        if (data.status == 'Success') {
                             urlDelete = urlDelete.replace("associationID", data.idProjectAssociation);
                             $('.dataTables_empty').remove();
                             $("#api-namespaces-project-table tbody").append(
-                                "<tr><td><a href=\""+urlNamespace+"\">"+labelNamespace+"</a></td><td><a href=\""+urlDelete+"\"><span class=\"glyphicon glyphicon-remove text-danger\" aria-hidden=\"true\"></span></a></td></tr>"
+                                "<tr><td><a href=\"" + urlNamespace + "\">" + labelNamespace + "</a></td><td><a href=\"" + urlDelete + "\"><span class=\"glyphicon glyphicon-remove text-danger\" aria-hidden=\"true\"></span></a></td></tr>"
                             );
                         }
                     }
                 });
-                $('#select-root-namespace option:first').prop('selected',true);
+                $('#select-root-namespace option:first').prop('selected', true);
                 $("#chosable-namespaces-list").empty();
             });
 
             $('#api-owl-url').hide();
 
-            $(document).on('click', '#edit-project-uri', function() {
+            $(document).on('click', '#edit-project-uri', function () {
                 // Remplacer le texte par un champ de saisie
                 var currentUri = $(this).data('project-uri');
                 var input = $(`
                 <form class="form-inline">                   
-                    <input type="text" id="edit-project-uri-input" class="form-control" value="`+currentUri+`"/> <button id="save-project-uri" class="btn btn-primary">Save</button>
+                    <input type="text" id="edit-project-uri-input" class="form-control" value="` + currentUri + `"/> <button id="save-project-uri" class="btn btn-primary">Save</button>
                 </form>
                 `);
                 $(this).replaceWith(input);
                 input.focus();
             });
 
-            $(document).on('click', '#save-project-uri', function(e) {
+            $(document).on('click', '#save-project-uri', function (e) {
                 e.preventDefault();
                 var newUriProject = $('#edit-project-uri-input').val();
                 var url = '{{ path("project_uri_edit", {'project' : project.id}) }}';
@@ -1090,24 +1938,36 @@
                     url: url,
                     type: 'POST',
                     dataType: 'json',
-                    data: { newUriProject: newUriProject },
-                    success:function(data){
-                        if(data.status == 'Error'){
-                            console.log("[API] ERROR: "+data.message);
+                    data: {newUriProject: newUriProject},
+                    success: function (data) {
+                        if (data.status == 'Error') {
+                            console.log("[API] ERROR: " + data.message);
                             // Sous l'input, afficher le message d'erreur
-                            if($('#save-project-uri').next('.error-message').length == 0) {
+                            if ($('#save-project-uri').next('.error-message').length == 0) {
                                 $('#save-project-uri').after('<div class="error-message text-danger">' + data.message + '</div>');
                             } else {
                                 $('#save-project-uri').next('.error-message').text(data.message);
                             }
                         }
-                        if(data.status == 'Success'){
-                            $('#project-uri').html(`Project URI: <a href="`+newUriProject+`">`+newUriProject+`</a> <a id="edit-project-uri" href="#" data-project-uri="`+newUriProject+`"><i class="fas fa-pen"></i></a>`);
+                        if (data.status == 'Success') {
+                            $('#project-uri').empty().append(
+                                document.createTextNode('Project URI: '),
+                                $('<a>', {
+                                    href: newUriProject,
+                                    text: newUriProject
+                                }),
+                                $('<a>', {
+                                    id: 'edit-project-uri',
+                                    href: '#',
+                                    'data-project-uri': newUriProject,
+                                    html: '<i class="fas fa-pen"></i>'
+                                })
+                            );
                         }
                     }
                 });
             });
-        } );
+        });
     </script>
     {% include 'projectThesaurusAssociation/js-bock.html.twig'  with {'projectId' : project.id} %}
 

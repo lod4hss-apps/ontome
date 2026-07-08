@@ -29,22 +29,21 @@ class ApiController extends Controller
      */
     public function getClassesByProject(Project $project)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $classes = $em->getRepository('AppBundle:OntoClass')
                 ->findClassesByProjectId($project);
 
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse(null, 204, array());
         }
 
         //return new JsonResponse(null,404, array('content-type'=>'application/problem+json'));
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
     /**
@@ -60,16 +59,15 @@ class ApiController extends Controller
             $properties = $em->getRepository('AppBundle:Property')
                 ->findPropertiesByProjectId($project);
 
-        }
-        catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
-        }
-
-        if(empty($properties[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        } catch (NotFoundHttpException $e) {
+            return new JsonResponse(null, 404, 'content-type:application/problem+json');
         }
 
-        return new JsonResponse($properties[0]['json'],200, array(), true);
+        if (empty($properties[0]['json'])) {
+            return new JsonResponse(null, 204, array());
+        }
+
+        return new JsonResponse($properties[0]['json'], 200, array(), true);
     }
 
     /**
@@ -96,14 +94,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($profiles[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($profiles[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($profiles[0]['json'],200, array(), true);
+        return new JsonResponse($profiles[0]['json'], 200, array(), true);
     }
 
     /**
@@ -130,14 +128,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
     /**
@@ -164,14 +162,14 @@ class ApiController extends Controller
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response,500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($properties[0]['json'])) {
-            return new JsonResponse('[]',200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+        if (empty($properties[0]['json'])) {
+            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($properties[0]['json'],200, array(), true);
+        return new JsonResponse($properties[0]['json'], 200, array(), true);
     }
 
     /**
@@ -189,7 +187,7 @@ class ApiController extends Controller
                 ->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
-            $message = "# Error: (PHP" . phpversion() .")" . $e->getMessage(); // Commentaire en Turtle
+            $message = "# Error: (PHP" . phpversion() . ")" . $e->getMessage(); // Commentaire en Turtle
             return new Response($message, 500, ['Content-Type' => 'text/turtle']);
         }
 
@@ -199,7 +197,6 @@ class ApiController extends Controller
 
         return new Response($output, 200, ['Content-Type' => 'text/turtle']);
     }
-
 
 
     /**
@@ -217,8 +214,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:OntoNamespace')
                 ->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -240,7 +237,7 @@ class ApiController extends Controller
         // Let's see what environment we're in. If dev, we do not persist files
         $persistent = true;
         $currentEnv = $this->getParameter('kernel.environment');
-        if($currentEnv === 'dev') {
+        if ($currentEnv === 'dev') {
             $persistent = false;
         }
 
@@ -285,7 +282,7 @@ class ApiController extends Controller
                 $xml[0]['result'] = $xmlContent !== false ? $xmlContent->asXML() : '';
             }
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
@@ -312,8 +309,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Project')
                 ->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -339,8 +336,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Profile')
                 ->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -366,8 +363,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:OntoNamespace')
                 ->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -396,8 +393,8 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Profile')
                 ->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -427,8 +424,74 @@ class ApiController extends Controller
             $xml = $em->getRepository('AppBundle:Project')
                 ->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
-            $xml = '<?xml version="1.0" encoding="UTF8" ?>';
-            $xml .= '<error code="500" message="Error: '.$e->getMessage().'"/>';
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container")
+     * @Method("GET")
+     * @param Request $request
+     * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
+     */
+    public function getOwlWisskiByContainer(Request $request)
+    {
+        try {
+            // Langue par défaut: en, sinon celle passée en paramètre
+            $lang = $request->get('lang', 'en');
+
+            // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
+            $containerId = intval($request->get('container', 0));
+
+            // Récupérer le container
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Container')->findNamespacesByContainerIdApi($lang, $containerId);
+
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
+            $response = new Response($xml);
+            $response->headers->set('Content-Type', 'application/rdf+xml');
+            return $response;
+        }
+
+        if (empty($xml) || !isset($xml[0]['result'])) {
+            $xmlError = '<?xml version="1.0" encoding="UTF-8" ?><error code="404" message="Container data not found"/>';
+            return new Response($xmlError, 404, ['Content-Type' => 'application/rdf+xml']);
+        }
+
+        $response = new Response($xml[0]['result']);
+        $response->headers->set('Content-Type', 'application/rdf+xml');
+        return $response;
+    }
+
+    /**
+     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(containerId){1}$"})
+     * @Method("GET")
+     * @param Request $request
+     * @return Response a XML formatted response of namespaces and pathbuilders related to this container
+     */
+    public function getApiContainer(Request $request)
+    {
+        try {
+            // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
+            $containerId = intval($request->get('container', 0));
+
+            // Récupérer le container
+            $em = $this->getDoctrine()->getManager();
+            $xml = $em->getRepository('AppBundle:Container')->findContainerApi($containerId);
+
+        } catch (\Exception $e) {
+            $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
             $response = new Response($xml);
             $response->headers->set('Content-Type', 'application/rdf+xml');
             return $response;
@@ -447,12 +510,11 @@ class ApiController extends Controller
      */
     public function getE55ChildrenClassesByLabel($label)
     {
-        try{
+        try {
             $em = $this->getDoctrine()->getManager();
             $classes = $em->getRepository('AppBundle:OntoClass')
                 ->findE55ChildClassesFromLabel($label);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
             $status = 'Error';
             $response = array(
@@ -462,11 +524,11 @@ class ApiController extends Controller
             return new JsonResponse($response, 500, array('content-type:application/problem+json'));
         }
 
-        if(empty($classes[0]['json'])) {
-            return new JsonResponse(null,204, array());
+        if (empty($classes[0]['json'])) {
+            return new JsonResponse(null, 204, array());
         }
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'], 200, array(), true);
     }
 
     /**
