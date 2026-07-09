@@ -92,17 +92,34 @@
     </div>
 </nav>
 <div class="main-content">
-    {% for msg in app.session.flashBag.get('success') %}
-        <div class="alert alert-success">
-            {{ msg|raw }}
-        </div>
-    {% endfor %}
-    {% for msg in app.session.flashBag.get('warning') %}
-        <div class="alert alert-warning">
-            {{ msg|raw }}
-        </div>
-    {% endfor %}
-    {% block body %}{% endblock %}
+    <div class="container">
+        {% for msg in app.session.flashBag.get('success') %}
+            <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{ msg|raw }}
+            </div>
+        {% endfor %}
+        {% for msg in app.session.flashBag.get('warning') %}
+            <div class="alert alert-warning alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{ msg|raw }}
+            </div>
+        {% endfor %}
+        {% for msg in app.session.flashBag.get('error') %}
+            <div class="alert alert-danger alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ msg|raw }}
+            </div>
+        {% endfor %}
+        {% block body %}{% endblock %}
+    </div>
 </div>
 <div class="footer">
     <div class="container">
@@ -254,11 +271,6 @@
             $('#modal-text-property-'+searchParams.get('popup-txtp')).modal('show');
         }
 
-        //add tooltip to all elements with the data-toggle="tooltip" attr
-        $("body").tooltip({
-            selector: '[data-toggle="tooltip"]'
-        });
-    </script>
-{% endblock %}
-</body>
-</html>
+    // add tooltip to all elements with the data-toggle="tooltip" attr
+    $("body").tooltip({selector: '[data-toggle="tooltip"]'});
+</script>{% endblock %}</body></html>

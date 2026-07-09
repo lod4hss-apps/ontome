@@ -90,13 +90,13 @@ class OntoNamespace
     private $importerInteger;
 
     /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace",  inversedBy="childVersions")
+     * @ORM\ManyToOne(targetEntity="OntoNamespace",  inversedBy="childVersions", cascade={"persist"})
      * @ORM\JoinColumn(name="fk_is_version_of", referencedColumnName="pk_namespace", nullable=true)
      */
     private $referencedVersion;
 
     /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
+     * @ORM\ManyToOne(targetEntity="OntoNamespace", cascade={"persist"})
      * @ORM\JoinColumn(name="fk_top_level_namespace", referencedColumnName="pk_namespace", nullable=true)
      */
     private $topLevelNamespace;
@@ -122,7 +122,7 @@ class OntoNamespace
     private $hasPublication;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Project")
+     * @ORM\ManyToOne(targetEntity="Project", cascade={"persist"})
      * @ORM\JoinColumn(name="fk_project_for_top_level_namespace", referencedColumnName="pk_project")
      */
     private $projectForTopLevelNamespace;
