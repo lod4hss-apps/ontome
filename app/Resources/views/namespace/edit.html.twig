@@ -25,7 +25,7 @@
                             </a>
                         </li>
                         <li>
-                            <a  href="{{ path('api_classes_and_properties_by_namespace_xml_rdfs_inverse_properties', {namespace: namespace.id}) }}" download="namespace-{{ namespace.standardLabel }}-inverse-properties.rdf">
+                            <a  href="{{ path('api_classes_and_properties_by_namespace_xml_rdfs', {namespace: namespace.id, withInverseProperties: true, withSpecificUri: true}) }}" download="namespace-{{ namespace.standardLabel }}-inverse-properties.rdf">
                                 <i class="fas fa-code"></i> RDFS-inverse-properties
                             </a>
                         </li>
