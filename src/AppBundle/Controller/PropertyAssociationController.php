@@ -8,6 +8,7 @@
 
 namespace AppBundle\Controller;
 
+use Psr\Log\LoggerInterface;
 use AppBundle\Entity\PropertyAssociation;
 use AppBundle\Entity\Property;
 use AppBundle\Entity\SystemType;
@@ -145,10 +146,9 @@ class PropertyAssociationController extends Controller
      * @param PropertyAssociation $propertyAssociation
      * @return Response the rendered template
      */
-    public function showAction(PropertyAssociation $propertyAssociation)
+    public function showAction(PropertyAssociation $propertyAssociation, LoggerInterface $logger)
     {
-        $this->get('logger')
-            ->info('Showing property association: '.$propertyAssociation->getObjectIdentification());
+        $logger->info('Showing property association: '.$propertyAssociation->getObjectIdentification());
 
 
         return $this->render('propertyAssociation/show.html.twig', array(

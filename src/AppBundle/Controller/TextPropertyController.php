@@ -8,6 +8,7 @@
 
 namespace AppBundle\Controller;
 
+use Psr\Log\LoggerInterface;
 use AppBundle\Entity\OntoClass;
 use AppBundle\Entity\OntoClassVersion;
 use AppBundle\Entity\Property;
@@ -29,10 +30,9 @@ class TextPropertyController extends Controller
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(TextProperty $textProperty)
+    public function showAction(TextProperty $textProperty, LoggerInterface $logger)
     {
-        $this->get('logger')
-            ->info('Showing text property: ' . $textProperty->getId());
+        $logger->info('Showing text property: ' . $textProperty->getId());
         return $this->render('textProperty/show.html.twig', array(
             'textProperty' => $textProperty
         ));

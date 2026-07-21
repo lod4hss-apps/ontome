@@ -8,7 +8,7 @@
 
 namespace AppBundle\Controller;
 
-
+use Psr\Log\LoggerInterface;
 use AppBundle\Entity\ClassAssociation;
 use AppBundle\Entity\EntityAssociation;
 use AppBundle\Entity\Label;
@@ -501,7 +501,7 @@ class ClassController extends Controller
      * @return Response the rendered template
      * @throws DBALException
      */
-    public function editAction(OntoClass $class, Request $request)
+    public function editAction(OntoClass $class, Request $request, LoggerInterface $logger)
     {
         // Récupérer la version de la classe demandée
         // En mode Edit on a besoin de la version ongoing
@@ -598,8 +598,7 @@ class ClassController extends Controller
             ]);
         }
 
-        $this->get('logger')
-            ->info('Showing class: '.$class->getIdentifierInNamespace());
+        $logger->info('Showing class: '.$class->getIdentifierInNamespace());
 
         //Tri
         // En tête, les relations appartenant à la même version que cette classe

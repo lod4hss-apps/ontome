@@ -8,7 +8,7 @@
 
 namespace AppBundle\Controller;
 
-
+use Psr\Log\LoggerInterface;
 use AppBundle\Entity\Label;
 use AppBundle\Entity\OntoClass;
 use AppBundle\Entity\Property;
@@ -31,10 +31,9 @@ class LabelController  extends Controller
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(Label $label)
+    public function showAction(Label $label, LoggerInterface $logger)
     {
-        $this->get('logger')
-            ->info('Showing text property: ' . $label->getId());
+        $logger->info('Showing text property: ' . $label->getId());
         return $this->render('label/show.html.twig', array(
             'label' => $label
         ));

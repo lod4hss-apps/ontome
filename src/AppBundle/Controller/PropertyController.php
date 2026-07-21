@@ -25,6 +25,7 @@ use AppBundle\Form\PropertyEditIdentifierForm;
 use AppBundle\Form\PropertyEditUriIdentifierForm;
 use AppBundle\Form\TextPropertyForm;
 use Doctrine\Common\Collections\ArrayCollection;
+use Psr\Log\LoggerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -308,7 +309,7 @@ class PropertyController extends Controller
      * @param int|null $namespaceFromUrlId
      * @return Response the rendered template
      */
-    public function showAction(Property $property, $namespaceFromUrlId=null)
+    public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId=null)
     {
         //Vérifier si le namespace -si renseigné- est bien associé à la propriété
         $namespaceFromUrl = null;
@@ -517,7 +518,7 @@ class PropertyController extends Controller
         $domainRange = $em->getRepository('AppBundle:Property')->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
         $relations = $em->getRepository('AppBundle:Property')->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
 
-        $this->get('logger')->info('Showing property: ' . $property->getIdentifierInNamespace());
+        $logger->info('Showing property: ' . $property->getIdentifierInNamespace());
 
         return $this->render('property/show.html.twig', array(
             'propertyVersion' => $propertyVersion,
@@ -541,7 +542,7 @@ class PropertyController extends Controller
      * @return Response the rendered template
      * @throws \Exception
      */
-    public function editAction(Property $property, Request $request)
+    public function editAction(Property $property, Request $request, LoggerInterface $logger)
     {
         // Récupérer la version de la propriété demandée
         $propertyVersion = $property->getPropertyVersionForDisplay();
@@ -682,8 +683,7 @@ class PropertyController extends Controller
             ]);
         }
 
-        $this->get('logger')
-            ->info('Showing property: '.$property->getIdentifierInNamespace());
+        $logger->info('Showing property: '.$property->getIdentifierInNamespace());
 
         //Tri
         // En tête, les relations appartenant à la même version que cette propriété
