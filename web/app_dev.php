@@ -23,7 +23,6 @@ $loader = require __DIR__.'/../app/autoload.php';
 Debug::enable();
 
 $kernel = new AppKernel('dev', true);
-$kernel->loadClassCache();
 // --- FIX COMPATIBILITÉ PHP 8.1+ / SYMFONY 3 ---
 // On supprime la clé 'full_path' inconnue de Symfony 3 dans $_FILES
 if (PHP_VERSION_ID >= 80100 && !empty($_FILES)) {
