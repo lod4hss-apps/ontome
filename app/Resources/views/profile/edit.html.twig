@@ -90,7 +90,7 @@
                         </div>
                         <div class="col-lg-10">
                             {% set description, break = null, false %}
-                            {% for textProperty in profile.textProperties if textProperty.systemType.id == 16 %}
+                            {% for textProperty in profile.textProperties|filter(txtp => txtp.systemType.id == 16) %}
                                 {% if not break %}
                                     {% if textProperty.languageIsoCode == 'en' %}
                                         {% set break = true %}
@@ -129,8 +129,7 @@
                         {# Internal notes #}
                         {% set canSeeInternalNotes = false %}
                         {% if app.user is not null %}
-                            {% for userProjectAssociation in profile.projectOfBelonging.userProjectAssociations
-                                if userProjectAssociation.user.id == app.user.id and userProjectAssociation.permission <= 3 %}
+                            {% for userProjectAssociation in profile.projectOfBelonging.userProjectAssociations|filter(upa => upa.user.id == app.user.id and upa.permission <= 3) %}
                                 {# Seuls les admins et managers du projet peuvent voir les internal notes #}
                                 {% set canSeeInternalNotes = true %}
                             {% endfor %}
@@ -178,7 +177,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for textProperty in profile.textProperties if textProperty.systemType.id == 16 %}
+                    {% for textProperty in profile.textProperties|filter(txtp => txtp.systemType.id == 16) %}
                         <tr>
                             <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                             <td class="truncated-text">
@@ -223,8 +222,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for textProperty in profile.textProperties
-                        if textProperty.systemType.id == 33 %}
+                    {% for textProperty in profile.textProperties|filter(txtp => txtp.systemType.id == 33) %}
                         <tr>
                             <td><a class="btn" href="#" data-toggle="modal" data-target="#modal-text-property-{{ textProperty.id }}"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span></a></td>
                             <td class="truncated-text">
@@ -502,9 +500,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for profileAssociation in profileAssociations
-                            if profileAssociation.property is not null
-                            and profileAssociation.property.propertyVersionForDisplay(profileAssociation.entityNamespaceForVersion) %}
+                        {% for profileAssociation in profileAssociations|filter(pa => pa.property is not null and pa.property.propertyVersionForDisplay(pa.entityNamespaceForVersion)) %}
                             <tr>
                                 <td class="text-right small">
                                     {% if profileAssociation.domain is not null %}
@@ -651,7 +647,7 @@
                     <p>
                         {{ profile.standardLabel }} is a <strong>root profile</strong>.
                     </p>
-                    {% for ongoingProfile in profile.childProfiles if ongoingProfile.isOngoing %}
+                    {% for ongoingProfile in profile.childProfiles|filter(op => op.isOngoing) %}
                         <p> Ongoing version:
                             <a href="{{ path('profile_edit', {'id': ongoingProfile.id, '_fragment': 'versions'}) }}">
                                 {{ ongoingProfile }}
@@ -681,7 +677,7 @@
                         </a>
                     </p>
                     {% if not profile.isOngoing %}
-                        {% for profile in profile.rootProfile.childProfiles if profile.isOngoing %}
+                        {% for profile in profile.rootProfile.childProfiles|filter(p => p.isOngoing) %}
                             <p>
                                 Ongoing version:
                                 <a href="{{ path('profile_edit', {'id': profile.id, '_fragment': 'versions'}) }}">
@@ -703,7 +699,7 @@
                     </thead>
                     <tbody>
                     {% if profile.isRootProfile %}
-                        {% for publishedProfile in profile.childProfiles if not publishedProfile.isOngoing %}
+                        {% for publishedProfile in profile.childProfiles|filter(pp => not pp.isOngoing) %}
                             <tr>
                                 <td>
                                     <a href="{{ path('profile_show', {
@@ -725,7 +721,7 @@
                             </tr>
                         {% endfor %}
                     {% else %}
-                        {% for publishedProfile in profile.rootProfile.childProfiles if publishedProfile.id != profile.id and not publishedProfile.isOngoing %}
+                        {% for publishedProfile in profile.rootProfile.childProfiles|filter(pp => pp.id != profile.id and not pp.isOngoing) %}
                             <tr>
                                 <td>
                                     <a href="{{ path('profile_show', {
@@ -799,12 +795,11 @@
                                                 {% endfor %}
                                             </ul>
                                         {% endif %}
-                                        {% for profileAssociation in profile.profileAssociations
-                                            if (profileAssociation.class is not null or profileAssociation.property is not null)
-                                            and profileAssociation.entityNamespaceForVersion.topLevelNamespace.id in arrayTopLevelNamespacesIds
-                                            and profileAssociation.entityNamespaceForVersion != namespace
-                                            and profileAssociation.entityNamespaceForVersion not in namespace.allReferencedNamespaces
-                                            and profileAssociation.systemType.id == 5 %}
+                                        {% for profileAssociation in profile.profileAssociations|filter(pa => (pa.class is not null or pa.property is not null)
+                                            and pa.entityNamespaceForVersion.topLevelNamespace.id in arrayTopLevelNamespacesIds
+                                            and pa.entityNamespaceForVersion != namespace
+                                            and pa.entityNamespaceForVersion not in namespace.allReferencedNamespaces
+                                            and pa.systemType.id == 5) %}
                                             {% if loop.first %}
                                                 <span class="text-danger"><i class="fas fa-exclamation-triangle"></i>  Classes and/or properties from another version of this namespace - or to one of its reference namespaces -, previously selected in your profile, are not available in the selected version. They are displayed in red in your profile. Please make the necessary corrections before proceeding.</span>
                                             {% endif %}
@@ -817,9 +812,8 @@
                                     </td>
                                     <td>
                                         {% set isRemovable = true %}
-                                        {% for profileAssociation in profile.profileAssociations
-                                            if profileAssociation.systemType.id == 5
-                                            and (profileAssociation.entityNamespaceForVersion == namespace or profileAssociation.entityNamespaceForVersion in namespace.allReferencedNamespaces)%}
+                                        {% for profileAssociation in profile.profileAssociations|filter(pa => pa.systemType.id == 5
+                                            and (pa.entityNamespaceForVersion == namespace or pa.entityNamespaceForVersion in namespace.allReferencedNamespaces)) %}
                                             {% set isRemovable = false %}
                                         {% endfor %}
                                         {% if isRemovable %}
@@ -1016,10 +1010,10 @@
             // Pour vérifier si les entités sont bien correctement associé au profil (par rapport aux namespaces associés)
             {% set allProfileNamespacesId = [] %}
             {% for namespace in profile.namespaces %}
-            {% set allProfileNamespacesId = allProfileNamespacesId|merge([namespace.id]) %}
-            {% for referencedNamespace in namespace.allReferencedNamespaces if referencedNamespace.id not in allProfileNamespacesId %}
-            {% set allProfileNamespacesId = allProfileNamespacesId|merge([referencedNamespace.id]) %}
-            {% endfor %}
+                {% set allProfileNamespacesId = allProfileNamespacesId|merge([namespace.id]) %}
+                {% for referencedNamespace in namespace.allReferencedNamespaces|filter(rn => rn.id not in allProfileNamespacesId) %}
+                    {% set allProfileNamespacesId = allProfileNamespacesId|merge([referencedNamespace.id]) %}
+                {% endfor %}
             {% endfor %}
 
             var associatedClassesTable = $('#classes-table').DataTable({
@@ -1284,12 +1278,12 @@
                             {% set arrayNamespacesIds = [] %}
                             {% set arrayTopLevelNamespacesIds = [] %}
                             {% for namespace in profile.namespaces %}
-                            {% set arrayNamespacesIds = arrayNamespacesIds|merge([namespace.id]) %}
-                            {% set arrayTopLevelNamespacesIds = arrayTopLevelNamespacesIds|merge([namespace.topLevelNamespace.id]) %}
-                            {% for referencedNamespace in namespace.allReferencedNamespaces %}
-                            {% set arrayNamespacesIds = arrayNamespacesIds|merge([referencedNamespace.id]) %}
-                            {% set arrayTopLevelNamespacesIds = arrayTopLevelNamespacesIds|merge([referencedNamespace.topLevelNamespace.id]) %}
-                            {% endfor %}
+                                {% set arrayNamespacesIds = arrayNamespacesIds|merge([namespace.id]) %}
+                                {% set arrayTopLevelNamespacesIds = arrayTopLevelNamespacesIds|merge([namespace.topLevelNamespace.id]) %}
+                                {% for referencedNamespace in namespace.allReferencedNamespaces %}
+                                    {% set arrayNamespacesIds = arrayNamespacesIds|merge([referencedNamespace.id]) %}
+                                    {% set arrayTopLevelNamespacesIds = arrayTopLevelNamespacesIds|merge([referencedNamespace.topLevelNamespace.id]) %}
+                                {% endfor %}
                             {% endfor %}
                             console.log([{{ arrayTopLevelNamespacesIds|join(',') }}]);
                             console.log([{{ arrayNamespacesIds|join(',') }}]);
