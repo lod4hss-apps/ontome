@@ -32,7 +32,8 @@ use AppBundle\Form\ProjectQuickAddForm;
 use Doctrine\Common\Collections\ArrayCollection;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\Finder\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -70,10 +71,10 @@ class ProjectController extends Controller
     /**
      * @Route("/project/new", name="project_new_user")
      */
-    public function newUserProjectAction(Request $request)
+    public function newUserProjectAction(Request $request, TokenStorageInterface $tokenStorage)
     {
 
-        $tokenInterface = $this->get('security.token_storage')->getToken();
+        $tokenInterface = $tokenStorage->getToken();
         $isAuthenticated = $tokenInterface->isAuthenticated();
         if (!$isAuthenticated)
             throw new AccessDeniedException('You must be an authenticated user to access this page.');
