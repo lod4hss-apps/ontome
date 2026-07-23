@@ -34,7 +34,7 @@ class ClassVersionRepository extends EntityRepository
         $stmt = $conn->prepare($sql);
         $stmt->execute(array_merge(array($class->getId()), $namespacesId));
 
-        return $em->getRepository('AppBundle:OntoClassVersion')->find($stmt->fetch()['pk_class_version']);
+        return $em->getRepository(OntoClassVersion::class)->find($stmt->fetch()['pk_class_version']);
     }
 
     /**
@@ -55,7 +55,7 @@ class ClassVersionRepository extends EntityRepository
         $stmt = $conn->prepare($sql);
         $stmt->execute(array($classId));
 
-        return $em->getRepository('AppBundle:OntoClassVersion')->find($stmt->fetch()['pk_class_version']);
+        return $em->getRepository(OntoClassVersion::class)->find($stmt->fetch()['pk_class_version']);
     }
 
     public function findIdAndStandardLabelOfClassesVersionByNamespacesId(array $namespacesId)

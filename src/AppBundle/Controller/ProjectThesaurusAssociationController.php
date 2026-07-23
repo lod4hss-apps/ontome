@@ -11,19 +11,17 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\ProjectThesaurusAssociation;
 use AppBundle\Form\ProjectThesaurusAssociationForm;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class ProjectThesaurusAssociationController extends Controller
+class ProjectThesaurusAssociationController extends AbstractController
 {
     /**
      * @Route("/project-thesaurus-association/project/{projectId}/json",
      *     name="project_thesaurus_association_show_json",
-     *     requirements={"projectId"="^[0-9]+$"})
-     * @Method("GET")
+     *     requirements={"projectId"="^[0-9]+$"}, methods={"GET"})
      * @param int  $projectId    The id of the object
      * @return JsonResponse a Json formatted ProjectThesaurusAssociation list
      */
@@ -31,7 +29,7 @@ class ProjectThesaurusAssociationController extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
-        $project = $em->getRepository('AppBundle:Project')->find($projectId);
+        $project = $em->getRepository(Project::class)->find($projectId);
         if (!$project) {
             throw $this->createNotFoundException('The project n° '.$projectId.' does not exist');
         }
@@ -54,8 +52,7 @@ class ProjectThesaurusAssociationController extends Controller
     }
 
     /**
-     * @Route("/project-thesaurus-association/new/project/{projectId}", name="project_thesaurus_association_new", requirements={"projectId"="^[0-9]+$"})
-     * @Method({ "POST"})
+     * @Route("/project-thesaurus-association/new/project/{projectId}", name="project_thesaurus_association_new", requirements={"projectId"="^[0-9]+$"}), methods={"POST"})
      */
     public function newAction($projectId, Request $request)
     {
@@ -63,7 +60,7 @@ class ProjectThesaurusAssociationController extends Controller
 
         $projectThesaurusAssociation = new ProjectThesaurusAssociation();
 
-        $project = $em->getRepository('AppBundle:Project')->find($projectId);
+        $project = $em->getRepository(Project::class)->find($projectId);
 
         if (!$project) {
             throw $this->createNotFoundException('The project n° '.$projectId.' does not exist');

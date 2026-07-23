@@ -15,15 +15,14 @@ use AppBundle\Entity\Property;
 use AppBundle\Entity\SystemType;
 use AppBundle\Entity\TextProperty;
 use AppBundle\Form\TextPropertyForm;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class TextPropertyController extends Controller
+class TextPropertyController extends AbstractController
 {
     /**
      * @Route("/text-property/{id}", name="text_property_show", requirements={"id"="^[0-9]+$"})
@@ -159,7 +158,7 @@ class TextPropertyController extends Controller
         $textProperty = new TextProperty();
 
         if($object === 'class-association') {
-            $associatedEntity = $em->getRepository('AppBundle:ClassAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
@@ -174,7 +173,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'justifications';
         }
         else if($object === 'property-association') {
-            $associatedEntity = $em->getRepository('AppBundle:PropertyAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
@@ -189,7 +188,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'justifications';
         }
         else if($object === 'class') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoClass')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoClass::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
@@ -204,7 +203,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'property') {
-            $associatedEntity = $em->getRepository('AppBundle:Property')->find($objectId);
+            $associatedEntity = $em->getRepository(Property::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
@@ -219,7 +218,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'class-version') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoClassVersion')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoClassVersion::class)->find($objectId);
             $associatedClass = $associatedEntity->getClass();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
 
@@ -240,7 +239,7 @@ class TextPropertyController extends Controller
             $objectId = $associatedClass->getId();
         }
         else if($object === 'property-version') {
-            $associatedEntity = $em->getRepository('AppBundle:PropertyVersion')->find($objectId);
+            $associatedEntity = $em->getRepository(PropertyVersion::class)->find($objectId);
             $associatedProperty = $associatedEntity->getProperty();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
 
@@ -261,7 +260,7 @@ class TextPropertyController extends Controller
             $objectId = $associatedProperty->getId();
         }
         else if($object === 'project') {
-            $associatedEntity = $em->getRepository('AppBundle:Project')->find($objectId);
+            $associatedEntity = $em->getRepository(Project::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
             }
@@ -276,7 +275,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'profile') {
-            $associatedEntity = $em->getRepository('AppBundle:Profile')->find($objectId);
+            $associatedEntity = $em->getRepository(Profile::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
             }
@@ -292,7 +291,7 @@ class TextPropertyController extends Controller
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoNamespace')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
@@ -312,7 +311,7 @@ class TextPropertyController extends Controller
             else $redirectToRouteFragment = 'definition';
         }
         else if($object === 'entity-association') {
-            $associatedEntity = $em->getRepository('AppBundle:EntityAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
@@ -338,34 +337,34 @@ class TextPropertyController extends Controller
         else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 
         if($type === 'scope-note') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(1); //systemType 1 = scope note
+            $systemType = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
         }
         else if($type === 'example') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(7); //systemType 7 = example
+            $systemType = $em->getRepository(SystemType::class)->find(7); //systemType 7 = example
         }
         else if($type === 'justification') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(15); //systemType 15 = justification
+            $systemType = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
         }
         else if($type === 'internal-note') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(33); //systemType 33 = internal note
+            $systemType = $em->getRepository(SystemType::class)->find(33); //systemType 33 = internal note
         }
         else if($type === 'context-note') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(34); //systemType 34 = context note
+            $systemType = $em->getRepository(SystemType::class)->find(34); //systemType 34 = context note
         }
         else if($type === 'bibliographical-note') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(35); //systemType 35 = bibliographical note
+            $systemType = $em->getRepository(SystemType::class)->find(35); //systemType 35 = bibliographical note
         }
         /*else if($type === 'additional-note') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(12); //systemType 12 = additional-note
+            $systemType = $em->getRepository(SystemType::class)->find(12); //systemType 12 = additional-note
         }*/
         else if($type === 'definition') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(16); //systemType 16 = description
+            $systemType = $em->getRepository(SystemType::class)->find(16); //systemType 16 = description
         }
         else if($type === 'dct:contributor') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(2); //systemType 2 = dc:contributors
+            $systemType = $em->getRepository(SystemType::class)->find(2); //systemType 2 = dc:contributors
         }
         else if($type === 'owl:versionInfo') {
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(31); //systemType 31 = owl:versionInfo
+            $systemType = $em->getRepository(SystemType::class)->find(31); //systemType 31 = owl:versionInfo
         }
         else throw $this->createNotFoundException('The requested text property type "'.$type.'" does not exist!');
 
@@ -474,7 +473,7 @@ class TextPropertyController extends Controller
 
         try{
             $em = $this->getDoctrine()->getManager();
-            $newValidationStatus = $em->getRepository('AppBundle:SystemType')
+            $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
@@ -495,7 +494,7 @@ class TextPropertyController extends Controller
                         $cv = $object->getClassVersionForDisplay();
                         if (!is_null($cv->getValidationStatus())) {
                             if ($cv->getValidationStatus()->getId() != 27) {
-                                $underRevisionStatus = $em->getRepository('AppBundle:SystemType')
+                                $underRevisionStatus = $em->getRepository(SystemType::class)
                                     ->findOneBy(array('id' => 37));
                                 $cv->setValidationStatus($underRevisionStatus);
                             }
@@ -507,7 +506,7 @@ class TextPropertyController extends Controller
                         $pv = $object->getPropertyVersionForDisplay();
                         if (!is_null($pv->getValidationStatus())) {
                             if ($pv->getValidationStatus()->getId() != 27) {
-                                $underRevisionStatus = $em->getRepository('AppBundle:SystemType')
+                                $underRevisionStatus = $em->getRepository(SystemType::class)
                                     ->findOneBy(array('id' => 37));
                                 $pv->setValidationStatus($underRevisionStatus);
                             }

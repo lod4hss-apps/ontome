@@ -15,16 +15,16 @@ use AppBundle\Entity\SystemType;
 use AppBundle\Entity\TextProperty;
 use AppBundle\Form\PropertyAssociationEditForm;
 use Doctrine\Common\Collections\ArrayCollection;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use AppBundle\Form\ParentPropertyAssociationForm;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class PropertyAssociationController extends Controller
+class PropertyAssociationController extends AbstractController
 {
 
     /**
@@ -38,8 +38,8 @@ class PropertyAssociationController extends Controller
 
 
         $em = $this->getDoctrine()->getManager();
-        $systemTypeJustification = $em->getRepository('AppBundle:SystemType')->find(15); //systemType 15 = justification
-        $systemTypeExample = $em->getRepository('AppBundle:SystemType')->find(7); //systemType 7 = example
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 7 = example
 
         $justification = new TextProperty();
         $justification->setPropertyAssociation($propertyAssociation);
@@ -66,7 +66,7 @@ class PropertyAssociationController extends Controller
             }
         }
 
-        $arrayPropertiesVersion = $em->getRepository('AppBundle:PropertyVersion')
+        $arrayPropertiesVersion = $em->getRepository(PropertyVersion::class)
             ->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayPropertiesVersion as $pv){
@@ -125,13 +125,13 @@ class PropertyAssociationController extends Controller
 
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesId = $em->getRepository('AppBundle:OntoNamespace')->findPublicProjectNamespacesId();
+            $namespacesId = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesId = $em->getRepository('AppBundle:OntoNamespace')->findNamespacesIdByUser($this->getUser());
+            $namespacesId = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
         }
 
-        $ancestors = $em->getRepository('AppBundle:Property')
+        $ancestors = $em->getRepository(Property::class)
             ->findAncestorsByPropertyVersionAndNamespacesId($childProperty->getPropertyVersionForDisplay(), $namespacesId);
 
         return $this->render('propertyAssociation/newParent.html.twig', [
@@ -177,10 +177,10 @@ class PropertyAssociationController extends Controller
         /*
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesIdFromUser = $em->getRepository('AppBundle:OntoNamespace')->findPublicProjectNamespacesId();
+            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesIdFromUser = $em->getRepository('AppBundle:OntoNamespace')->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
         }
 
         $namespacesIdFromChildProperty = array();
@@ -200,7 +200,7 @@ class PropertyAssociationController extends Controller
 
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
-        $arrayPropertiesVersion = $em->getRepository('AppBundle:PropertyVersion')->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
+        $arrayPropertiesVersion = $em->getRepository(PropertyVersion::class)->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayPropertiesVersion as $pv){
             if($pv['id'] == $propertyAssociation->getChildProperty()->getId()){
@@ -305,7 +305,7 @@ class PropertyAssociationController extends Controller
 
         try{
             $em = $this->getDoctrine()->getManager();
-            $newValidationStatus = $em->getRepository('AppBundle:SystemType')
+            $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');

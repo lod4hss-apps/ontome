@@ -21,9 +21,8 @@ use AppBundle\Form\ProfileEditForm;
 use AppBundle\Form\ProfileQuickAddForm;
 use AppBundle\Form\TextPropertyForm;
 use Doctrine\Common\Collections\ArrayCollection;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Form\FormFactoryInterface;
 
-class ProfileController  extends Controller
+class ProfileController  extends AbstractController
 {
 
     /**
@@ -43,12 +42,12 @@ class ProfileController  extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
-        $classes = $em->getRepository('AppBundle:OntoClass')
+        $classes = $em->getRepository(OntoClass::class)
             ->findClassesByProfileId($profile);
 
-        //$properties = $em->getRepository('AppBundle:Property')->findPropertiesByProfileId($profile);
+        //$properties = $em->getRepository(Property::class)->findPropertiesByProfileId($profile);
 
-        $profileAssociations = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociations = $em->getRepository(ProfileAssociation::class)
             ->findBy(array('profile' => $profile));
 
         return $this->render('profile/show.html.twig', array(
@@ -67,7 +66,7 @@ class ProfileController  extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
-        $profiles = $em->getRepository('AppBundle:Profile')
+        $profiles = $em->getRepository(Profile::class)
             ->findAll();
 
         return $this->render('profile/list.html.twig', [
@@ -84,7 +83,7 @@ class ProfileController  extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $systemTypeDescription = $em->getRepository('AppBundle:SystemType')->find(16); //systemType 16 = description
+        $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = description
 
         // Root
         $rootProfile = new Profile();
@@ -116,7 +115,7 @@ class ProfileController  extends Controller
         $rootProfileLabel->setModificationTime(new \DateTime('now'));
         $rootProfile->addLabel($rootProfileLabel);
 
-        $allProfiles = $em->getRepository('AppBundle:Profile')->findAll();
+        $allProfiles = $em->getRepository(Profile::class)->findAll();
         $allLabels = new ArrayCollection();
         foreach ($allProfiles as $profile){
             foreach ($profile->getLabels() as $label){
@@ -255,25 +254,25 @@ class ProfileController  extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $classes = $em->getRepository('AppBundle:OntoClass')
+        $classes = $em->getRepository(OntoClass::class)
             ->findClassesByProfileId($profile);
 
-        $selectableClasses = $em->getRepository('AppBundle:OntoClass')
+        $selectableClasses = $em->getRepository(OntoClass::class)
             ->findClassesForAssociationWithProfileByProfileId($profile);
 
-        //$properties = $em->getRepository('AppBundle:Property')->findPropertiesByProfileId($profile);
+        //$properties = $em->getRepository(Property::class)->findPropertiesByProfileId($profile);
 
-        $rootNamespacesBrut = $em->getRepository('AppBundle:OntoNamespace')
+        $rootNamespacesBrut = $em->getRepository(OntoNamespace::class)
             ->findAllNonAssociatedToProfileByProfileId($profile);
 
         $rootNamespaces = new ArrayCollection();
         foreach($rootNamespacesBrut as $rootNamespace){
-            $rootNamespaces->add($em->getRepository('AppBundle:OntoNamespace')->find($rootNamespace['id']));
+            $rootNamespaces->add($em->getRepository(OntoNamespace::class)->find($rootNamespace['id']));
         }
         $rootNamespaces = $rootNamespaces->filter(function($v){return $v->getId() != 5;});
 
 
-        $profileAssociations = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociations = $em->getRepository(ProfileAssociation::class)
             ->findBy(array('profile' => $profile));
 
         return $this->render('profile/edit.html.twig', array(
@@ -404,8 +403,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{namespace}/add", name="profile_namespace_association", requirements={"profile"="^([0-9]+)|(profileID)$", "namespace"="^([0-9]+)|(selectedValue)$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/namespace/{namespace}/add", name="profile_namespace_association", requirements={"profile"="^([0-9]+)|(profileID)$", "namespace"="^([0-9]+)|(selectedValue)$"}, methods={"POST"})
      * @param OntoNamespace  $namespace    The namespace to be associated with a profile
      * @param Profile  $profile    The profile to be associated with a namespace
      * @throws \Exception in case of unsuccessful association
@@ -446,12 +444,12 @@ class ProfileController  extends Controller
                     $profile->removeNamespace($prfnamespace);
 
                     //Mettre les eupa concernés à 29
-                    $userProjectAssociations = $em->getRepository('AppBundle:UserProjectAssociation')->findByProject($profile->getProjectOfBelonging());
+                    $userProjectAssociations = $em->getRepository(UserProjectAssociation::class)->findByProject($profile->getProjectOfBelonging());
                     foreach ($userProjectAssociations as $userProjectAssociation) {
-                        $eupas = $em->getRepository('AppBundle:EntityUserProjectAssociation')->findBy(array(
+                        $eupas = $em->getRepository(EntityUserProjectAssociation::class)->findBy(array(
                             'userProjectAssociation' => $userProjectAssociation, 'namespace' => $prfnamespace));
                         foreach ($eupas as $eupa) {
-                            $systemTypeSelected = $em->getRepository('AppBundle:SystemType')->find(29); //systemType 29 = Unselected namespace for user preference
+                            $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 29 = Unselected namespace for user preference
                             $eupa->setSystemType($systemTypeSelected);
                             $em->persist($eupa);
                         }
@@ -461,14 +459,14 @@ class ProfileController  extends Controller
             $em->persist($profile);
 
             // Créer les entity_to_user_project pour les activer par défaut
-            $userProjectAssociations = $em->getRepository('AppBundle:UserProjectAssociation')->findByProject($profile->getProjectOfBelonging());
+            $userProjectAssociations = $em->getRepository(UserProjectAssociation::class)->findByProject($profile->getProjectOfBelonging());
             foreach ($userProjectAssociations as $userProjectAssociation) {
                 // Vérifier si l'association EUPA n'existe déjà pas (chaque EUPA doit être unique)
-                $eupas = $em->getRepository('AppBundle:EntityUserProjectAssociation')->findBy(array(
+                $eupas = $em->getRepository(EntityUserProjectAssociation::class)->findBy(array(
                     'userProjectAssociation' => $userProjectAssociation, 'namespace' => $namespace));
                 if(count($eupas) == 0) {
                     $eupa = new EntityUserProjectAssociation();
-                    $systemTypeSelected = $em->getRepository('AppBundle:SystemType')->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
                     $eupa->setNamespace($namespace);
                     $eupa->setUserProjectAssociation($userProjectAssociation);
                     $eupa->setSystemType($systemTypeSelected);
@@ -496,8 +494,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{namespace}/delete", name="profile_namespace_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method({ "DELETE"})
+     * @Route("/profile/{profile}/namespace/{namespace}/delete", name="profile_namespace_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
      * @param OntoNamespace  $namespace    The namespace to be disassociated from a profile
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
@@ -515,8 +512,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{associatedNamespace}/newNamespace/{newAssociatedNamespace}/change", name="namespace_associated_profile_change", requirements={"profile"="^([0-9]+)|(profileID){1}$", "associatedNamespace"="^([0-9]+)|(oldNsId){1}$", "newAssociatedNamespace"="^([0-9]+)|(newNsId){1}$"})
-     * @Method({ "GET"})
+     * @Route("/profile/{profile}/namespace/{associatedNamespace}/newNamespace/{newAssociatedNamespace}/change", name="namespace_associated_profile_change", requirements={"profile"="^([0-9]+)|(profileID){1}$", "associatedNamespace"="^([0-9]+)|(oldNsId){1}$", "newAssociatedNamespace"="^([0-9]+)|(newNsId){1}$"}, methods={"GET"})
      * @param Profile  $profile    The profile to be changed from an associated namespace
      * @param OntoNamespace  $associatedNamespace    The associated namespace to be changed from a new associated namespace
      * @param OntoNamespace  $newAssociatedNamespace    The new associated namespace to be changed from an associated namespace
@@ -543,13 +539,13 @@ class ProfileController  extends Controller
             $em->persist($profile);
 
             // Créer les entity_to_user_project pour les activer par défaut
-            $userProjectAssociations = $em->getRepository('AppBundle:UserProjectAssociation')->findByProject($profile->getProjectOfBelonging());
+            $userProjectAssociations = $em->getRepository(UserProjectAssociation::class)->findByProject($profile->getProjectOfBelonging());
             foreach ($userProjectAssociations as $userProjectAssociation) {
                 // Vérifier si l'association EUPA n'existe déjà pas (chaque EUPA doit être unique)
-                $eupas = $em->getRepository('AppBundle:EntityUserProjectAssociation')->findBy(array('userProjectAssociation' => $userProjectAssociation, 'namespace' => $newAssociatedNamespace));
+                $eupas = $em->getRepository(EntityUserProjectAssociation::class)->findBy(array('userProjectAssociation' => $userProjectAssociation, 'namespace' => $newAssociatedNamespace));
                 if(count($eupas) == 0){
                     $eupa = new EntityUserProjectAssociation();
-                    $systemTypeSelected = $em->getRepository('AppBundle:SystemType')->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
                     $eupa->setNamespace($newAssociatedNamespace);
                     $eupa->setUserProjectAssociation($userProjectAssociation);
                     $eupa->setSystemType($systemTypeSelected);
@@ -600,8 +596,6 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-classes/profile/{profile}/json", name="selectable_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"})
-     * @Method("GET")
      * @param Profile $profile
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
@@ -609,7 +603,7 @@ class ProfileController  extends Controller
     {
         try{
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findClassesForAssociationWithProfileByProfileId($profile);
             $data['data'] = $classes;
             $data = json_encode($data);
@@ -626,8 +620,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/associated-classes/profile/{profile}/json", name="associated_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"})
-     * @Method("GET")
+     * @Route("/associated-classes/profile/{profile}/json", name="associated_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
@@ -635,7 +628,7 @@ class ProfileController  extends Controller
     {
         try{
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findClassesByProfileId($profile);
             $data['data'] = $classes;
             $data = json_encode($data);
@@ -652,8 +645,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/class/{class}/add", name="profile_class_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method({"POST"})
+     * @Route("/profile/{profile}/class/{class}/add", name="profile_class_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
      * @param OntoClass  $class    The class to be associated with a profile
      * @param Profile  $profile    The profile to be associated with a namespace
      * @throws \Exception in case of unsuccessful association
@@ -664,7 +656,7 @@ class ProfileController  extends Controller
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
         $em = $this->getDoctrine()->getManager();
-        $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'class' => $class->getId()));
 
         if (!is_null($profileAssociation)) {
@@ -673,7 +665,7 @@ class ProfileController  extends Controller
                 $message = 'This class is already used by this profile';
             }
             else {
-                $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+                $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
                 $profileAssociation->setSystemType($systemType);
                 $em->persist($profileAssociation);
 
@@ -701,7 +693,7 @@ class ProfileController  extends Controller
             $classVersion = $em->getRepository("AppBundle:OntoClassVersion")->findClassVersionByClassAndNamespacesId($class, $namespacesId);
             $profileAssociation->setEntityNamespaceForVersion($classVersion->getNamespaceForVersion());
 
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+            $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
             $profileAssociation->setSystemType($systemType);
             $profileAssociation->setCreator($this->getUser());
             $profileAssociation->setModifier($this->getUser());
@@ -724,8 +716,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/add", name="profile_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/property/{property}/add", name="profile_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"POST"})
      * @param Property  $property    The property to be associated with a profile
      * @param Profile  $profile    The profile to be associated with a namespace
      * @throws \Exception in case of unsuccessful association
@@ -736,7 +727,7 @@ class ProfileController  extends Controller
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
         $em = $this->getDoctrine()->getManager();
-        $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => null, 'range' => null));
 
         if (!is_null($profileAssociation)) {
@@ -745,7 +736,7 @@ class ProfileController  extends Controller
                 $message = 'This property is already used by this profile';
             }
             else {
-                $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+                $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
                 $profileAssociation->setSystemType($systemType);
                 $em->persist($profileAssociation);
 
@@ -773,7 +764,7 @@ class ProfileController  extends Controller
             $propertyVersion = $em->getRepository("AppBundle:PropertyVersion")->findPropertyVersionByPropertyAndNamespacesId($property, $namespacesId);
             $profileAssociation->setEntityNamespaceForVersion($propertyVersion->getNamespaceForVersion());
 
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+            $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
             $profileAssociation->setSystemType($systemType);
             $profileAssociation->setCreator($this->getUser());
             $profileAssociation->setModifier($this->getUser());
@@ -796,8 +787,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/add", name="profile_inherited_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/add", name="profile_inherited_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"}, methods={"POST"})
      * @param Property  $property    The property to be associated with a profile
      * @param Profile  $profile    The profile to be associated with a property
      * @param OntoClass  $domain    The domain to be associated
@@ -810,7 +800,7 @@ class ProfileController  extends Controller
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
         $em = $this->getDoctrine()->getManager();
-        $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => $domain->getId(), 'range' => $range->getId()));
 
         if (!is_null($profileAssociation)) {
@@ -819,7 +809,7 @@ class ProfileController  extends Controller
                 $message = 'This property is already used by this profile';
             }
             else {
-                $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+                $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
                 $profileAssociation->setSystemType($systemType);
                 $em->persist($profileAssociation);
 
@@ -855,7 +845,7 @@ class ProfileController  extends Controller
             $rangeVersion = $em->getRepository("AppBundle:OntoClassVersion")->findClassVersionByClassAndNamespacesId($range, $namespacesId);
             $profileAssociation->setRangeNamespace($rangeVersion->getNamespaceForVersion());
 
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(5); //systemType 5 = selected
+            $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
             $profileAssociation->setSystemType($systemType);
             $profileAssociation->setCreator($this->getUser());
             $profileAssociation->setModifier($this->getUser());
@@ -878,8 +868,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/class/{class}/delete", name="profile_class_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/class/{class}/delete", name="profile_class_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
      * @param OntoClass  $class    The class to be disassociated from a profile
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
@@ -889,10 +878,10 @@ class ProfileController  extends Controller
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
         $em = $this->getDoctrine()->getManager();
 
-        $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'class' => $class->getId()));
 
-        $systemType = $em->getRepository('AppBundle:SystemType')->find(6); //systemType 6 = rejected
+        $systemType = $em->getRepository(SystemType::class)->find(6); //systemType 6 = rejected
 
         $profileAssociation->setSystemType($systemType);
 
@@ -901,7 +890,7 @@ class ProfileController  extends Controller
         $profileAssociationsWithPropertiesToDeselect = $this->getProfileAssociationsWithPropertiesDeselectablesIfProfileAssociationWithThisClassWillDeselect($profile, $class);
         if(!empty($profileAssociationsWithPropertiesToDeselect)){
             foreach ($profileAssociationsWithPropertiesToDeselect as $profileAssociation){
-                $systemType = $em->getRepository('AppBundle:SystemType')->find(6); //systemType 6 = rejected
+                $systemType = $em->getRepository(SystemType::class)->find(6); //systemType 6 = rejected
                 $profileAssociation->setSystemType($systemType);
             }
         }
@@ -913,7 +902,7 @@ class ProfileController  extends Controller
         // (pour réactiver le bouton remove)
         $isRemovableNamespace = false;
         if(!is_null($classNamespace)){
-            $profileAssociations = $em->getRepository('AppBundle:ProfileAssociation')
+            $profileAssociations = $em->getRepository(ProfileAssociation::class)
                 ->findBy(array('profile' => $profile->getId(), 'entityNamespaceForVersion' => $classNamespace->getId(), 'systemType' => '5'));
             if(count($profileAssociations) == 0){
                 $isRemovableNamespace = true;
@@ -925,8 +914,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/delete", name="profile_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/property/{property}/delete", name="profile_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"POST"})
      * @param Property  $property    The property to be disassociated from a profile
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
@@ -937,10 +925,10 @@ class ProfileController  extends Controller
         $em = $this->getDoctrine()->getManager();
 
 
-        $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+        $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => null, 'range' => null));
 
-        $systemType = $em->getRepository('AppBundle:SystemType')->find(6); //systemType 6 = rejected
+        $systemType = $em->getRepository(SystemType::class)->find(6); //systemType 6 = rejected
 
         $profileAssociation->setSystemType($systemType);
 
@@ -952,8 +940,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/delete", name="profile_inherited_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/delete", name="profile_inherited_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"}, methods={"POST"})
      * @param Property  $property    The property to be disassociated from a profile
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @param OntoClass  $domain    The domain to be disassociated
@@ -967,10 +954,10 @@ class ProfileController  extends Controller
 
 
         try {
-            $profileAssociation = $em->getRepository('AppBundle:ProfileAssociation')
+            $profileAssociation = $em->getRepository(ProfileAssociation::class)
                 ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => $domain->getId(), 'range' => $range->getId()));
 
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(6); //systemType 6 = rejected
+            $systemType = $em->getRepository(SystemType::class)->find(6); //systemType 6 = rejected
 
             $profileAssociation->setSystemType($systemType);
 
@@ -1002,8 +989,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-outgoing-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-outgoing-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing Properties selectable by Class and Profile
@@ -1012,7 +998,7 @@ class ProfileController  extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findOutgoingPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
@@ -1027,8 +1013,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-incoming-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-incoming-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming Properties selectable by Class and Profile
@@ -1037,7 +1022,7 @@ class ProfileController  extends Controller
     {
         try{
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findIncomingPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
@@ -1052,8 +1037,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-outgoing-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-outgoing-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing inherited Properties selectable by Class and Profile
@@ -1062,7 +1046,7 @@ class ProfileController  extends Controller
     {
         try{
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findOutgoingInheritedPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
@@ -1077,8 +1061,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-incoming-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-incoming-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming inherited Properties selectable by Class and Profile
@@ -1087,7 +1070,7 @@ class ProfileController  extends Controller
     {
         try{
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findIncomingInheritedPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
@@ -1102,8 +1085,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-descendent-class/profile/{profile}/class/{class}/property/{property}/json", name="selectable_descendent_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$", "property"="^([0-9]+)|(propertyID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-descendent-class/profile/{profile}/class/{class}/property/{property}/json", name="selectable_descendent_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @param Property $property
@@ -1116,7 +1098,7 @@ class ProfileController  extends Controller
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findDescendantsByProfileAndClassId($profile, $class, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
@@ -1133,8 +1115,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-descendent-domain/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_domain_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-descendent-domain/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_domain_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $domain
      * @param OntoClass $range
@@ -1148,7 +1129,7 @@ class ProfileController  extends Controller
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findDescendantsDomainByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
@@ -1165,8 +1146,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/selectable-descendent-range/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_range_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-descendent-range/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_range_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $domain
      * @param OntoClass $range
@@ -1180,7 +1160,7 @@ class ProfileController  extends Controller
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findDescendantsRangeByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
@@ -1197,23 +1177,21 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{id}/json", name="profile_json", schemes={"https"}, requirements={"id"="^[0-9]+$"})
-     * @Method("GET")
+     * @Route("/profile/{id}/json", name="profile_json", schemes={"https"}, requirements={"id"="^[0-9]+$"}, methods={"GET"})
      * @param Profile $profile
      * @return JsonResponse a Json formatted graph representation of Profile
      */
     public function getGraphJson(Profile $profile)
     {
         $em = $this->getDoctrine()->getManager();
-        $profile = $em->getRepository('AppBundle:Profile')
+        $profile = $em->getRepository(Profile::class)
             ->findProfileGraph($profile);
 
         return new JsonResponse($profile[0]['json'],200, array(), true);
     }
 
     /**
-     * @Route("/profileAssociationPropertyDeselectable/profile/{profile}/class/{class}/", name="profile_association_property_deselectable", schemes={"https"}, requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("GET")
+     * @Route("/profileAssociationPropertyDeselectable/profile/{profile}/class/{class}/", name="profile_association_property_deselectable", schemes={"https"}, requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return ProfileAssociation[] l'ensemble des profileAssociations dont la propriété dont l'un uniquement de domain ou de la range est égale à $class et l'autre inferred
@@ -1269,8 +1247,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/alert-class-if-deselect/profile/{profile}/class/{class}/json", name="alert_class_if_deselect_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     * @Method("POST")
+     * @Route("/alert-class-if-deselect/profile/{profile}/class/{class}/json", name="alert_class_if_deselect_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
      * @param Profile $profile
      * @param OntoClass $class
      * @return JsonResponse
@@ -1285,8 +1262,7 @@ class ProfileController  extends Controller
     }
 
     /**
-     * @Route("/profile/{profile}/recreate", name="profile_recreate", requirements={"profile"="^[0-9]+$|(profileID){1}$"})
-     * @Method({ "GET"})
+     * @Route("/profile/{profile}/recreate", name="profile_recreate", requirements={"profile"="^[0-9]+$|(profileID){1}$"}, methods={"GET"})
      * @param Profile  $profile    The published profile to be recreate
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
@@ -1361,7 +1337,7 @@ class ProfileController  extends Controller
         $em = $this->getDoctrine()->getManager();
 
         // Justification form
-        $systemTypeJustification = $em->getRepository('AppBundle:SystemType')->find(15);
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15);
         $textPropertyJustification = $em->getRepository("AppBundle:TextProperty")->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeJustification->getId())
         );
@@ -1393,7 +1369,7 @@ class ProfileController  extends Controller
         // End justification form
 
         // Use case form
-        $systemTypeUseCase = $em->getRepository('AppBundle:SystemType')->find(36);
+        $systemTypeUseCase = $em->getRepository(SystemType::class)->find(36);
         $textPropertyUseCase = $em->getRepository("AppBundle:TextProperty")->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeUseCase->getId())
         );
@@ -1425,7 +1401,7 @@ class ProfileController  extends Controller
         // End use case form
 
         // Profile internal note form
-        $systemTypeNote = $em->getRepository('AppBundle:SystemType')->find(33);
+        $systemTypeNote = $em->getRepository(SystemType::class)->find(33);
         $textPropertyNote = $em->getRepository("AppBundle:TextProperty")->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeNote->getId())
         );
@@ -1457,7 +1433,7 @@ class ProfileController  extends Controller
         // End profile internal note form
 
         // Additionnals examples form
-        $systemTypeExample = $em->getRepository('AppBundle:SystemType')->find(7);
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7);
 
         // First $textPropertyNewExample is only for add
         $textPropertyNewExample =  new TextProperty();

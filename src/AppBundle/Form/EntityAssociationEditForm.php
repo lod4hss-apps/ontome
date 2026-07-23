@@ -31,7 +31,7 @@ class EntityAssociationEditForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $userID = $this->tokenStorage->getToken()->getUser()->getId();
-        $user = $this->em->getRepository('AppBundle:User')->find($userID);
+        $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
             throw new \LogicException(

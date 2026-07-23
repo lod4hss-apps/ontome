@@ -33,7 +33,7 @@ class CommentForm extends AbstractType
         try {
 
             $userID = $this->tokenStorage->getToken()->getUser()->getId();
-            $user = $this->em->getRepository('AppBundle:User')->find($userID);
+            $user = $this->em->getRepository(User::class)->find($userID);
         }
         catch (\Exception $e)
         {

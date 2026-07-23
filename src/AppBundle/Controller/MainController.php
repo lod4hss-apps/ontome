@@ -10,12 +10,12 @@ namespace AppBundle\Controller;
 
 
 use AppBundle\AppBundle;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Twig_Environment;
 
-class MainController extends Controller
+class MainController extends AbstractController
 {
 
     public function homepageAction()
@@ -53,11 +53,11 @@ class MainController extends Controller
         $query_sanitized = filter_var($query, FILTER_SANITIZE_STRING);
 
         // Retrouver les txtp & labels correspondants à la recherche
-        $resultatTxtp = $em->getRepository('AppBundle:TextProperty')->findByFullTextSearch($query_sanitized);
-        $resultatLbl = $em->getRepository('AppBundle:Label')->findByFullTextSearch($query_sanitized);
+        $resultatTxtp = $em->getRepository(TextProperty::class)->findByFullTextSearch($query_sanitized);
+        $resultatLbl = $em->getRepository(Label::class)->findByFullTextSearch($query_sanitized);
 
         // Retrouver les termes qui ont été réellement comparées (pour information à l'utilisateur)
-        $whatSearch = $em->getRepository('AppBundle:TextProperty')->findWhatSearch($query_sanitized);
+        $whatSearch = $em->getRepository(TextProperty::class)->findWhatSearch($query_sanitized);
         $arrayLexemes = array();
         foreach($whatSearch as $wordSearch){
             foreach($wordSearch as $word){
@@ -80,12 +80,12 @@ class MainController extends Controller
         $identifierInNamespace = filter_var($identifierInNamespace, FILTER_SANITIZE_STRING);
 
         $em = $this->getDoctrine()->getManager();
-        $entity = $em->getRepository('AppBundle:OntoNamespace')->findEntity($name,$identifierInNamespace);
+        $entity = $em->getRepository(OntoNamespace::class)->findEntity($name,$identifierInNamespace);
 
         if(count($entity) == 0 && substr($identifierInNamespace, -1) === "i"){
             // L'identifier n'a pas été retrouvé mais il se peut que ça soit l'identifiant d'une propriété inverse
             $identifierInNamespace = substr($identifierInNamespace, 0, -1); // Retire le i
-            $entity = $em->getRepository('AppBundle:OntoNamespace')->findEntity($name,$identifierInNamespace);
+            $entity = $em->getRepository(OntoNamespace::class)->findEntity($name,$identifierInNamespace);
         }
 
         if(count($entity) == 0){

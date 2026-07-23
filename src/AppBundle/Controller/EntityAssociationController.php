@@ -16,8 +16,8 @@ use AppBundle\Entity\SystemType;
 use AppBundle\Entity\TextProperty;
 use AppBundle\Form\EntityAssociationForm;
 use AppBundle\Form\EntityAssociationEditForm;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class EntityAssociationController extends Controller
+class EntityAssociationController extends AbstractController
 {
     /**
      * @Route("/entity-association/new/{object}/{objectId}", name="new_entity_association_form", requirements={"object"="^(class|property){1}$","objectId"="^[0-9]+$"})
@@ -38,7 +38,7 @@ class EntityAssociationController extends Controller
 
         if($object == 'class')
         {
-            $source = $em->getRepository('AppBundle:OntoClass')->find($objectId);
+            $source = $em->getRepository(OntoClass::class)->find($objectId);
             if (!$source) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
@@ -47,7 +47,7 @@ class EntityAssociationController extends Controller
         }
         elseif($object == 'property')
         {
-            $source = $em->getRepository('AppBundle:Property')->find($objectId);
+            $source = $em->getRepository(Property::class)->find($objectId);
             if (!$source) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
@@ -64,8 +64,8 @@ class EntityAssociationController extends Controller
         }
         $this->denyAccessUnlessGranted('add_associations', $objectNamespaceId);
 
-        $systemTypeJustification = $em->getRepository('AppBundle:SystemType')->find(15); //systemType 15 = justification
-        $systemTypeExample = $em->getRepository('AppBundle:SystemType')->find(7); //systemType 1 = example
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = example
 
         $justification = new TextProperty();
         $justification->setEntityAssociation($entityAssociation);
@@ -91,7 +91,7 @@ class EntityAssociationController extends Controller
         $entityAssociation->setSourceNamespaceForVersion($namespaceForEntityVersion);
 
         if($entityAssociation->getSourceObjectType() == "class"){
-            $arrayEntitiesVersion = $em->getRepository('AppBundle:OntoClassVersion')
+            $arrayEntitiesVersion = $em->getRepository(OntoClassVersion::class)
                 ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
             if(!$entityAssociation->getSourceClass()->getIsRecursive()){
@@ -103,7 +103,7 @@ class EntityAssociationController extends Controller
             }
         }
         elseif($entityAssociation->getSourceObjectType() == "property"){
-            $arrayEntitiesVersion = $em->getRepository('AppBundle:PropertyVersion')
+            $arrayEntitiesVersion = $em->getRepository(PropertyVersion::class)
                 ->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
             if(!$entityAssociation->getSourceProperty()->getIsRecursive()){
                 foreach ($arrayEntitiesVersion as $pv){
@@ -208,7 +208,7 @@ class EntityAssociationController extends Controller
 
         if($entityAssociation->getSourceObjectType() == 'class' and !$inverse)
         {
-            $firstEntity = $em->getRepository('AppBundle:OntoClass')->find($entityAssociation->getSourceClass()->getId());
+            $firstEntity = $em->getRepository(OntoClass::class)->find($entityAssociation->getSourceClass()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The class n° '.$entityAssociation->getSourceClass()->getId().' does not exist');
             }
@@ -216,7 +216,7 @@ class EntityAssociationController extends Controller
         }
         elseif($entityAssociation->getSourceObjectType() == 'property' and !$inverse)
         {
-            $firstEntity = $em->getRepository('AppBundle:Property')->find($entityAssociation->getSourceProperty()->getId());
+            $firstEntity = $em->getRepository(Property::class)->find($entityAssociation->getSourceProperty()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The property n° '.$entityAssociation->getSourceProperty()->getId().' does not exist');
             }
@@ -224,7 +224,7 @@ class EntityAssociationController extends Controller
         }
         elseif($entityAssociation->getTargetObjectType() == 'class' and $inverse)
         {
-            $firstEntity = $em->getRepository('AppBundle:OntoClass')->find($entityAssociation->getTargetClass()->getId());
+            $firstEntity = $em->getRepository(OntoClass::class)->find($entityAssociation->getTargetClass()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The class n° '.$entityAssociation->getTargetClass()->getId().' does not exist');
             }
@@ -232,7 +232,7 @@ class EntityAssociationController extends Controller
         }
         elseif($entityAssociation->getTargetObjectType() == 'property' and $inverse)
         {
-            $firstEntity = $em->getRepository('AppBundle:Property')->find($entityAssociation->getTargetProperty()->getId());
+            $firstEntity = $em->getRepository(Property::class)->find($entityAssociation->getTargetProperty()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The property n° '.$entityAssociation->getTargetProperty()->getId().' does not exist');
             }
@@ -252,11 +252,11 @@ class EntityAssociationController extends Controller
         }
 
         if($entityAssociation->getSourceObjectType() == "class"){
-            $arrayEntitiesVersion = $em->getRepository('AppBundle:OntoClassVersion')
+            $arrayEntitiesVersion = $em->getRepository(OntoClassVersion::class)
                 ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
         }
         elseif($entityAssociation->getSourceObjectType() == "property"){
-            $arrayEntitiesVersion = $em->getRepository('AppBundle:PropertyVersion')
+            $arrayEntitiesVersion = $em->getRepository(PropertyVersion::class)
                 ->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
         }
 
@@ -373,7 +373,7 @@ class EntityAssociationController extends Controller
 
         try{
             $em = $this->getDoctrine()->getManager();
-            $newValidationStatus = $em->getRepository('AppBundle:SystemType')
+            $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');

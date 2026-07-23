@@ -11,19 +11,18 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\Comment;
 use AppBundle\Form\CommentForm;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class CommentController extends Controller
+class CommentController extends AbstractController
 {
     /**
      * @Route("/comment/{objectType}/{objectId}/json",
      *     name="comment_show_json",
-     *     requirements={"objectType"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"})
-     * @Method("GET")
+     *     requirements={"objectType"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"}, 
+     *     methods={"GET"})
      * @param string $objectType    The object type name
      * @param int  $objectId    The id of the object
      * @return JsonResponse a Json formatted comments list
@@ -35,49 +34,49 @@ class CommentController extends Controller
         //$objectType = 'class';
         //$objectId = 268;
         if($objectType === 'class') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoClass')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoClass::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'property') {
-            $associatedEntity = $em->getRepository('AppBundle:Property')->find($objectId);
+            $associatedEntity = $em->getRepository(Property::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'class-association') {
-            $associatedEntity = $em->getRepository('AppBundle:ClassAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'property-association') {
-            $associatedEntity = $em->getRepository('AppBundle:PropertyAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'entity-association') {
-            $associatedEntity = $em->getRepository('AppBundle:EntityAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'text-property') {
-            $associatedEntity = $em->getRepository('AppBundle:TextProperty')->find($objectId);
+            $associatedEntity = $em->getRepository(TextProperty::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'label') {
-            $associatedEntity = $em->getRepository('AppBundle:Label')->find($objectId);
+            $associatedEntity = $em->getRepository(Label::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
         }
         else if($objectType === 'namespace') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoNamespace')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
@@ -102,8 +101,7 @@ class CommentController extends Controller
     }
 
     /**
-     * @Route("/comment/new/{object}/{objectId}", name="comment_new", requirements={"object"="^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"})
-     * @Method({ "POST"})
+     * @Route("/comment/new/{object}/{objectId}", name="comment_new", requirements={"object"="^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"}, methods={"POST"})
      */
     public function newAction($object, $objectId, Request $request)
     {
@@ -112,54 +110,54 @@ class CommentController extends Controller
         $comment = new Comment();
 
         if($object === 'class-version') {
-            $classVersion = $em->getRepository('AppBundle:OntoClassVersion')->find($objectId);
+            $classVersion = $em->getRepository(OntoClassVersion::class)->find($objectId);
             $associatedEntity = $classVersion->getClass();
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
-            $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($classVersion->getNamespaceForVersion());
+            $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($classVersion->getNamespaceForVersion());
             $comment->setClass($associatedEntity);
         }
         else if($object === 'property-version') {
-            $propertyVersion = $em->getRepository('AppBundle:PropertyVersion')->find($objectId);
+            $propertyVersion = $em->getRepository(PropertyVersion::class)->find($objectId);
             $associatedEntity = $propertyVersion->getProperty();
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
-            $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($propertyVersion->getNamespaceForVersion());
+            $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($propertyVersion->getNamespaceForVersion());
             $comment->setProperty($associatedEntity);
         }
         else if($object === 'class-association') {
-            $associatedEntity = $em->getRepository('AppBundle:ClassAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
-            $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($associatedEntity->getNamespaceForVersion());
+            $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($associatedEntity->getNamespaceForVersion());
             $comment->setClassAssociation($associatedEntity);
         }
         else if($object === 'property-association') {
-            $associatedEntity = $em->getRepository('AppBundle:PropertyAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
-            $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($associatedEntity->getNamespaceForVersion());
+            $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($associatedEntity->getNamespaceForVersion());
             $comment->setPropertyAssociation($associatedEntity);
         }
         else if($object === 'entity-association') {
-            $associatedEntity = $em->getRepository('AppBundle:EntityAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
-            $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($associatedEntity->getNamespaceForVersion());
+            $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($associatedEntity->getNamespaceForVersion());
             $comment->setEntityAssociation($associatedEntity);
         }
         else if($object === 'text-property') {
-            $associatedEntity = $em->getRepository('AppBundle:TextProperty')->find($objectId);
+            $associatedEntity = $em->getRepository(TextProperty::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
             if(!is_null($associatedEntity->getNamespace()) and !is_null($associatedEntity->getProfile()) and !is_null($associatedEntity->getProject())){
-                $namespaceForVersion = $em->getRepository('AppBundle:OntoNamespace')->find($associatedEntity->getNamespaceForVersion());
+                $namespaceForVersion = $em->getRepository(OntoNamespace::class)->find($associatedEntity->getNamespaceForVersion());
             }
             else{
                 $namespaceForVersion = null;
@@ -167,7 +165,7 @@ class CommentController extends Controller
             $comment->setTextProperty($associatedEntity);
         }
         else if($object === 'label') {
-            $associatedEntity = $em->getRepository('AppBundle:Label')->find($objectId);
+            $associatedEntity = $em->getRepository(Label::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
@@ -175,7 +173,7 @@ class CommentController extends Controller
             $comment->setLabel($associatedEntity);
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoNamespace')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
@@ -263,8 +261,7 @@ class CommentController extends Controller
     }
 
     /**
-     * @Route("/comment/{object}/{objectId}/viewedby/json", name="viewed_by_json", requirements={"object"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$","objectId"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method("GET")
+     * @Route("/comment/{object}/{objectId}/viewedby/json", name="viewed_by_json", requirements={"object"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$","objectId"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
      * @return JsonResponse
      */
     public function viewedByJson($object, $objectId, Request $request)
@@ -272,68 +269,68 @@ class CommentController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         if($object === 'class') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoClass')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoClass::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("class" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("class" => $associatedEntity));
         }
         else if($object === 'property') {
-            $associatedEntity = $em->getRepository('AppBundle:Property')->find($objectId);
+            $associatedEntity = $em->getRepository(Property::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("property" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("property" => $associatedEntity));
         }
         else if($object === 'class-association') {
-            $associatedEntity = $em->getRepository('AppBundle:ClassAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("classAssociation" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("classAssociation" => $associatedEntity));
         }
         else if($object === 'property-association') {
-            $associatedEntity = $em->getRepository('AppBundle:PropertyAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("propertyAssociation" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("propertyAssociation" => $associatedEntity));
         }
         else if($object === 'entity-association') {
-            $associatedEntity = $em->getRepository('AppBundle:EntityAssociation')->find($objectId);
+            $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("entityAssociation" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("entityAssociation" => $associatedEntity));
         }
         else if($object === 'text-property') {
-            $associatedEntity = $em->getRepository('AppBundle:TextProperty')->find($objectId);
+            $associatedEntity = $em->getRepository(TextProperty::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("textProperty" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("textProperty" => $associatedEntity));
         }
         else if($object === 'label') {
-            $associatedEntity = $em->getRepository('AppBundle:Label')->find($objectId);
+            $associatedEntity = $em->getRepository(Label::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("label" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("label" => $associatedEntity));
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoNamespace')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository('AppBundle:Comment')->findBy(array("namespace" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(array("namespace" => $associatedEntity));
         }
         else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 

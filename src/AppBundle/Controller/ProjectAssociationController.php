@@ -10,11 +10,11 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\ProjectAssociation;
 use AppBundle\Form\PublicProjectNamespaceAssociationAddForm;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 
-class ProjectAssociationController extends Controller
+class ProjectAssociationController extends AbstractController
 {
 
     /**
@@ -25,11 +25,11 @@ class ProjectAssociationController extends Controller
     {
         $projectAssociation = new ProjectAssociation();
         $em = $this->getDoctrine()->getManager();
-        $publicProject =  $em->getRepository('AppBundle:Project')->find(21); //public project = 21
+        $publicProject =  $em->getRepository(Project::class)->find(21); //public project = 21
 
         $this->denyAccessUnlessGranted('full_edit', $publicProject); //admins only can add a new namespace to the public project
 
-        $systemType= $em->getRepository('AppBundle:SystemType')->find(17); //systemType 17 = Default display
+        $systemType= $em->getRepository(SystemType::class)->find(17); //systemType 17 = Default display
 
         $form = $this->createForm(PublicProjectNamespaceAssociationAddForm::class, $projectAssociation);
 

@@ -353,7 +353,7 @@ class NamespaceRepository extends EntityRepository
     public function findAvailableNamespacesForPublicProjectAssociation()
     {
         $em = $this->getEntityManager();
-        //$subQueryBuilder = $em->getRepository('AppBundle:ProjectAssociation')->createQueryBuilder('exnsp');
+        //$subQueryBuilder = $em->getRepository(ProjectAssociation::class)->createQueryBuilder('exnsp');
         $subQueryBuilder = $this->getEntityManager()->createQueryBuilder();
         $subQuery = $subQueryBuilder
             ->select(['nspt.id'])
@@ -365,7 +365,7 @@ class NamespaceRepository extends EntityRepository
             ->getArrayResult()
         ;
 
-        $queryBuilder = $em->getRepository('AppBundle:OntoNamespace')->createQueryBuilder('nsp');
+        $queryBuilder = $em->getRepository(OntoNamespace::class)->createQueryBuilder('nsp');
 
         return $queryBuilder->select('nsp')
             ->where(

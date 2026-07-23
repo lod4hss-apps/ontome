@@ -30,8 +30,8 @@ use AppBundle\Entity\UserProjectAssociation;
 use AppBundle\Form\ImportNamespaceForm;
 use AppBundle\Form\ProjectQuickAddForm;
 use Doctrine\Common\Collections\ArrayCollection;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Form\FormError;
@@ -39,9 +39,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 
-class ProjectController extends Controller
+class ProjectController extends AbstractController
 {
     /**
      * @Route("/project")
@@ -53,8 +52,7 @@ class ProjectController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $projects = $em->getRepository('AppBundle:Project')
-            ->findAll();
+        $projects = $em->getRepository(Project::class)->findAll();
 
         if ($displayDomains) {
             $projects = array_filter($projects, function ($project) {
@@ -82,7 +80,7 @@ class ProjectController extends Controller
         $project = new Project();
 
         $em = $this->getDoctrine()->getManager();
-        $systemTypeDescription = $em->getRepository('AppBundle:SystemType')->find(16); //systemType 16 = Description
+        $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = Description
 
         $description = new TextProperty();
         $description->setProject($project);
@@ -111,7 +109,7 @@ class ProjectController extends Controller
 
         $project->addLabel($projectLabel);
 
-        $allProjects = $em->getRepository('AppBundle:Project')->findAll();
+        $allProjects = $em->getRepository(Project::class)->findAll();
 
         $allLabels = new ArrayCollection();
         foreach ($allProjects as $var_project) {
@@ -186,7 +184,7 @@ class ProjectController extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
-        $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
+        $associatedNamespacesForAPIProject = $em->getRepository(OntoNamespace::class)
             ->findApiNamespacesProject($project);
 
         foreach ($associatedNamespacesForAPIProject as &$associate) {
@@ -210,13 +208,13 @@ class ProjectController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $users = $em->getRepository('AppBundle:User')
+        $users = $em->getRepository(User::class)
             ->findAllNotInProject($project);
 
-        $namespacesPublicProject = $em->getRepository('AppBundle:OntoNamespace')
+        $namespacesPublicProject = $em->getRepository(OntoNamespace::class)
             ->findNamespacesInPublicProject();
 
-        $associatedNamespacesForAPIProject = $em->getRepository('AppBundle:OntoNamespace')
+        $associatedNamespacesForAPIProject = $em->getRepository(OntoNamespace::class)
             ->findApiNamespacesProject($project);
 
         // On crée le formulaire d'importation XML
@@ -307,13 +305,13 @@ class ProjectController extends Controller
                 }
 
                 // On prépare les system types nécessaires
-                $systemTypeScopeNote = $em->getRepository('AppBundle:SystemType')->find(1); //systemType 1 = scope note
-                $systemTypeExample = $em->getRepository('AppBundle:SystemType')->find(7); // example
-                $systemTypeVersion = $em->getRepository('AppBundle:SystemType')->find(31); //owl:versionInfo
-                $systemTypeContributors = $em->getRepository('AppBundle:SystemType')->find(2); //contributor
-                $systemTypeDescription = $em->getRepository('AppBundle:SystemType')->find(16); //description
-                $systemTypeContextNote = $em->getRepository('AppBundle:SystemType')->find(34); //context note
-                $systemTypeBibliographicalNote = $em->getRepository('AppBundle:SystemType')->find(35); //bibliographical note
+                $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
+                $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // example
+                $systemTypeVersion = $em->getRepository(SystemType::class)->find(31); //owl:versionInfo
+                $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); //contributor
+                $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //description
+                $systemTypeContextNote = $em->getRepository(SystemType::class)->find(34); //context note
+                $systemTypeBibliographicalNote = $em->getRepository(SystemType::class)->find(35); //bibliographical note
 
                 // Nouveau namespace version
                 $newNamespaceVersion = new OntoNamespace();
@@ -442,7 +440,7 @@ class ProjectController extends Controller
                     }
                     $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
                     $referencedNamespaceAssociation->setNamespace($newNamespaceVersion);
-                    $referencedNamespace = $em->getRepository('AppBundle:OntoNamespace')->findOneBy(array("id" => (int) $nodeXmlReferenceNamespace));
+                    $referencedNamespace = $em->getRepository(OntoNamespace::class)->findOneBy(array("id" => (int) $nodeXmlReferenceNamespace));
 
                     // Le namespace référencé doit exister
                     if (is_null($referencedNamespace)) {
@@ -1199,11 +1197,11 @@ class ProjectController extends Controller
                             $entityAssociation->setDirected(false);
 
                             if ($key == "equivalentClass") {
-                                $systemTypeEquivalentClass = $em->getRepository('AppBundle:SystemType')->find(18); //owl:equivalentClass
+                                $systemTypeEquivalentClass = $em->getRepository(SystemType::class)->find(18); //owl:equivalentClass
                                 $entityAssociation->setSystemType($systemTypeEquivalentClass);
                             }
                             if ($key == "disjointWith") {
-                                $systemTypeDisjointWith = $em->getRepository('AppBundle:SystemType')->find(19); //owl:disjointWith
+                                $systemTypeDisjointWith = $em->getRepository(SystemType::class)->find(19); //owl:disjointWith
                                 $entityAssociation->setSystemType($systemTypeDisjointWith);
                             }
 
@@ -1405,11 +1403,11 @@ class ProjectController extends Controller
                             $entityAssociation->setDirected(false);
 
                             if ($key == "equivalentProperty") {
-                                $systemTypeEquivalentProperty = $em->getRepository('AppBundle:SystemType')->find(18); //owl:equivalentProperty
+                                $systemTypeEquivalentProperty = $em->getRepository(SystemType::class)->find(18); //owl:equivalentProperty
                                 $entityAssociation->setSystemType($systemTypeEquivalentProperty);
                             }
                             if ($key == "inverseOf") {
-                                $systemTypeInverseOf = $em->getRepository('AppBundle:SystemType')->find(20); //owl:inverseOf
+                                $systemTypeInverseOf = $em->getRepository(SystemType::class)->find(20); //owl:inverseOf
                                 $entityAssociation->setSystemType($systemTypeInverseOf);
                             }
 
@@ -1464,7 +1462,7 @@ class ProjectController extends Controller
             }
         }
 
-        $rootNamespaces = $em->getRepository('AppBundle:OntoNamespace')
+        $rootNamespaces = $em->getRepository(OntoNamespace::class)
             ->findBy(array('isTopLevelNamespace' => true));
         $rootNamespaces = array_filter($rootNamespaces, function ($v) {
             return $v->getId() != 5;
@@ -1481,8 +1479,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/selectable-members/project/{project}/json", name="selectable_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-members/project/{project}/json", name="selectable_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selectable by Project
      */
@@ -1490,7 +1487,7 @@ class ProjectController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $users = $em->getRepository('AppBundle:User')
+            $users = $em->getRepository(User::class)
                 ->findAllNotInProject($project);
             $data['data'] = $users;
             $data = json_encode($data);
@@ -1506,8 +1503,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/associated-members/project/{project}/json", name="associated_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"})
-     * @Method("GET")
+     * @Route("/associated-members/project/{project}/json", name="associated_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selected by Project
      */
@@ -1515,7 +1511,7 @@ class ProjectController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:User')
+            $classes = $em->getRepository(User::class)
                 ->findUsersInProject($project);
             $data['data'] = $classes;
             $data = json_encode($data);
@@ -1531,8 +1527,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project/{project}/user/{user}/add", name="project_user_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "user"="^([0-9]+)|(id){1}$"})
-     * @Method({ "POST"})
+     * @Route("/project/{project}/user/{user}/add", name="project_user_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "user"="^([0-9]+)|(id){1}$"}, methods={"POST"})
      * @param User $user The user to be associated with a project
      * @param Project $project The project to be associated with a user
      * @return JsonResponse $response
@@ -1543,7 +1538,7 @@ class ProjectController extends Controller
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
         $em = $this->getDoctrine()->getManager();
-        $userProjectAssociation = $em->getRepository('AppBundle:UserProjectAssociation')
+        $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'user' => $user->getId()));
 
         if (!is_null($userProjectAssociation)) {
@@ -1577,8 +1572,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method({ "POST"})
+     * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
      * @param OntoNamespace $namespace The namespace to be associated with a project API
      * @param Project $project The project API to be associated with a namespace
      * @return JsonResponse $response
@@ -1590,9 +1584,9 @@ class ProjectController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $systemTypeAPISelected = $em->getRepository('AppBundle:SystemType')->find(38); //systemType 38 = Associated namespace for API Project
+        $systemTypeAPISelected = $em->getRepository(SystemType::class)->find(38); //systemType 38 = Associated namespace for API Project
 
-        $projectAssociation = $em->getRepository('AppBundle:ProjectAssociation')
+        $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'namespace' => $namespace->getId(), 'systemType' => 38));
 
         if (!is_null($projectAssociation)) {
@@ -1627,8 +1621,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/user-project-association/{id}/permission/{permission}/edit", name="project_member_permission_edit", requirements={"id"="^([0-9]+)|(associationId){1}$", "permission"="^([1-4])|(permissionToken){1}$"})
-     * @Method({ "POST"})
+     * @Route("/user-project-association/{id}/permission/{permission}/edit", name="project_member_permission_edit", requirements={"id"="^([0-9]+)|(associationId){1}$", "permission"="^([1-4])|(permissionToken){1}$"}, methods={"POST"})
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be edited
      * @param int $permission The permission to
      * @return JsonResponse $response
@@ -1667,8 +1660,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/user-project-association/{id}/delete", name="project_member_disassociation", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     * @Method({ "POST"})
+     * @Route("/user-project-association/{id}/delete", name="project_member_disassociation", requirements={"id"="^([0-9]+)|(associationId){1}$"}, methods={"POST"})
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      * @return JsonResponse a Json 204 HTTP response
      */
@@ -1682,12 +1674,12 @@ class ProjectController extends Controller
 
             // Si l'utilisateur l'a en projet actif, modifier pour éviter qu'il se retrouve bloqué
             if ($user->getCurrentActiveProject() == $project) {
-                $publicProject = $em->getRepository('AppBundle:Project')->find(21);
+                $publicProject = $em->getRepository(Project::class)->find(21);
                 $user->setCurrentActiveProject($publicProject);
                 $em->persist($user);
             }
 
-            $entityUserProjectsAssociations = $em->getRepository('AppBundle:EntityUserProjectAssociation')
+            $entityUserProjectsAssociations = $em->getRepository(EntityUserProjectAssociation::class)
                 ->findBy(array('userProjectAssociation' => $userProjectAssociation->getId()));
             foreach ($entityUserProjectsAssociations as $eupa) {
                 $em->remove($eupa);
@@ -1701,8 +1693,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/selectable-profiles/project/{project}/json", name="selectable_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"})
-     * @Method("GET")
+     * @Route("/selectable-profiles/project/{project}/json", name="selectable_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles selectable by Project
      */
@@ -1710,7 +1701,7 @@ class ProjectController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository('AppBundle:Profile')
+            $profiles = $em->getRepository(Profile::class)
                 ->findProfilesForAssociationWithProjectByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
@@ -1726,8 +1717,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/associated-profiles/project/{project}/json", name="associated_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"})
-     * @Method("GET")
+     * @Route("/associated-profiles/project/{project}/json", name="associated_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles associated with Project
      */
@@ -1735,7 +1725,7 @@ class ProjectController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository('AppBundle:Profile')
+            $profiles = $em->getRepository(Profile::class)
                 ->findProfilesByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
@@ -1751,8 +1741,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project/{project}/profile/{profile}/add", name="project_profile_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/project/{project}/profile/{profile}/add", name="project_profile_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"}, methods={"POST"})
      * @param Profile $profile The profile to be associated with a project
      * @param Project $project The project to be associated with a profile
      * @return JsonResponse a Json formatted namespaces list
@@ -1763,7 +1752,7 @@ class ProjectController extends Controller
         $this->denyAccessUnlessGranted('edit', $project);
 
         $em = $this->getDoctrine()->getManager();
-        $projectAssociation = $em->getRepository('AppBundle:ProjectAssociation')
+        $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
 
         if (!is_null($projectAssociation)) {
@@ -1771,7 +1760,7 @@ class ProjectController extends Controller
                 $status = 'Error';
                 $message = 'This profile is already used by this project';
             } else {
-                $systemType = $em->getRepository('AppBundle:SystemType')->find(11); //systemType 11 = Used by project
+                $systemType = $em->getRepository(SystemType::class)->find(11); //systemType 11 = Used by project
                 $projectAssociation->setSystemType($systemType);
 
                 $em->persist($projectAssociation);
@@ -1786,7 +1775,7 @@ class ProjectController extends Controller
             $projectAssociation = new ProjectAssociation();
             $projectAssociation->setProject($project);
             $projectAssociation->setProfile($profile);
-            $systemType = $em->getRepository('AppBundle:SystemType')->find(11); //systemType 11 = Used by project
+            $systemType = $em->getRepository(SystemType::class)->find(11); //systemType 11 = Used by project
             $projectAssociation->setSystemType($systemType);
             $projectAssociation->setCreator($this->getUser());
             $projectAssociation->setModifier($this->getUser());
@@ -1809,8 +1798,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project/{project}/profile/{profile}/delete", name="project_profile_disassociation", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/project/{project}/profile/{profile}/delete", name="project_profile_disassociation", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"}, methods={"POST"})
      * @param Profile $profile The profile to be disassociated from a project
      * @param Project $project The project to be disassociated from a profile
      * @return JsonResponse a Json 204 HTTP response
@@ -1820,7 +1808,7 @@ class ProjectController extends Controller
         $this->denyAccessUnlessGranted('edit', $project);
         $em = $this->getDoctrine()->getManager();
 
-        $projectAssociation = $em->getRepository('AppBundle:ProjectAssociation')
+        $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
 
         $em->remove($projectAssociation);
@@ -1831,8 +1819,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project-uri-edit/{project}", name="project_uri_edit", requirements={"project"="^([0-9]+)|(projectID){1}$"})
-     * @Method({ "POST"})
+     * @Route("/project-uri-edit/{project}", name="project_uri_edit", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"POST"})
      * @param Project $project The project for which the URI is to be edited
      * @param Request $request
      * @return JsonResponse a Json response with the new project URI
@@ -1864,8 +1851,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/project/{id}/containers/json", name="containers_by_project_json", requirements={"id"="^([0-9]+)|(projectID){1}$"})
-     * @Method("GET")
+     * @Route("/project/{id}/containers/json", name="containers_by_project_json", requirements={"id"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Containers selected by Project
      */
@@ -1876,7 +1862,7 @@ class ProjectController extends Controller
             $containers = [];
 
             // Récupérer les containers associés au projet, triés par création décroissante (ID)
-            $containersResponse = $em->getRepository('AppBundle:Container')->createQueryBuilder('c')
+            $containersResponse = $em->getRepository(Container::class)->createQueryBuilder('c')
                 ->join('c.project', 'p')
                 ->where('p.id = :projectId')
                 ->setParameter('projectId', $project->getId())
@@ -1921,8 +1907,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"})
-     * @Method("GET")
+     * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"}, methods={"GET"})
      * @param Pathbuilder $pathbuilder
      * @return Response an XML file response with the content of the pathbuilder to export
      */
@@ -1939,8 +1924,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"})
-     * @Method("POST")
+     * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"}, methods={"POST"})
      * @param Container $container
      * @return JsonResponse a Json response with the id and label of the created pathbuilder
      */
@@ -2048,8 +2032,7 @@ class ProjectController extends Controller
     // Supprimer un pathbuilder d'un container
 
     /**
-     * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"})
-     * @Method("DELETE")
+     * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"}, methods={"DELETE"})
      * @param Container $container
      * @param Pathbuilder $pathbuilder
      * @return JsonResponse a Json 204 HTTP response

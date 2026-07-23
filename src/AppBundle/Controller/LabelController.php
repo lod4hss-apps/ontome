@@ -15,8 +15,8 @@ use AppBundle\Entity\Property;
 use AppBundle\Entity\SystemType;
 use AppBundle\Form\LabelForm;
 use Doctrine\Common\Collections\ArrayCollection;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class LabelController  extends Controller
+class LabelController  extends AbstractController
 {
     /**
      * @Route("/label/{id}", name="label_show", requirements={"id"="^[0-9]+"})
@@ -64,7 +64,7 @@ class LabelController  extends Controller
             $redirectToRoute = 'profile_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'profile';
-            $allEntities = $em->getRepository('AppBundle:Profile')->findAll();
+            $allEntities = $em->getRepository(Profile::class)->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProfile();});
         }
         else if(!is_null($label->getProject())){
@@ -72,7 +72,7 @@ class LabelController  extends Controller
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'project';
-            $allEntities = $em->getRepository('AppBundle:Project')->findAll();
+            $allEntities = $em->getRepository(Project::class)->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProject();});
         }
         else if(!is_null($label->getNamespace())){
@@ -83,7 +83,7 @@ class LabelController  extends Controller
             $redirectToRoute = 'namespace_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'namespace';
-            $allEntities = $em->getRepository('AppBundle:OntoNamespace')->findAll();
+            $allEntities = $em->getRepository(OntoNamespace::class)->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getNamespace();});
         }
         else throw $this->createNotFoundException('The related object for the label n° '.$label->getId().' does not exist. Please contact an administrator.');
@@ -167,7 +167,7 @@ class LabelController  extends Controller
 
         if($object === 'class') {
             // Récupérer la version ongoing de la classe identifiée par objectId
-            $associatedEntity = $em->getRepository('AppBundle:OntoClassVersion')->findOngoingVersion($objectId);
+            $associatedEntity = $em->getRepository(OntoClassVersion::class)->findOngoingVersion($objectId);
 
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The ongoing version of class n° '.$objectId.' does not exist');
@@ -181,7 +181,7 @@ class LabelController  extends Controller
         }
         else if($object === 'property') {
             // Récupérer la version ongoing de la propriété identifiée par objectId
-            $associatedEntity = $em->getRepository('AppBundle:PropertyVersion')->findOngoingVersion($objectId);
+            $associatedEntity = $em->getRepository(PropertyVersion::class)->findOngoingVersion($objectId);
 
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The ongoing version of property n° '.$objectId.' does not exist');
@@ -195,7 +195,7 @@ class LabelController  extends Controller
             $canInverseLabel = true;
         }
         else if($object === 'profile') {
-            $associatedEntity = $em->getRepository('AppBundle:Profile')->find($objectId);
+            $associatedEntity = $em->getRepository(Profile::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
             }
@@ -205,7 +205,7 @@ class LabelController  extends Controller
             $redirectToRouteFragment = 'identification';
         }
         else if($object === 'project') {
-            $associatedEntity = $em->getRepository('AppBundle:Project')->find($objectId);
+            $associatedEntity = $em->getRepository(Project::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
             }
@@ -215,7 +215,7 @@ class LabelController  extends Controller
             $redirectToRouteFragment = 'identification';
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository('AppBundle:OntoNamespace')->find($objectId);
+            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namepsace n° '.$objectId.' does not exist');
             }
@@ -323,7 +323,7 @@ class LabelController  extends Controller
 
         try{
             $em = $this->getDoctrine()->getManager();
-            $newValidationStatus = $em->getRepository('AppBundle:SystemType')
+            $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
@@ -344,7 +344,7 @@ class LabelController  extends Controller
                         $cv = $object->getClassVersionForDisplay();
                         if (!is_null($cv->getValidationStatus())) {
                             if ($cv->getValidationStatus()->getId() != 27) {
-                                $underRevisionStatus = $em->getRepository('AppBundle:SystemType')
+                                $underRevisionStatus = $em->getRepository(SystemType::class)
                                     ->findOneBy(array('id' => 37));
                                 $cv->setValidationStatus($underRevisionStatus);
                             }
@@ -356,7 +356,7 @@ class LabelController  extends Controller
                         $pv = $object->getPropertyVersionForDisplay();
                         if (!is_null($pv->getValidationStatus())) {
                             if ($pv->getValidationStatus()->getId() != 27) {
-                                $underRevisionStatus = $em->getRepository('AppBundle:SystemType')
+                                $underRevisionStatus = $em->getRepository(SystemType::class)
                                     ->findOneBy(array('id' => 37));
                                 $pv->setValidationStatus($underRevisionStatus);
                             }

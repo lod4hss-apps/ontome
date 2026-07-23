@@ -14,17 +14,16 @@ use AppBundle\Entity\SystemType;
 use AppBundle\Entity\TextProperty;
 use AppBundle\Form\ClassAssociationEditForm;
 use Psr\Log\LoggerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use AppBundle\Form\ParentClassAssociationForm;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-class ClassAssociationController extends Controller
+class ClassAssociationController extends AbstractController
 {
 
     /**
@@ -37,8 +36,8 @@ class ClassAssociationController extends Controller
         $this->denyAccessUnlessGranted('add_associations', $childClass->getClassVersionForDisplay()->getNamespaceForVersion());
 
         $em = $this->getDoctrine()->getManager();
-        $systemTypeJustification = $em->getRepository('AppBundle:SystemType')->find(15); //systemType 15 = justification
-        $systemTypeExample = $em->getRepository('AppBundle:SystemType')->find(7); //systemType 1 = example
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = example
 
         $justification = new TextProperty();
         $justification->setClassAssociation($classAssociation);
@@ -57,7 +56,7 @@ class ClassAssociationController extends Controller
         //$namespacesId = $childClass->getClassVersionForDisplay()->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
-        $arrayClassesVersion = $em->getRepository('AppBundle:OntoClassVersion')
+        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
             ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayClassesVersion as $cv){
@@ -116,13 +115,13 @@ class ClassAssociationController extends Controller
 
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesId = $em->getRepository('AppBundle:OntoNamespace')->findPublicProjectNamespacesId();
+            $namespacesId = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesId = $em->getRepository('AppBundle:OntoNamespace')->findNamespacesIdByUser($this->getUser());
+            $namespacesId = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
         }
 
-        $ancestors = $em->getRepository('AppBundle:OntoClass')->findAncestorsByClassVersionAndNamespacesId($childClass->getClassVersionForDisplay(), $namespacesId);
+        $ancestors = $em->getRepository(OntoClass::class)->findAncestorsByClassVersionAndNamespacesId($childClass->getClassVersionForDisplay(), $namespacesId);
 
         return $this->render('classAssociation/newParent.html.twig', [
             'childClass' => $childClass,
@@ -168,7 +167,7 @@ class ClassAssociationController extends Controller
         //$namespacesId = $childClassVersion->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
-        $arrayClassesVersion = $em->getRepository('AppBundle:OntoClassVersion')
+        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
             ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayClassesVersion as $cv){
@@ -248,7 +247,7 @@ class ClassAssociationController extends Controller
 
         try{
             $em = $this->getDoctrine()->getManager();
-            $newValidationStatus = $em->getRepository('AppBundle:SystemType')
+            $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');

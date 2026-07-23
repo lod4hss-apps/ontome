@@ -4,18 +4,16 @@ namespace AppBundle\Controller;
 
 use AppBundle\Entity\Label;
 use AppBundle\Entity\Container;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class ContainerController extends Controller
+class ContainerController extends AbstractController
 {
     /**
-     * @Route("/container/{id}/fetch", name="container")
-     * @Method("GET")
+     * @Route("/container/{id}/fetch", name="container", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
@@ -23,7 +21,7 @@ class ContainerController extends Controller
     {
         $id = $request->get('id');
 
-        $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($id);
+        $container = $this->getDoctrine()->getRepository(Container::class)->find($id);
 
         if (!$container) {
             throw new NotFoundHttpException("Container not found");
@@ -71,8 +69,7 @@ class ContainerController extends Controller
     }
 
     /**
-     * @Route("/container/{id}/root-namespaces-not-associated/fetch", name="container_root_namespaces_not_associated")
-     * @Method("GET")
+     * @Route("/container/{id}/root-namespaces-not-associated/fetch", name="container_root_namespaces_not_associated", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
@@ -80,7 +77,7 @@ class ContainerController extends Controller
     {
         $id = $request->get('id');
 
-        $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($id);
+        $container = $this->getDoctrine()->getRepository(Container::class)->find($id);
 
         if (!$container) {
             throw new NotFoundHttpException("Container not found");
@@ -93,7 +90,7 @@ class ContainerController extends Controller
         }
 
         // Récupération de tous les root namespaces qui ne sont pas associés au container
-        $qb = $this->getDoctrine()->getRepository('AppBundle:OntoNamespace')->createQueryBuilder('n')
+        $qb = $this->getDoctrine()->getRepository(OntoNamespace::class)->createQueryBuilder('n')
             ->select('DISTINCT n')
             ->innerJoin('AppBundle:OntoNamespace', 'child', 'WITH', 'child.topLevelNamespace = n')
             ->where('n.isTopLevelNamespace = :isTop')
@@ -122,8 +119,7 @@ class ContainerController extends Controller
     }
 
     /**
-     * @Route("/container/create", name="container_create")
-     * @Method("POST")
+     * @Route("/container/create", name="container_create", methods={"POST"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
@@ -131,7 +127,7 @@ class ContainerController extends Controller
     {
         $projectId = $request->get('project_id');
         $label = $request->get('label');
-        $project = $this->getDoctrine()->getRepository('AppBundle:Project')->find($projectId);
+        $project = $this->getDoctrine()->getRepository(Project::class)->find($projectId);
 
         $newLabel = new Label();
         $newLabel->setLabel($label);
@@ -162,8 +158,7 @@ class ContainerController extends Controller
     }
 
     /**
-     * @Route("/association_container_namespace/create", name="association_container_namespace_create")
-     * @Method("POST")
+     * @Route("/association_container_namespace/create", name="association_container_namespace_create", methods={"POST"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
@@ -173,8 +168,8 @@ class ContainerController extends Controller
         $containerId = $request->get('container_id');
         $namespaceId = $request->get('namespace_id');
 
-        $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($containerId);
-        $namespace = $this->getDoctrine()->getRepository('AppBundle:OntoNamespace')->find($namespaceId);
+        $container = $this->getDoctrine()->getRepository(Container::class)->find($containerId);
+        $namespace = $this->getDoctrine()->getRepository(OntoNamespace::class)->find($namespaceId);
 
         if (!$container || !$namespace) {
             return new JsonResponse(['status' => 'Error', 'message' => 'Container or Namespace not found'], 404);
@@ -198,8 +193,7 @@ class ContainerController extends Controller
     }
 
     /**
-     * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete")
-     * @Method("DELETE")
+     * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete", methods={"DELETE"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
@@ -210,8 +204,8 @@ class ContainerController extends Controller
         $containerId = $request->get('containerId');
         $namespaceId = $request->get('namespaceId');
 
-        $container = $this->getDoctrine()->getRepository('AppBundle:Container')->find($containerId);
-        $namespace = $this->getDoctrine()->getRepository('AppBundle:OntoNamespace')->find($namespaceId);
+        $container = $this->getDoctrine()->getRepository(Container::class)->find($containerId);
+        $namespace = $this->getDoctrine()->getRepository(OntoNamespace::class)->find($namespaceId);
 
         $container->removeNamespace($namespace);
         $container->setModifier($this->getUser());

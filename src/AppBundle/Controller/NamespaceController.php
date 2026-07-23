@@ -35,9 +35,8 @@ use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\SimpleType\VerticalJc;
 use PhpOffice\PhpWord\Style\Language;
 use PhpOffice\PhpWord\TemplateProcessor;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Form\FormError;
@@ -48,7 +47,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
-class NamespaceController extends Controller
+class NamespaceController extends AbstractController
 {
     /**
      * @Route("/namespace")
@@ -57,7 +56,7 @@ class NamespaceController extends Controller
     {
         $em = $this->getDoctrine()->getManager();
 
-        $namespaces = $em->getRepository('AppBundle:OntoNamespace')
+        $namespaces = $em->getRepository(OntoNamespace::class)
             ->findAll();
         //->findAllOrderedById();
 
@@ -88,8 +87,8 @@ class NamespaceController extends Controller
         $ongoingNamespaceLabel = new Label();
 
         $em = $this->getDoctrine()->getManager();
-        $systemTypeDescription = $em->getRepository('AppBundle:SystemType')->find(16); //systemType 16 = Description
-        $systemTypeContributors = $em->getRepository('AppBundle:SystemType')->find(2); //systemType 2 = Contributors
+        $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = Description
+        $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); //systemType 2 = Contributors
 
         $description = new TextProperty();
         $description->setNamespace($namespace);
@@ -118,7 +117,7 @@ class NamespaceController extends Controller
         $txtpContributors = new TextProperty();
         $txtpContributors->setSystemType($txtpContributors);
 
-        $allNamespaces = $em->getRepository('AppBundle:OntoNamespace')->findAll();
+        $allNamespaces = $em->getRepository(OntoNamespace::class)->findAll();
         $allLabels = new ArrayCollection();
 
         foreach ($allNamespaces as $var_namespace) {
@@ -217,10 +216,10 @@ class NamespaceController extends Controller
             $ongoingNamespace->addTextProperty($contributors);
 
             // Créer les entity_to_user_project pour les activer par défaut
-            $userProjectAssociations = $em->getRepository('AppBundle:UserProjectAssociation')->findByProject($project);
+            $userProjectAssociations = $em->getRepository(UserProjectAssociation::class)->findByProject($project);
             foreach ($userProjectAssociations as $userProjectAssociation) {
                 $eupa = new EntityUserProjectAssociation();
-                $systemTypeSelected = $em->getRepository('AppBundle:SystemType')->find(25); //systemType 25 = Selected namespace for user preference
+                $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
                 $eupa->setNamespace($ongoingNamespace);
                 $eupa->setUserProjectAssociation($userProjectAssociation);
                 $eupa->setSystemType($systemTypeSelected);
@@ -243,7 +242,7 @@ class NamespaceController extends Controller
 
         }
 
-        $rootNamespaces = $em->getRepository('AppBundle:OntoNamespace')
+        $rootNamespaces = $em->getRepository(OntoNamespace::class)
             ->findBy(array("isTopLevelNamespace" => true), array("standardLabel" => "ASC"));
         $rootNamespaces = array_filter($rootNamespaces, function ($v) {
             return $v->getId() != 5;
@@ -266,7 +265,7 @@ class NamespaceController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         $textProperties = $em
-            ->getRepository('AppBundle:TextProperty')
+            ->getRepository(TextProperty::class)
             ->findBy(array("namespaceForVersion" => $namespace->getId()));
         return $this->render('namespace/show.html.twig', array(
             'namespace' => $namespace,
@@ -291,24 +290,24 @@ class NamespaceController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $rootNamespacesBrut = $em->getRepository('AppBundle:OntoNamespace')
+        $rootNamespacesBrut = $em->getRepository(OntoNamespace::class)
             ->findAllNonAssociatedToNamespaceByNamespaceId($namespace);
 
         $rootNamespaces = new ArrayCollection();
         foreach ($rootNamespacesBrut as $rootNamespace) {
-            $rootNamespaces->add($em->getRepository('AppBundle:OntoNamespace')->find($rootNamespace['id']));
+            $rootNamespaces->add($em->getRepository(OntoNamespace::class)->find($rootNamespace['id']));
         }
         $rootNamespaces = $rootNamespaces->filter(function ($v) {
             return $v->getId() != 5;
         });
 
         $textProperties = $em
-            ->getRepository('AppBundle:TextProperty')
+            ->getRepository(TextProperty::class)
             ->findBy(array("namespaceForVersion" => $namespace->getId()));
 
         if ($this->isGranted('full_edit', $namespace)) {
 
-            $ongoingNamespaceHasChanged = $em->getRepository('AppBundle:OntoNamespace')
+            $ongoingNamespaceHasChanged = $em->getRepository(OntoNamespace::class)
                 ->checkNamespaceChange($namespace);
 
             $isRoot = $namespace->getIsTopLevelNamespace();
@@ -451,10 +450,10 @@ class NamespaceController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $newNamespaceId = $em->getRepository('AppBundle:OntoNamespace')
+        $newNamespaceId = $em->getRepository(OntoNamespace::class)
             ->publishNamespace($namespace);
 
-        $newNamespace = $em->getRepository('AppBundle:OntoNamespace')->findOneBy(['id' => $newNamespaceId]);
+        $newNamespace = $em->getRepository(OntoNamespace::class)->findOneBy(['id' => $newNamespaceId]);
 
         $newNamespaceLabel = new Label();
         $newNamespaceLabel->setIsStandardLabelForLanguage(true);
@@ -479,8 +478,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{id}/toggle-automatic-identifier-management", name="namespace_toggle_identifier_management", requirements={"id"="^[0-9]+$"})
-     * @Method("GET")
+     * @Route("/namespace/{id}/toggle-automatic-identifier-management", name="namespace_toggle_identifier_management", requirements={"id"="^[0-9]+$"}, methods={"POST"})
      * @param OntoNamespace $namespace
      * @return JsonResponse
      */
@@ -517,8 +515,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/root-namespace/{id}/json", name="namespaces_by_root_id_list_json", requirements={"id"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method("GET")
+     * @Route("/namespace/root-namespace/{id}/json", name="namespaces_by_root_id_list_json", requirements={"id"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
      * @param OntoNamespace $rootNamespace The root namespace
      * @return JsonResponse a Json formatted namespaces list
      */
@@ -573,15 +570,14 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/profile/{id}/json", name="root_namespaces_list_for_profile_json", requirements={"id"="^[0-9]+$"})
-     * @Method("GET")
+     * @Route("/namespace/profile/{id}/json", name="root_namespaces_list_for_profile_json", requirements={"id"="^[0-9]+$"}, methods={"GET"})
      * @param Profile $profile The profile to be associated with a namespace
      * @return JsonResponse a Json formatted namespaces list
      */
     public function getRootNamespacesForAssociationWithProfile(Profile $profile)
     {
         $em = $this->getDoctrine()->getManager();
-        $rootNamespaces = $em->getRepository('AppBundle:OntoNamespace')
+        $rootNamespaces = $em->getRepository(OntoNamespace::class)
             ->findAllNonAssociatedToProfileByProfileId($profile);
 
         if (!is_null($rootNamespaces)) {
@@ -602,23 +598,21 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{id}/json", name="namespace_json", schemes={"https"}, requirements={"id"="^[0-9]+"})
-     * @Method("GET")
+     * @Route("/namespace/{id}/json", name="namespace_json", schemes={"https"}, requirements={"id"="^[0-9]+"}, methods={"GET"})
      * @param OntoNamespace $namespace
      * @return JsonResponse a Json formatted graph representation of Namespaces
      */
     public function getGraphJson(OntoNamespace $namespace)
     {
         $em = $this->getDoctrine()->getManager();
-        $namespaces = $em->getRepository('AppBundle:OntoNamespace')
+        $namespaces = $em->getRepository(OntoNamespace::class)
             ->findNamespacesGraph($namespace);
 
         return new JsonResponse($namespaces[0]['json'], 200, array(), true);
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add", name="namespace_referenced_namespace_association", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method({ "POST"})
+     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add", name="namespace_referenced_namespace_association", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
      * @param OntoNamespace $namespace The namespace to be associated with a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be associated with a namespace
      * @return JsonResponse a Json formatted namespaces list
@@ -630,7 +624,7 @@ class NamespaceController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $referencedNamespaceAssociation = $em->getRepository('AppBundle:ReferencedNamespaceAssociation')
+        $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
 
         if ($namespace->getIsTopLevelNamespace()) {
@@ -668,8 +662,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete", name="namespace_referenced_namespace_disassociation", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method({ "DELETE"})
+     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete", name="namespace_referenced_namespace_disassociation", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
      * @param OntoNamespace $namespace The namespace to be disassociated from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be disassociated from a namespace
      * @return JsonResponse
@@ -680,7 +673,7 @@ class NamespaceController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $referencedNamespaceAssociation = $em->getRepository('AppBundle:ReferencedNamespaceAssociation')
+        $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
 
         $em->remove($referencedNamespaceAssociation);
@@ -698,8 +691,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change", name="namespace_referenced_namespace_change", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(oldRefNsId){1}$", "newReferencedNamespace"="^([0-9]+)|(newRefNsId){1}$"})
-     * @Method({ "GET"})
+     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change", name="namespace_referenced_namespace_change", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(oldRefNsId){1}$", "newReferencedNamespace"="^([0-9]+)|(newRefNsId){1}$"}, methods={"GET"})
      * @param OntoNamespace $namespace The namespace to be changed from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be changed from a namespace
      * @return JsonResponse
@@ -710,7 +702,7 @@ class NamespaceController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $referencedNamespaceAssociation = $em->getRepository('AppBundle:ReferencedNamespaceAssociation')
+        $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
 
         $referencedNamespaceAssociation->setReferencedNamespace($newReferencedNamespace);
@@ -815,8 +807,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{namespace}/choices", name="get_choices_namespaces", requirements={"namespace"="^([0-9]+)|(selectedValue){1}$"})
-     * @Method({ "GET"})
+     * @Route("/namespace/{namespace}/choices", name="get_choices_namespaces", requirements={"namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
      * @param OntoNamespace $namespace The namespace
      * @return JsonResponse
      * Cette fonction retrouve les espaces de noms soeurs
@@ -839,8 +830,7 @@ class NamespaceController extends Controller
     }
 
     /**
-     * @Route("/namespace/{namespace}/document", name="namespace_document", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$"})
-     * @Method({ "GET"})
+     * @Route("/namespace/{namespace}/document", name="namespace_document", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$"}, methods={"GET"})
      * @param OntoNamespace $namespace The namespace
      * @return BinaryFileResponse
      */
@@ -864,7 +854,7 @@ class NamespaceController extends Controller
 
         $allNamespacesReferences = $namespace->getAllReferencedNamespaces();
         $allNamespacesReferences->add($namespace);
-        $allNamespacesReferences->add($em->getRepository('AppBundle:OntoNamespace')->findOneBy(array('id' => 4)));
+        $allNamespacesReferences->add($em->getRepository(OntoNamespace::class)->findOneBy(array('id' => 4)));
         //var_dump($allNamespacesReferences->map(function($v){return $v->getId();})->toArray()); die;
 
         foreach ($namespace->getTextProperties()->filter(function ($v) {
@@ -1653,8 +1643,8 @@ class NamespaceController extends Controller
 
             $i = 0;
             $em = $this->getDoctrine()->getManager();
-            //$outgoingProperties = $em->getRepository('AppBundle:property')->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
-            $outgoingProperties = $em->getRepository('AppBundle:property')->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(function ($v) {
+            //$outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
+            $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(function ($v) {
                 return $v->getId();
             })->toArray());
             foreach ($outgoingProperties as $outgoingProperty) {
@@ -1663,7 +1653,7 @@ class NamespaceController extends Controller
                     $section->addText('Properties:', "gras");
                     $i++;
                 }
-                $propertyVersion = $em->getRepository('AppBundle:PropertyVersion')->findOneBy(array("property" => $outgoingProperty['propertyId'], "namespaceForVersion" => $outgoingProperty['propertyNamespaceId']));
+                $propertyVersion = $em->getRepository(PropertyVersion::class)->findOneBy(array("property" => $outgoingProperty['propertyId'], "namespaceForVersion" => $outgoingProperty['propertyNamespaceId']));
                 $section->addText($propertyVersion->getInvertedLabel() . ": " . $propertyVersion->getRange()->getIdentifierInNamespace() . ' ' . $propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel(), null, array('indentation' => array('left' => 1100)));
             }
         }

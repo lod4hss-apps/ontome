@@ -33,7 +33,7 @@ class PropertyVersionRepository extends EntityRepository
         $stmt = $conn->prepare($sql);
         $stmt->execute(array_merge(array($property->getId()), $namespacesId));
 
-        return $em->getRepository('AppBundle:PropertyVersion')->find($stmt->fetch()['pk_property_version']);
+        return $em->getRepository(PropertyVersion::class)->find($stmt->fetch()['pk_property_version']);
     }
 
     /**
@@ -54,7 +54,7 @@ class PropertyVersionRepository extends EntityRepository
         $stmt = $conn->prepare($sql);
         $stmt->execute(array($propertyId));
 
-        return $em->getRepository('AppBundle:PropertyVersion')->find($stmt->fetch()['pk_property_version']);
+        return $em->getRepository(PropertyVersion::class)->find($stmt->fetch()['pk_property_version']);
     }
 
     public function findIdAndStandardLabelOfPropertiesVersionByNamespacesId(array $namespacesId)

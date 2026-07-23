@@ -21,8 +21,6 @@ framework:
     csrf_protection: ~
     validation:      { enable_annotations: true }
     #serializer:      { enable_annotations: true }
-    templating:
-        engines: ['twig']
     default_locale:  "%locale%"
     trusted_hosts:   ~
     session:
@@ -44,6 +42,7 @@ twig:
     form_themes:
         - bootstrap_3_layout.html.twig
         - _formTheme.html.twig
+    exception_controller: null
 
 # Doctrine Configuration
 doctrine:
@@ -109,3 +108,7 @@ stof_doctrine_extensions:
     orm:
         pgsql:
             sluggable: true
+
+sensio_framework_extra:
+    router:
+        annotations: false

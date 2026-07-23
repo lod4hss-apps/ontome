@@ -9,21 +9,19 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Project;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Annotation\Route;
 
-class ApiController extends Controller
+class ApiController extends AbstractController
 {
 
 
     /**
-     * @Route("/api/classes/project/{project}/json", name="classes_project_json", requirements={"project"="^[0-9]+$"})
-     * @Method("GET")
+     * @Route("/api/classes/project/{project}/json", name="classes_project_json", requirements={"project"="^[0-9]+$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
@@ -31,7 +29,7 @@ class ApiController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findClassesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
@@ -47,8 +45,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/properties/project/{project}/json", name="properties_project_json", requirements={"project"="^[0-9]+$"})
-     * @Method("GET")
+     * @Route("/api/properties/project/{project}/json", name="properties_project_json", requirements={"project"="^[0-9]+$"}, methods={"GET"})
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Property related to a Project
      */
@@ -56,7 +53,7 @@ class ApiController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findPropertiesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
@@ -71,8 +68,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/profiles.json", name="api_profiles_json")
-     * @Method("GET")
+     * @Route("/api/profiles.json", name="api_profiles_json", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of profiles
      */
@@ -84,7 +80,7 @@ class ApiController extends Controller
             $owningProject = intval($request->get('owned-by-project', 0));
 
             $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository('AppBundle:Profile')
+            $profiles = $em->getRepository(Profile::class)
                 ->findProfilesApi($lang, $selectingProject, $owningProject);
 
         } catch (\Exception $e) {
@@ -105,8 +101,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/classes-profile.json", name="api_classes_profile_json")
-     * @Method("GET")
+     * @Route("/api/classes-profile.json", name="api_classes_profile_json", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of classes with profile
      */
@@ -118,7 +113,7 @@ class ApiController extends Controller
             $selectedByProject = intval($request->get('selected-by-project', 0));
 
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findClassesWithProfileApi($lang, $availableInProfile, $selectedByProject);
 
         } catch (\Exception $e) {
@@ -139,8 +134,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/properties-profile.json", name="api_properties_profile_json")
-     * @Method("GET")
+     * @Route("/api/properties-profile.json", name="api_properties_profile_json", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of properties with profile
      */
@@ -152,7 +146,7 @@ class ApiController extends Controller
             $selectedByProject = intval($request->get('selected-by-project', 0));
 
             $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository('AppBundle:Property')
+            $properties = $em->getRepository(Property::class)
                 ->findPropertiesWithProfileApi($lang, $availableInProfile, $selectedByProject);
 
         } catch (\Exception $e) {
@@ -173,8 +167,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/shacl-profile.ttl", name="api_shacl_profile")
-     * @Method("GET")
+     * @Route("/api/shacl-profile.ttl", name="api_shacl_profile", methods={"GET"})
      */
     public function getShaclWithProfile(Request $request)
     {
@@ -183,7 +176,7 @@ class ApiController extends Controller
             $profileId = intval($request->get('profile-id', 0));
 
             $em = $this->getDoctrine()->getManager();
-            $output = $em->getRepository('AppBundle:Profile')
+            $output = $em->getRepository(Profile::class)
                 ->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
@@ -200,8 +193,7 @@ class ApiController extends Controller
 
 
     /**
-     * @Route("/api/namespaces-rdf-owl.rdf", name="api_classes_and_properties_by_namespace_xml")
-     * @Method("GET")
+     * @Route("/api/namespaces-rdf-owl.rdf", name="api_classes_and_properties_by_namespace_xml", methods={"GET"})
      * @param Request $request
      * @return Response
      */
@@ -211,7 +203,7 @@ class ApiController extends Controller
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('namespace', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:OntoNamespace')
+            $xml = $em->getRepository(OntoNamespace::class)
                 ->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -227,8 +219,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace")
-     * @Method("GET")
+     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace", methods={"GET"})
      * @param Request $request
      * @return Response
      */
@@ -260,13 +251,13 @@ class ApiController extends Controller
             if (!file_exists($owlFilePath) || $reload) {
                 // In this case, we generate the XML with the SQL query.
                 $em = $this->getDoctrine()->getManager();
-                $xml = $em->getRepository('AppBundle:OntoNamespace')
+                $xml = $em->getRepository(OntoNamespace::class)
                     ->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
 
                 // The file is saved if the namespace is not ongoing.
                 // unless $persistent is false, we do not save
                 if ($persistent) {
-                    $isOngoing = $em->getRepository('AppBundle:OntoNamespace')->find($namespaceId)->getIsOngoing();
+                    $isOngoing = $em->getRepository(OntoNamespace::class)->find($namespaceId)->getIsOngoing();
                     if (!$isOngoing) {
                         $xmlContent = simplexml_load_string($xml[0]['result']);
                         if ($xmlContent !== false) {
@@ -295,8 +286,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/project-rdf-owl.rdf", name="api_classes_and_properties_by_project_xml")
-     * @Method("GET")
+     * @Route("/api/project-rdf-owl.rdf", name="api_classes_and_properties_by_project_xml", methods={"GET"})
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this project
      */
@@ -306,7 +296,7 @@ class ApiController extends Controller
             $lang = $request->get('lang', 'en');
             $projectId = intval($request->get('project', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Project')
+            $xml = $em->getRepository(Project::class)
                 ->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -322,8 +312,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/profile-rdf-owl.rdf", name="api_classes_and_properties_by_profile_xml")
-     * @Method("GET")
+     * @Route("/api/profile-rdf-owl.rdf", name="api_classes_and_properties_by_profile_xml", methods={"GET"})
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
@@ -333,7 +322,7 @@ class ApiController extends Controller
             $lang = $request->get('lang', 'en');
             $profileId = intval($request->get('profile', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Profile')
+            $xml = $em->getRepository(Profile::class)
                 ->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -349,8 +338,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/namespaces-rdfs.rdf", name="api_classes_and_properties_by_namespace_xml_rdfs")
-     * @Method("GET")
+     * @Route("/api/namespaces-rdfs.rdf", name="api_classes_and_properties_by_namespace_xml_rdfs", methods={"GET"})
      * @param Request $request
      * @return Response
      */
@@ -362,7 +350,7 @@ class ApiController extends Controller
             $withInverseProperties = intval($request->get('withInverseProperties', 0));
             $withSpecificUri = intval($request->get('withSpecificUri', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:OntoNamespace')
+            $xml = $em->getRepository(OntoNamespace::class)
                 ->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId, $withInverseProperties, $withSpecificUri);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -381,8 +369,7 @@ class ApiController extends Controller
     }
     
     /**
-     * @Route("/api/profile-rdfs.rdf", name="api_classes_and_properties_by_profile_xml_rdfs")
-     * @Method("GET")
+     * @Route("/api/profile-rdfs.rdf", name="api_classes_and_properties_by_profile_xml_rdfs", methods={"GET"})
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
@@ -392,7 +379,7 @@ class ApiController extends Controller
             $lang = $request->get('lang', 'en');
             $profileId = intval($request->get('profile', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Profile')
+            $xml = $em->getRepository(Profile::class)
                 ->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -412,8 +399,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project")
-     * @Method("GET")
+     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project", methods={"GET"})
      * @param Request $request
      * @return Response
      */
@@ -423,7 +409,7 @@ class ApiController extends Controller
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('project', 0));
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Project')
+            $xml = $em->getRepository(Project::class)
                 ->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -439,8 +425,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container")
-     * @Method("GET")
+     * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container", methods={"GET"})
      * @param Request $request
      * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
      */
@@ -455,7 +440,7 @@ class ApiController extends Controller
 
             // Récupérer le container
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Container')->findNamespacesByContainerIdApi($lang, $containerId);
+            $xml = $em->getRepository(Container::class)->findNamespacesByContainerIdApi($lang, $containerId);
 
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -476,8 +461,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(containerId){1}$"})
-     * @Method("GET")
+     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(containerId){1}$"}, methods={"GET"})
      * @param Request $request
      * @return Response a XML formatted response of namespaces and pathbuilders related to this container
      */
@@ -489,7 +473,7 @@ class ApiController extends Controller
 
             // Récupérer le container
             $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository('AppBundle:Container')->findContainerApi($containerId);
+            $xml = $em->getRepository(Container::class)->findContainerApi($containerId);
 
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -505,8 +489,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/classes-type-descendants/label/{label}/json", name="classes_type_descendants_json", requirements={"label"="^[a-zA-Z0-9 -]+$"})
-     * @Method("GET")
+     * @Route("/api/classes-type-descendants/label/{label}/json", name="classes_type_descendants_json", requirements={"label"="^[a-zA-Z0-9 -]+$"}, methods={"GET"})
      * @param String $label the class label to find
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
@@ -514,7 +497,7 @@ class ApiController extends Controller
     {
         try {
             $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository('AppBundle:OntoClass')
+            $classes = $em->getRepository(OntoClass::class)
                 ->findE55ChildClassesFromLabel($label);
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -534,8 +517,7 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/api/get-ontome-uri", name="api_get_ontome_uri")
-     * @Method("GET")
+     * @Route("/api/get-ontome-uri", name="api_get_ontome_uri", methods={"GET"})
      * @param Request $request the request containing the officialUri parameter
      * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
      * This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
@@ -549,7 +531,7 @@ class ApiController extends Controller
         }
 
         $em = $this->getDoctrine()->getManager();
-        $ontomeUri = $em->getRepository('AppBundle:Project')
+        $ontomeUri = $em->getRepository(Project::class)
             ->findOntoMeUriFromOfficialUri($officialUri);
 
         if (!$ontomeUri) {

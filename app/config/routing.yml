@@ -5,7 +5,7 @@ app:
 home:
     path: /
     defaults:
-        _controller: AppBundle:Main:homepage
+        _controller: AppBundle\Controller\MainController::homepageAction
 
 api:
     resource: "@AppBundle/Controller/ApiController.php"
