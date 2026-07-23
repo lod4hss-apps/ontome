@@ -56,7 +56,7 @@ class UserController extends AbstractController
      * @param Request $request
      * @return Response a response instance
      */
-    public function registerAction(Request $request, LoginFormAuthenticator $authenticator, \Symfony\Component\Mailer\MailerInterface $mailer, GuardAuthenticatorHandler $guardAuthenticatorHandler)
+    public function registerAction(Request $request, LoginFormAuthenticator $authenticator, \Swift_Mailer $mailer, GuardAuthenticatorHandler $guardAuthenticatorHandler)
     {
         $form = $this->createForm(UserRegistrationForm::class);
 
@@ -78,15 +78,15 @@ class UserController extends AbstractController
             $em->flush();
 
             //send Welcome e-mail
-            $email = (new \Symfony\Component\Mime\Email())
-                ->from('ontome@dataforhistory.org')
-                ->to($user->getEmail())
-                ->subject('[OntoME] Welcome to OntoME!')
-                ->html(
+            $email = (new \Swift_Message('[OntoME] Welcome to OntoME!'))
+                ->setFrom('ontome@dataforhistory.org')
+                ->setTo($user->getEmail())
+                ->setBody(
                     $this->renderView(
                         'email/registration.html.twig',
                         array('user' => $user)
-                    )
+                    ),
+                    'text/html'
                 );
 
             $mailer->send($email);
@@ -120,7 +120,7 @@ class UserController extends AbstractController
      * @param Request $request
      * @return Response a response instance
      */
-    public function requestPasswordAction(Request $request, \Symfony\Component\Mailer\MailerInterface $mailer)
+    public function requestPasswordAction(Request $request, \Swift_Mailer $mailer)
     {
         $tmpUser = new User();
 
@@ -139,15 +139,15 @@ class UserController extends AbstractController
                 $em->persist($user);
                 $em->flush();
 
-                $email = (new \Symfony\Component\Mime\Email())
-                    ->from('ontome@dataforhistory.org')
-                    ->to($user->getEmail())
-                    ->subject('[OntoME] Reset password request')
-                    ->html(
+                $email = (new \Swift_Message('[OntoME] Reset password request'))
+                    ->setFrom('ontome@dataforhistory.org')
+                    ->setTo($user->getEmail())
+                    ->setBody(
                         $this->renderView(
                             'email/requestPassword.html.twig',
                             array('user' => $user)
-                        )
+                        ),
+                        'text/html'
                     );
                 $mailer->send($email);
                 $this->addFlash('success', 'An e-mail has been sent.');
@@ -221,19 +221,19 @@ class UserController extends AbstractController
     /**
      * @Route("/user/test-mail")
      */
-    public function testMailAction(\Symfony\Component\Mailer\MailerInterface $mailer)
+    public function testMailAction(\Swift_Mailer $mailer)
     {
         $user = $this->getUser();
         //send Welcome e-mail
-        $email = (new \Symfony\Component\Mime\Email())
-            ->from('ontome@dataforhistory.org')
-            ->to($user->getEmail())
-            ->subject('[OntoME] Welcome to OntoME!')
-            ->html(
+        $email = (new \Swift_Message('[OntoME] Welcome to OntoME!'))
+            ->setFrom('ontome@dataforhistory.org')
+            ->setTo($user->getEmail())
+            ->setBody(
                 $this->renderView(
                     'email/registration.html.twig',
                     array('user' => $user)
-                )
+                ),
+                'text/html'
             );
 
         $mailer->send($email);
