@@ -18,3 +18,16 @@
 /web/bundles/
 /web/documents/ontome-terms-of-service-2018-12-01.pdf
 /web/images/Logo_LARHRA_Coul_Seul_131.png
+web/documents/namespace-symogih.orgontologyv.1.3ongoing.docx
+web/documents/files-import/import258.xml
+web/documents/files-import/import262.xml
+web/documents/files-owl/namespace-246.owl
+web/images/geovistory-logo.svg
+web/images/larhra-bleu-blanc-full.jpg
+web/images/larhra-noir-blanc-full.jpg
+web/images/Logo_LARHRA_Coul_Seul_340.png
+web/images/logo.png
+.env
+.env.local
+.env.phn-dev
+.gitignore
