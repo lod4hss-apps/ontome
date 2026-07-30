@@ -32,6 +32,9 @@ framework:
     assets: ~
     php_errors:
         log: true
+    mailer:
+        dsn: '%mailer_dsn%'
+    
 
 # Twig Configuration
 twig:
@@ -115,3 +118,4 @@ sensio_framework_extra:
 
 doctrine_migrations:
     dir_name: "%kernel.project_dir%/src/Migrations"
+

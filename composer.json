@@ -24,6 +24,7 @@
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^2.2",
         "doctrine/orm": "^2.12",
+        "egulias/email-validator": "^3.2",
         "laminas/laminas-escaper": "^2.8",
         "laminas/laminas-stdlib": "^3.10",
         "laminas/laminas-validator": "^2.19",
