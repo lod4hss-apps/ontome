@@ -34,7 +34,7 @@ class UserRegistrationForm extends AbstractType
         ]);
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'app_bundle_user_registration_form';
     }

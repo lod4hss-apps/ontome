@@ -23,7 +23,7 @@ class OntoNamespaceVoter extends Voter
     const VALIDATE = 'validate';
     const PUBLISH = 'publish';
 
-    protected function supports($attribute, $subject)
+    protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
         if (!in_array($attribute, array(self::EDIT, self::FULLEDIT, self::ADDASSOCIATIONS, self::DELETEASSOCIATIONS, self::VALIDATE, self::PUBLISH))) {
@@ -38,7 +38,7 @@ class OntoNamespaceVoter extends Voter
         return true;
     }
 
-    protected function voteOnAttribute($attribute, $subject, TokenInterface $token)
+    protected function voteOnAttribute($attribute, $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
 

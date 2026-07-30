@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManager;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -54,12 +55,12 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $this->passwordHasher = $passwordHasher;
     }
 
-    public function supports(Request $request)
+    public function supports(Request $request): bool
     {
         return $request->getPathInfo() == '/login' && $request->isMethod('POST');
     }
 
-    public function getCredentials(Request $request)
+    public function getCredentials(Request $request): mixed
     {
         $session = $request->getSession();
         if(!is_null($request->get('_target_path'))
@@ -82,7 +83,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         return $data;
     }
 
-    public function getUser($credentials, UserProviderInterface $userProvider)
+    public function getUser($credentials, UserProviderInterface $userProvider): ?UserInterface
     {
         $username = $credentials['_username'];
 
@@ -91,7 +92,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
 
     }
 
-    public function checkCredentials($credentials, UserInterface $user)
+    public function checkCredentials($credentials, UserInterface $user): bool
     {
         $password = $credentials['_password'];
         if ($this->passwordHasher->isPasswordValid($user, $password)) {
@@ -101,12 +102,12 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         return false;
     }
 
-    protected function getLoginUrl()
+    protected function getLoginUrl(): string
     {
         return $this->router->generate('security_login');
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey): ?Response
     {
         $session = $request->getSession();
         $targetPath = null;

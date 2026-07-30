@@ -17,7 +17,7 @@ class UserVoter extends Voter
 {
     const EDIT = 'edit';
 
-    protected function supports($attribute, $subject)
+    protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
         if (!in_array($attribute, array(self::EDIT))) {
@@ -32,7 +32,7 @@ class UserVoter extends Voter
         return true;
     }
 
-    protected function voteOnAttribute($attribute, $subject, TokenInterface $token)
+    protected function voteOnAttribute($attribute, $subject, TokenInterface $token): bool
     {
         $user = $token->getUser();
 
