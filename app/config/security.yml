@@ -1,7 +1,9 @@
 # To get started with security, check out the documentation:
 # http://symfony.com/doc/current/security.html
 security:
-    encoders:
+    enable_authenticator_manager: true
+
+    password_hashers:
         AppBundle\Entity\User: bcrypt
     # http://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
 
@@ -19,7 +21,6 @@ security:
             security: false
 
         main:
-            anonymous: ~
             guard:
                 authenticators:
                     - AppBundle\Security\LoginFormAuthenticator

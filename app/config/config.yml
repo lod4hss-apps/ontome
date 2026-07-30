@@ -17,6 +17,7 @@ framework:
     router:
         resource: "%kernel.project_dir%/config/routing.yml"
         strict_requirements: ~
+        utf8: true
     form:            ~
     csrf_protection: ~
     validation:      { enable_annotations: true }
@@ -26,7 +27,8 @@ framework:
     session:
         # http://symfony.com/doc/current/reference/configuration/framework.html#handler-id
         handler_id:  session.handler.native_file
-        save_path:   "%kernel.project_dir%/../var/sessions/%kernel.environment%"
+        storage_factory_id: session.storage.factory.native
+        save_path:   "%kernel.project_dir%/var/sessions/%kernel.environment%"
     fragments:       ~
     http_method_override: true
     assets: ~
@@ -117,5 +119,6 @@ sensio_framework_extra:
         annotations: false
 
 doctrine_migrations:
-    dir_name: "%kernel.project_dir%/src/Migrations"
+    migrations_paths:
+        'DoctrineMigrations': '%kernel.project_dir%/app/DoctrineMigrations'
 

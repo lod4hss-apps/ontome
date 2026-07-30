@@ -14,7 +14,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * @ORM\Entity(repositoryClass="AppBundle\Repository\UserRepository")
@@ -22,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @UniqueEntity(fields={"email"}, message="This e-mail is already in use.")
  * @UniqueEntity(fields={"login"}, message="This login is already in use.")
  */
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
@@ -157,12 +157,17 @@ class User implements UserInterface
         return $this->login;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
         return $this->login;
     }
 
-    public function getRoles()
+    public function getUserIdentifier(): string
+    {
+        return $this->login;
+    }
+
+    public function getRoles(): array
     {
         $roles = $this->roles;
 
@@ -190,7 +195,7 @@ class User implements UserInterface
         return $this->tokenDate;
     }
 
-    public function getPassword()
+    public function getPassword(): ?string
     {
         return $this->password;
     }
@@ -203,7 +208,7 @@ class User implements UserInterface
         return $this->email;
     }
 
-    public function getSalt()
+    public function getSalt(): ?string
     {
     }
 
