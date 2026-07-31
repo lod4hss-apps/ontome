@@ -4,7 +4,8 @@
     "type": "project",
     "autoload": {
         "psr-4": {
-            "": "src/"
+            "AppBundle\\": "src/AppBundle",
+            "App\\": "src/"
         },
         "classmap": [
             "app/AppKernel.php",
@@ -13,11 +14,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
-        },
-        "files": [
-            "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php"
-        ]
+            "Tests\\AppBundle\\": "tests/AppBundle",
+            "App\\Tests\\": "tests/"
+        }
     },
     "require": {
         "php": ">=7.4.9",
@@ -32,45 +31,48 @@
         "phpoffice/phpword": "^0.18",
         "sensio/framework-extra-bundle": "^6.0",
         "stof/doctrine-extensions-bundle": "^1.7",
+        "symfony/asset": "^5.4",
+        "symfony/console": "^5.4",
+        "symfony/debug-bundle": "^5.4",
         "symfony/doctrine-messenger": "^5.4",
         "symfony/flex": "^1.22",
+        "symfony/form": "^5.4",
+        "symfony/framework-bundle": "^5.4",
         "symfony/mailer": "^5.4",
         "symfony/monolog-bundle": "^3.1",
         "symfony/polyfill-apcu": "^1.0",
-        "symfony/symfony": "^5.4",
+        "symfony/security-bundle": "^5.4",
+        "symfony/translation": "^5.4",
+        "symfony/validator": "^5.4",
+        "symfony/yaml": "^5.4",
         "twig/twig": "^2.12"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "symfony/phpunit-bridge": "^5.4",
-        "symfony/web-profiler-bundle": "^5.4"
+        "symfony/web-profiler-bundle": "^5.4",
+        "symfony/dotenv": "^5.4"
     },
     "scripts": {
-        "symfony-scripts": [
-            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installAssets",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::installRequirementsFile",
-            "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::prepareDeploymentTarget"
-        ],
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        },
         "post-install-cmd": [
-            "@symfony-scripts"
+            "@auto-scripts"
         ],
         "post-update-cmd": [
-            "@symfony-scripts"
+            "@auto-scripts"
         ]
     },
-    "config": {
-        "sort-packages": true,
-        "audit": {
-            "block-insecure": false
-        },
-        "allow-plugins": {
-            "symfony/flex": true
-        }
+    "conflict": {
+        "symfony/symfony": "*"
     },
     "extra": {
+        "symfony": {
+            "allow-contrib": true
+        },
         "symfony-app-dir": "app",
         "symfony-bin-dir": "bin",
         "symfony-var-dir": "var",
@@ -81,5 +83,17 @@
             "file": "app/config/parameters.yml"
         },
         "branch-alias": null
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "audit": {
+            "block-insecure": false
+        },
+        "allow-plugins": {
+            "symfony/flex": true
+        }
     }
 }
