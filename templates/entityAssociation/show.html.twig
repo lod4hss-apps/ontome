@@ -293,7 +293,7 @@
 
                         {% if app.user %}
                             <div class="new-comment-form" id="new-comment-form">
-                                {{ render(controller('AppBundle:Comment:new', {'object' : 'entity-association', 'objectId' : entityAssociation.id})) }}
+                                {{ render(controller('App:Comment:new', {'object' : 'entity-association', 'objectId' : entityAssociation.id})) }}
                             </div>
                         {% endif %}
                     </div>

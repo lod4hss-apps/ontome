@@ -254,7 +254,7 @@
 
                                     {% if app.user %}
                                         <div class="new-comment-form" id="new-comment-form">
-                                            {{ render(controller('AppBundle:Comment:new', {'object' : 'text-property', 'objectId' : textProperty.id})) }}
+                                            {{ render(controller('App:Comment:new', {'object' : 'text-property', 'objectId' : textProperty.id})) }}
                                         </div>
                                     {% endif %}
                                 </div>

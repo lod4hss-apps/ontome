@@ -1,5 +1,13 @@
 twig:
-    default_path: '%kernel.project_dir%/templates'
+    paths: ['%kernel.project_dir%/templates']
+    debug: '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+    number_format:
+        thousands_separator: ','
+    form_themes:
+        - bootstrap_3_layout.html.twig
+        - _formTheme.html.twig
+    exception_controller: null
 
 when@test:
     twig:

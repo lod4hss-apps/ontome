@@ -1,0 +1,50 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Djamel
+ * Date: 22/11/2018
+ * Time: 15:19
+ */
+
+namespace App\Form;
+
+use App\Entity\Project;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class ProjectQuickAddForm extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+            ->add('labels', CollectionType::class, array(
+                'label' => 'Enter a label and select a language',
+                'entry_type' => LabelType::class,
+                'entry_options' => array('label' => false),
+                'error_bubbling' => false,
+                'allow_add' => true,
+                'by_reference' => false,
+            ))
+            ->add('textProperties', CollectionType::class, array(
+                'label' => 'Enter a description and select a language',
+                'entry_type' => TextPropertyType::class,
+                'entry_options' => array('label' => false),
+                'error_bubbling' => false,
+                'allow_add' => true,
+                'by_reference' => false,
+            ));
+    }
+
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults([
+            'data_class' => Project::class,
+            "allow_extra_fields" => true,
+            'validation_groups' => ['Default', 'Description']
+        ]);
+    }
+
+}

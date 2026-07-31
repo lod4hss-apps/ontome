@@ -1171,7 +1171,7 @@
 
                         {% if app.user %}
                             <div class="new-comment-form" id="new-comment-form">
-                                {{ render(controller('AppBundle:Comment:new', {'object' : 'namespace', 'objectId' : namespace.id})) }}
+                                {{ render(controller('App:Comment:new', {'object' : 'namespace', 'objectId' : namespace.id})) }}
                             </div>
                         {% endif %}
                     </div>

@@ -586,7 +586,7 @@
                 <h3>Add a new thesaurus</h3>
                 {% if app.user %}
                     <div class="new-project-thesaurus-association-form" id="new-project-thesaurus-association-form">
-                        {{ render(controller('AppBundle:ProjectThesaurusAssociation:new', {'projectId' : project.id})) }}
+                        {{ render(controller('App:ProjectThesaurusAssociation:new', {'projectId' : project.id})) }}
                     </div>
                 {% endif %}
             </div>

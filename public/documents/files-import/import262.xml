@@ -1,0 +1,2494 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<namespace xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="../references/schemaImportXmlwithReferences.xml">
+  <standardLabel lang="en">DoReMus v0.44</standardLabel>
+  <version>0.2 (05/06/2017)</version>
+  <publishedAt>2018-01-17T23:59:59</publishedAt>
+  <contributors>http://data.doremus.org/organization/DOREMUS</contributors>
+  <referenceNamespace>1</referenceNamespace>
+  <referenceNamespace>6</referenceNamespace>
+  <namespaceURI>http://data.doremus.org/anotheruri</namespaceURI>
+  <description lang="en">DOREMUS is an extension of the FRBRoo model for describing the music.</description>
+  <classes>
+    <class>
+      <identifierInNamespace>M10</identifierInNamespace>
+      <standardLabel lang="en">Catalogue Name</standardLabel>
+      <standardLabel lang="fr">Nom de catalogue</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+      <equivalentClass referenceNamespace="1">E55</equivalentClass>
+      <disjointWith referenceNamespace="1">E33</disjointWith>
+	  <textProperties>
+        <scopeNote lang="fr">A</scopeNote>
+        <example lang="fr">B</example>
+        <contextNote lang="fr">C</contextNote>
+        <bibliographicalNote lang="fr">D</bibliographicalNote>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M11</identifierInNamespace>
+      <standardLabel lang="en">Catalogue Number</standardLabel>
+      <standardLabel lang="fr">Numéro de catalogue</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M12</identifierInNamespace>
+      <standardLabel lang="fr">Numéro d'opus</standardLabel>
+      <standardLabel lang="en">Opus Number</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M13</identifierInNamespace>
+      <standardLabel lang="en">Opus Subnumber</standardLabel>
+      <standardLabel lang="fr">Sous-numéro d'opus</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M14</identifierInNamespace>
+      <standardLabel lang="fr">Distribution instrumentale ou vocale</standardLabel>
+      <standardLabel lang="en">Medium of performance</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M154</identifierInNamespace>
+      <standardLabel lang="en">Label name</standardLabel>
+      <standardLabel lang="fr">Nom du libellé</standardLabel>
+      <subClassOf referenceNamespace="1">E41</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M155</identifierInNamespace>
+      <standardLabel lang="en">Cast statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M156</identifierInNamespace>
+      <standardLabel lang="en">Title statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M157</identifierInNamespace>
+      <standardLabel lang="en">Statement of responsibility</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M158</identifierInNamespace>
+      <standardLabel lang="en">Title and statement of responsability</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M159</identifierInNamespace>
+      <standardLabel lang="en">Edition statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M15</identifierInNamespace>
+      <standardLabel lang="en">Dedication Statement</standardLabel>
+      <standardLabel lang="fr">Mention de dédicace</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M160</identifierInNamespace>
+      <standardLabel lang="en">Publication statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M161</identifierInNamespace>
+      <standardLabel lang="en">Distribution statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M162</identifierInNamespace>
+      <standardLabel lang="en">Series statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M163</identifierInNamespace>
+      <standardLabel lang="en">Music format statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M164</identifierInNamespace>
+      <standardLabel lang="en">Multipart monograph statement</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M165</identifierInNamespace>
+      <standardLabel lang="en">Title proper of series</standardLabel>
+      <standardLabel lang="fr">Titre propre de la série</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M166</identifierInNamespace>
+      <standardLabel lang="en">Title proper of multipart monograph</standardLabel>
+      <standardLabel lang="fr">Titre propre de monographie multipartie</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M167</identifierInNamespace>
+      <standardLabel lang="fr">Fragment d'expression de publication</standardLabel>
+      <standardLabel lang="en">Publication expression fragment</standardLabel>
+      <subClassOf referenceNamespace="6">F23</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M168</identifierInNamespace>
+      <standardLabel lang="en">Media type</standardLabel>
+      <standardLabel lang="fr">Type de média</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M169</identifierInNamespace>
+      <standardLabel lang="en">Carrier type</standardLabel>
+      <standardLabel lang="fr">Type de support</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M16</identifierInNamespace>
+      <standardLabel lang="en">Maintenance</standardLabel>
+      <standardLabel lang="fr">Maintenance</standardLabel>
+      <subClassOf referenceNamespace="1">E11</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M170</identifierInNamespace>
+      <standardLabel lang="en">Binding</standardLabel>
+      <standardLabel lang="fr">Reliure</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M171</identifierInNamespace>
+      <standardLabel lang="en">Container</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M172</identifierInNamespace>
+      <standardLabel lang="en">Colour content</standardLabel>
+      <standardLabel lang="fr">Couleur du contenu</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M173</identifierInNamespace>
+      <standardLabel lang="en">Playing speed</standardLabel>
+      <standardLabel lang="fr">Vitesse de lecture</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M174</identifierInNamespace>
+      <standardLabel lang="en">Content type</standardLabel>
+      <standardLabel lang="fr">Type de contenu</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M175</identifierInNamespace>
+      <standardLabel lang="fr">Format musical</standardLabel>
+      <standardLabel lang="en">Music format</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M17</identifierInNamespace>
+      <standardLabel lang="en">Controlled Access Point Creator</standardLabel>
+      <standardLabel lang="fr">Point d'accès contrôlé créateur</standardLabel>
+      <subClassOf referenceNamespace="6">F50</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Sous-classe de F50 Controlled Access Point, cette classe en reprend les caractéristiques, limitées au « créateur » de l’œuvre.</scopeNote>
+        <example lang="fr">…explosante-fixe… (F22) P1 is identified by F50 Controlled Access Point R8 consists of M17 Controlled Access Point Creator { Boulez, Pierre (1925, …) } and R8 consists of M18 Controlled Access Point Denomination R8 consists of F12 Nomen { …explosante-fixe… }</example>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M18</identifierInNamespace>
+      <standardLabel lang="en">Controlled Access Point Denomination</standardLabel>
+      <standardLabel lang="fr">Point d'accès contrôlé dénomination</standardLabel>
+      <subClassOf referenceNamespace="6">F50</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Sous-classe de F50 Controlled Access Point, cette classe en reprend les caractéristiques, limitées à la « dénomination » de l’œuvre. La dénomination peut être un titre significatif (« Le Sacre du Printemps »), ou un titre composé (« Sonates. Piano. Opus 27 no 2. Do dièse mineur.”)</scopeNote>
+        <example lang="fr">…explosante-fixe… (F22) P1 is identified by F50 Controlled Access Point R8 consists of M17 Controlled Access Point Creator { Boulez, Pierre (1925, …) } and R8 consists of M18 Controlled Access Point Denomination R8 consists of F12 Nomen { …explosante-fixe… }</example>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M19</identifierInNamespace>
+      <standardLabel lang="en">Style</standardLabel>
+      <standardLabel lang="fr">Style</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M1</identifierInNamespace>
+      <standardLabel lang="en">Catalogue Statement</standardLabel>
+      <standardLabel lang="fr">Mention de catalogue</standardLabel>
+      <subClassOf referenceNamespace="1">E41</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe permet de décrire, lorsqu’elles existent, les références de catalogue de l’œuvre musicale. Par catalogue, on comprend tous les catalogues thématiques à proprement parler (donc à l’exclusion des numéros d’opus) ainsi que les classifications spécifiques telles que WoO ou Anh.
+          Selon le niveau de granularité initial, elle est décrite par une simple chaîne de caractères, ou par les objets symboliques M10 Catalogue Name et M11 Catalogue Number qui la composent. La classe M10 Catalogue Name peut-être documentée via la propriété p70i is documented in.</scopeNote>
+        <example lang="fr">La cantate Ich habe genug de JS Bach [BWV 82] (F22) est identifiée par  (M1 Catalogue p3 has note E62 String) BWV 82</example>
+        <example lang="fr">La cantate Ich habe genug de JS Bach [BWV 82] (F22) est identifiée par  (M1 Catalogue p106 is composed of M10 Catalogue Name) BWV et (M1 Catalogue p106 is composed of Catalogue Number) 82.</example>
+        <example lang="fr">Komm, Gott Schöpfer, heiliger Geist. No 1 de JS Bach [BWV deest] (F22) est identifiée par (M1 Catalogue p3 has note E62 String) BWV deest.</example>
+        <example lang="fr">Duncan Gray [WoO 156, no 2] de Beethoven (F22) est identifiée par (M1 Catalogue p106 is composed of M10 Catalogue Name) WoO et (M1 Catalogue p106 is composed of Catalogue Number) 156, no 2.</example>
+        <example lang="fr">La Sonate pour Clavier en Ut majeur de Wilhelm Friedemann Bach identifiée BR A1 par le catalogue Bach Repertorium  et identifiée F200 par le catalogue Fasch (F22) : est identifiée par (M1 Catalogue p106 is composed of M10 Catalogue Name) BR et (M1 Catalogue p106 is composed of Catalogue Number) A1, et est identifiée par (M1 Catalogue p106 is composed of M10 Catalogue Name) F et (M1 Catalogue p106 is composed of Catalogue Number) 200.</example>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M20</identifierInNamespace>
+      <standardLabel lang="en">Music Group Formation</standardLabel>
+      <standardLabel lang="fr">Type de formation musicale ou vocale</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M21</identifierInNamespace>
+      <standardLabel lang="en">Harmonic Structure</standardLabel>
+      <standardLabel lang="fr">Structure Harmonique</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M22</identifierInNamespace>
+      <standardLabel lang="en">Form</standardLabel>
+      <standardLabel lang="fr">Forme</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M23</identifierInNamespace>
+      <standardLabel lang="en">Casting Detail</standardLabel>
+      <standardLabel lang="fr">Détail de la distribution</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe décrit un détail de la distribution prévue par le compositeur, par exemple une sonate pour violon et piano est décrite par deux « composantes » M23 qui sont le violon et le piano. Elle est donc obligatoirement associée à la classe M6 Intended Casting dont elle détaille les composantes. Ces composantes comprennent notamment le ou les medium of performance prévus par le compositeur, l’éventuel rôle soliste du medium of performance, le personnage interprété (par exemple dans un opéra), la tessiture précise.</scopeNote>
+        <example lang="fr">La Sonate pour piano opus 27, no 2 de Beethoven (F22) U13 has intended casting M6 Intended Casting U23 has casting detail M23 Casting Detail U1 has intended medium of performance M35 Cast Medium of Performance U39 has medium of performance M14 Medium of Performance { piano } and P90 has value { 1 }.</example>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M24</identifierInNamespace>
+      <standardLabel lang="fr">Piste</standardLabel>
+      <standardLabel lang="en">Track</standardLabel>
+      <subClassOf>M46</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M25</identifierInNamespace>
+      <standardLabel lang="fr">Activité prévisionnelle</standardLabel>
+      <standardLabel lang="en">Foreseen Activity</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M26</identifierInNamespace>
+      <standardLabel lang="en">Foreseen Performance</standardLabel>
+      <standardLabel lang="fr">Performance prévisionnelle</standardLabel>
+      <subClassOf>M25</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M27</identifierInNamespace>
+      <standardLabel lang="en">Foreseen Individual Performance</standardLabel>
+      <standardLabel lang="fr">Performance individuelle prévisionnelle</standardLabel>
+      <subClassOf>M26</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M28</identifierInNamespace>
+      <standardLabel lang="en">Individual Performance</standardLabel>
+      <standardLabel lang="fr">Performance individuelle</standardLabel>
+      <subClassOf referenceNamespace="6">F31</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M29</identifierInNamespace>
+      <standardLabel lang="en">Editing</standardLabel>
+      <standardLabel lang="fr">Post-production</standardLabel>
+      <subClassOf referenceNamespace="6">F28</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M2</identifierInNamespace>
+      <standardLabel lang="fr">Mention d'opus</standardLabel>
+      <standardLabel lang="en">Opus Statement</standardLabel>
+      <subClassOf referenceNamespace="1">E41</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M30</identifierInNamespace>
+      <standardLabel lang="en">Ambitus</standardLabel>
+      <standardLabel lang="fr">Ambitus</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M31</identifierInNamespace>
+      <standardLabel lang="en">Actor's Function</standardLabel>
+      <standardLabel lang="fr">Fonction de l'agent</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M32</identifierInNamespace>
+      <standardLabel lang="en">Actor's Responsibility</standardLabel>
+      <standardLabel lang="fr">Responsabilité de l'agent</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M33</identifierInNamespace>
+      <standardLabel lang="fr">Ensemble de personnages</standardLabel>
+      <standardLabel lang="en">Set of Characters</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M34</identifierInNamespace>
+      <standardLabel lang="fr">Attribution de récompense</standardLabel>
+      <standardLabel lang="en">Award Assignment</standardLabel>
+      <subClassOf referenceNamespace="1">E13</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M35</identifierInNamespace>
+      <standardLabel lang="fr">Attribution d'Expression publicationnelle représentative</standardLabel>
+      <standardLabel lang="en">Representative Publication Assignment</standardLabel>
+      <subClassOf referenceNamespace="1">E13</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M36</identifierInNamespace>
+      <standardLabel lang="en">Award</standardLabel>
+      <standardLabel lang="fr">Récompense</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M37</identifierInNamespace>
+      <standardLabel lang="fr">Echelle Musicale</standardLabel>
+      <standardLabel lang="en">Music Scale</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M38</identifierInNamespace>
+      <standardLabel lang="fr">Figure Rythmique</standardLabel>
+      <standardLabel lang="en">Rhythmic Pattern</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M39</identifierInNamespace>
+      <standardLabel lang="fr">Attribution de type de dérivation</standardLabel>
+      <standardLabel lang="en">Derivation Type Assignment</standardLabel>
+      <subClassOf referenceNamespace="1">E17</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M3</identifierInNamespace>
+      <standardLabel lang="fr">Numéro d'ordre</standardLabel>
+      <standardLabel lang="en">Order Number</standardLabel>
+      <subClassOf referenceNamespace="1">E41</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M40</identifierInNamespace>
+      <standardLabel lang="en">Context</standardLabel>
+      <standardLabel lang="fr">Contexte</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M41</identifierInNamespace>
+      <standardLabel lang="fr">Indication Métronomique</standardLabel>
+      <standardLabel lang="en">Metronome Indication</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M42</identifierInNamespace>
+      <standardLabel lang="fr">Création d'Expression interprétée</standardLabel>
+      <standardLabel lang="en">Performed Expression Creation</standardLabel>
+      <subClassOf referenceNamespace="6">F28</subClassOf>
+      <subClassOf referenceNamespace="6">F31</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M43</identifierInNamespace>
+      <standardLabel lang="fr">Expression interprétée</standardLabel>
+      <standardLabel lang="en">Performed Expression</standardLabel>
+      <subClassOf referenceNamespace="6">F22</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M44</identifierInNamespace>
+      <standardLabel lang="fr">Oeuvre interprétée</standardLabel>
+      <standardLabel lang="en">Performed Work</standardLabel>
+      <subClassOf referenceNamespace="6">F14</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M45</identifierInNamespace>
+      <standardLabel lang="fr">Attribution d'Expression Descriptive</standardLabel>
+      <standardLabel lang="en">Descriptive Expression Assignment</standardLabel>
+      <subClassOf referenceNamespace="1">E13</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M46</identifierInNamespace>
+      <standardLabel lang="fr">Ensemble de Pistes</standardLabel>
+      <standardLabel lang="en">Set of Tracks</standardLabel>
+      <subClassOf referenceNamespace="6">F22</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">ensemble des pistes constituant un enregistrement publié.</scopeNote>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M47</identifierInNamespace>
+      <standardLabel lang="fr">Numéro de WoO</standardLabel>
+      <standardLabel lang="en">WoO Number</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M48</identifierInNamespace>
+      <standardLabel lang="en">WoO Subnumber</standardLabel>
+      <standardLabel lang="fr">WoO sous-numéro</standardLabel>
+      <subClassOf referenceNamespace="1">E90</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M49</identifierInNamespace>
+      <standardLabel lang="en">Performer status</standardLabel>
+      <standardLabel lang="fr">Statut de l'interprète</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M4</identifierInNamespace>
+      <standardLabel lang="en">Key</standardLabel>
+      <standardLabel lang="fr">Tonalité</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe décrit la tonalité de l’œuvre.
+          Les tonalités sont souvent listées sous forme de référentiels multilingues, c’est pourquoi la classe M4 Key est liée à la classe M7 Linguistic Appellation.</scopeNote>
+        <example lang="fr">Le Concerto pour Piano et orchestre en Si bémol majeur de Beethoven a pour tonalité si bémol majeur :
+          F22 Self-Contained Expression u11 has key M4 Key { Si bémol Majeur }</example>
+      </textProperties>
+      <!--owl:equivalentClass-->
+    </class>
+    <class>
+      <identifierInNamespace>M50</identifierInNamespace>
+      <standardLabel lang="fr">Mode de performance</standardLabel>
+      <standardLabel lang="en">Performance mode</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M51</identifierInNamespace>
+      <standardLabel lang="fr">Type d'équipement d'enregistrement</standardLabel>
+      <standardLabel lang="en">Type of recording equipment</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M52</identifierInNamespace>
+      <standardLabel lang="en">Equalization technique</standardLabel>
+      <standardLabel lang="fr">Technique d'équalisation</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M53</identifierInNamespace>
+      <standardLabel lang="fr">Noise reduction  technique</standardLabel>
+      <standardLabel lang="fr">Technique de réduction de bruit</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M54</identifierInNamespace>
+      <standardLabel lang="en">Sound spatialization technique</standardLabel>
+      <standardLabel lang="fr">Technique de spatialisation du son</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M55</identifierInNamespace>
+      <standardLabel lang="fr">Condition de la performance</standardLabel>
+      <standardLabel lang="en">Condition of performance</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M57</identifierInNamespace>
+      <standardLabel lang="fr">Technique vocale ou instrumentale</standardLabel>
+      <standardLabel lang="en">Vocal or instrumental technique</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M58</identifierInNamespace>
+      <standardLabel lang="fr">Oeuvre de programmation</standardLabel>
+      <standardLabel lang="en">Programming Work</standardLabel>
+      <subClassOf referenceNamespace="6">F14</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M59</identifierInNamespace>
+      <standardLabel lang="en">Program</standardLabel>
+      <standardLabel lang="fr">Programme</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M5</identifierInNamespace>
+      <standardLabel lang="en">Genre</standardLabel>
+      <standardLabel lang="fr">Genre</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M60</identifierInNamespace>
+      <standardLabel lang="en">Intended audience</standardLabel>
+      <standardLabel lang="fr">Public visé</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M61</identifierInNamespace>
+      <standardLabel lang="fr">Type d'oeuvre</standardLabel>
+      <standardLabel lang="en">Work type</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M62</identifierInNamespace>
+      <standardLabel lang="en">Hierarchical level</standardLabel>
+      <standardLabel lang="fr">Niveau hiérarchique</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M6</identifierInNamespace>
+      <standardLabel lang="en">Casting</standardLabel>
+      <standardLabel lang="fr">Distribution vocale ou instrumentale</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe permet de décrire les « medium of performance » d’une œuvre, c’est-à-dire les instruments, machines, exécutants autres que musiciens (danseurs, acteurs, récitants,…) pour lesquels l’œuvre a été composée. Elle décrit donc l’intention du compositeur. M6 Casting est une « classe chapeau » qui représente la globalité de la distribution instrumentale et/ou vocale. Le détail de cette distribution est décrit via la classe M23 Casting Detail.
+          Dans le cas de versions alternatives, on donnera deux M6 Casting différents pour la même expression.</scopeNote>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M7</identifierInNamespace>
+      <standardLabel lang="fr">Appellation linguistique</standardLabel>
+      <standardLabel lang="en">Linguistic Appellation</standardLabel>
+      <subClassOf referenceNamespace="1">E33</subClassOf>
+      <subClassOf referenceNamespace="1">E41</subClassOf>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe permet de décrire une appellation et ses composantes linguistiques. Elle comprend donc les appellations originales et les traductions de ces appellations.</scopeNote>
+      </textProperties>
+    </class>
+    <class>
+      <identifierInNamespace>M8</identifierInNamespace>
+      <standardLabel lang="en">Tempo</standardLabel>
+      <standardLabel lang="fr">Tempo</standardLabel>
+      <subClassOf referenceNamespace="1">E29</subClassOf>
+    </class>
+    <class>
+      <identifierInNamespace>M9</identifierInNamespace>
+      <standardLabel lang="en">Derivation Type</standardLabel>
+      <standardLabel lang="fr">Type de dérivation</standardLabel>
+      <subClassOf referenceNamespace="1">E55</subClassOf>
+    </class>
+  </classes>
+  <properties>
+    <property>
+      <identifierInNamespace>CLU197</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have binding</standardLabel>
+        <inverseLabel>should be binding of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange>M170</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU198</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have container</standardLabel>
+        <inverseLabel>should be the container of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M171</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU206</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have media type</standardLabel>
+        <inverseLabel>should be media type of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange>M168</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU207</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have carrier type</standardLabel>
+        <inverseLabel>should be carrier type of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange>M169</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU210</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have pagination</standardLabel>
+        <inverseLabel>should be pagination of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP43</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU217</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have playing speed</standardLabel>
+        <inverseLabel>should be playing speed of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange>M173</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU223</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have number of tape tracks</standardLabel>
+        <inverseLabel>should be number of tape tracks of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>CLU53</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>should have duration</standardLabel>
+        <inverseLabel>should be duration of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">CLP43</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U11</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has key</standardLabel>
+        <inverseLabel>is key of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M4</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U12</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has genre</standardLabel>
+        <inverseLabel>is genre of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M5</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U13</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has casting</standardLabel>
+        <inverseLabel>is casting of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M6</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U14</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has tempo</standardLabel>
+        <inverseLabel>is tempo of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M8</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U167</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title proper</standardLabel>
+        <inverseLabel>is title proper of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P102</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange referenceNamespace="1">E35</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U168</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel title</standardLabel>
+        <inverseLabel>is parallel title of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P102</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange referenceNamespace="1">E35</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U169</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>was issued under label name</standardLabel>
+      </label>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M154</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U16</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has catalogue statement</standardLabel>
+        <inverseLabel>is catalogue statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P1</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M1</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U170</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title statement</standardLabel>
+        <inverseLabel>is title statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M156</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U171</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel title statement</standardLabel>
+        <inverseLabel>is parallel title statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M156</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U172</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has statement of responsibility relating to title</standardLabel>
+        <inverseLabel>is statement of responsibility relating to title of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M157</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U173</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel statement of responsibility relating to title</standardLabel>
+        <inverseLabel>is parallel statement of responsibility relating to title of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M157</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U174</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has cast statement</standardLabel>
+        <inverseLabel>is cast statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M155</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U175</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel cast statement</standardLabel>
+        <inverseLabel>is parallel cast statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M155</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U176</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has edition statement</standardLabel>
+        <inverseLabel>is edition statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M159</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U177</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel edition statement</standardLabel>
+        <inverseLabel>is parallel edition statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M159</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U178</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has statement of responsibility relating to edition</standardLabel>
+        <inverseLabel>is statement of responsibility relating to edition of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M157</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U179</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel statement of responsibility relating to edition</standardLabel>
+        <inverseLabel>is parallel statement of responsibility relating to edition of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M157</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U17</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has opus statement</standardLabel>
+        <inverseLabel>is opus statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P1</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M2</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U180</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has additional edition statement</standardLabel>
+        <inverseLabel>is additional edition statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M159</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U181</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel additional edition statement</standardLabel>
+        <inverseLabel>is parallel additional edition statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M159</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U182</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has music format statement</standardLabel>
+        <inverseLabel>is music format statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M163</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U183</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has parallel music format statement</standardLabel>
+        <inverseLabel>is parallel music format statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M163</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U184</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has publication statement</standardLabel>
+        <inverseLabel>is publication statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M160</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U185</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has distribution statement</standardLabel>
+        <inverseLabel>is distribution statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M161</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U186</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has printing or manufacture statement</standardLabel>
+        <inverseLabel>is printing or manufacture statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E33</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U187</identifierInNamespace>
+      <label lang="en">
+        <!-- ARHN 12/09/2022 : Coquille sur l'URI de la propriété inverse dans le fichier originel (M187). -->
+        <standardLabel>has multipart monograph statement</standardLabel>
+        <inverseLabel>is multipart monograph statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M164</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U188</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has series statement</standardLabel>
+        <inverseLabel>is series statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M162</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U189</identifierInNamespace>
+      <label lang="en">
+        <!-- ARHN 12/09/2022 : Coquille sur l'URI de la propriété inverse dans le fichier originel (M189). -->
+        <standardLabel>has main series statement</standardLabel>
+        <inverseLabel>is main series statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M162</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U18</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has rhythmic pattern</standardLabel>
+        <inverseLabel>is rhythmic pattern of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M38</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U191</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used equalization technique</standardLabel>
+        <inverseLabel>was technique of equalization</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P32</subPropertyOf>
+      <hasDomain>M29</hasDomain>
+      <hasRange>M52</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U192</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used noise reduction technique</standardLabel>
+        <inverseLabel>was technique of noise reduction</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P32</subPropertyOf>
+      <hasDomain>M29</hasDomain>
+      <hasRange>M53</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U195</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has order or location indication</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F2</hasDomain>
+      <hasRange referenceNamespace="1">E73</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U197</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has binding</standardLabel>
+        <inverseLabel>is binding of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M170</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U198</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has container</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M171</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U19</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is categorized as</standardLabel>
+        <inverseLabel>categorizes</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E1</hasDomain>
+      <hasRange>M19</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U1</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used medium of performance</standardLabel>
+        <inverseLabel>medium of performance was used in</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P125</subPropertyOf>
+      <hasDomain>M28</hasDomain>
+      <hasRange>M14</hasRange>
+      <textProperties>
+        <scopeNote lang="fr">U1 instrument ou voix utilisé pour la performance</scopeNote>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U206</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has media type</standardLabel>
+        <inverseLabel>is media type of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M168</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U207</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has  carrier type</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M169</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U20</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has music group formation</standardLabel>
+        <inverseLabel>is music group formation of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M20</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U210</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has pagination</standardLabel>
+        <inverseLabel>is pagination of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P43</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U214</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has colour content</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M172</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U217</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has playing speed</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange>M173</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U218</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used object of type for mastering</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P125</subPropertyOf>
+      <hasDomain>M29</hasDomain>
+      <hasRange>M51</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U219</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used object of type for mixing</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P125</subPropertyOf>
+      <hasDomain>M29</hasDomain>
+      <hasRange>M51</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U21</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is about actor</standardLabel>
+        <inverseLabel>actor is subject of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P129</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="1">E39</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U220</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title and statement of responsibility</standardLabel>
+        <inverseLabel>is title and statement of responsibility of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F2</hasDomain>
+      <hasRange>M158</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U221</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title proper of series</standardLabel>
+        <inverseLabel>is  title proper of series of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M165</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U222</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title proper of sub-series</standardLabel>
+        <inverseLabel>is title proper of sub-series of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M165</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U223</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has number of tape tracks</standardLabel>
+        <inverseLabel>is number of tape tracks of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P43</subPropertyOf>
+      <hasDomain referenceNamespace="6">F4</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U224</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title proper of multipart monograph</standardLabel>
+        <inverseLabel>is title proper of multipart monograph of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P148</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M166</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U225</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used number of sound channels</standardLabel>
+        <inverseLabel>was sound spatialization technique of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P32</subPropertyOf>
+      <hasDomain referenceNamespace="6">F28</hasDomain>
+      <hasRange>M54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <!-- ARHN 08/09/2022 - U78 retiré car trop peu d'information. -->
+    <property>
+      <identifierInNamespace>U229</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has music format</standardLabel>
+        <inverseLabel>is music format of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M175</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U22</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is about place</standardLabel>
+        <inverseLabel>place is subject of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P129</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="1">E53</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U23</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has casting detail</standardLabel>
+        <inverseLabel>is casting detail of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P69</subPropertyOf>
+      <hasDomain>M6</hasDomain>
+      <hasRange>M23</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U24</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has award</standardLabel>
+        <inverseLabel>is award of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E77</hasDomain>
+      <hasRange>M36</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U25</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has scale</standardLabel>
+        <inverseLabel>is scale of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M37</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U26</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has maintained</standardLabel>
+        <inverseLabel>was maintained by</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P31</subPropertyOf>
+      <hasDomain>M16</hasDomain>
+      <hasRange referenceNamespace="1">E24</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U27</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>performed character</standardLabel>
+        <inverseLabel>character was performed by</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P16</subPropertyOf>
+      <hasDomain>M28</hasDomain>
+      <hasRange referenceNamespace="6">F38</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U28</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has ambitus</standardLabel>
+        <inverseLabel>is ambitus of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F38</hasDomain>
+      <hasRange>M30</hasRange>
+      <textProperties>
+        <scopeNote lang="en">this property allows for describing the tessitura of a character, as can be drawn from the score.</scopeNote>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U29</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>edited</standardLabel>
+        <inverseLabel>was edited by</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P16</subPropertyOf>
+      <hasDomain>M29</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U2</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees use of medium of performance</standardLabel>
+        <inverseLabel>is foreseen type of medium of performance in</inverseLabel>
+      </label>
+      <label lang="fr">
+        <standardLabel>instrument ou voix prévu pour la performance</standardLabel>
+        <inverseLabel>est le type d'instrument ou de voix prévu pour</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange>M14</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U31</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>had function</standardLabel>
+        <inverseLabel>was function of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M31</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U32</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>had responsibility</standardLabel>
+        <inverseLabel>was responsibility of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M32</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U33</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has set of characters</standardLabel>
+        <inverseLabel>is set of characters of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M33</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U34</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees character</standardLabel>
+        <inverseLabel>is foreseen character of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain>M33</hasDomain>
+      <hasRange referenceNamespace="6">F38</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U35</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees function</standardLabel>
+        <inverseLabel>is foreseen function of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange>M31</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U36</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees responsibility</standardLabel>
+        <inverseLabel>is foreseen responsibility of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange>M32</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U37</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees performing character</standardLabel>
+        <inverseLabel>is foreseen character in</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange referenceNamespace="6">F38</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U38</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour expression descriptive</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has descriptive expression</standardLabel>
+        <inverseLabel>is descriptive expression of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">R3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F15</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U39</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has tuned</standardLabel>
+        <inverseLabel>was tuned by</inverseLabel>
+      </label>
+      <subPropertyOf>U26</subPropertyOf>
+      <hasDomain>M16</hasDomain>
+      <hasRange referenceNamespace="1">E22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U40</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has catalogue name</standardLabel>
+        <inverseLabel>is catalogue name of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P106</subPropertyOf>
+      <hasDomain>M1</hasDomain>
+      <hasRange>M10</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U44</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has dedication statement</standardLabel>
+        <inverseLabel>is dedication statement of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M15</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U45</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour indication métronomique</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has metronome indication</standardLabel>
+        <inverseLabel>is metronome indication of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M41</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U46</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occurred in context</standardLabel>
+        <inverseLabel>was context of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U47</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has derivation type</standardLabel>
+        <inverseLabel>is derivation type of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange>M9</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U49</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>created for actor</standardLabel>
+        <inverseLabel>actor motivated</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P15</subPropertyOf>
+      <hasDomain referenceNamespace="6">F28</hasDomain>
+      <hasRange referenceNamespace="1">E39</hasRange>
+      <textProperties>
+        <scopeNote lang="fr">personne ou groupe pour lequel l'Expression a été créée.</scopeNote>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U4</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour édition princeps</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>had princeps publication</standardLabel>
+        <inverseLabel>was princeps publication of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="6">F30</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U51</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is partial or full recording of</standardLabel>
+        <inverseLabel>has partial or full recording</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P130</subPropertyOf>
+      <hasDomain>M46</hasDomain>
+      <hasRange>M43</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U52</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has context</standardLabel>
+        <inverseLabel>is context of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U53</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has duration</standardLabel>
+        <inverseLabel>is duration of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P43</subPropertyOf>
+      <hasDomain referenceNamespace="6">F2</hasDomain>
+      <hasRange referenceNamespace="1">E54</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U54</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is performed expression of</standardLabel>
+        <inverseLabel>has performed expression</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P130</subPropertyOf>
+      <hasDomain>M43</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U55</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>incorporates performed expression</standardLabel>
+        <inverseLabel>performed expression is incorporated in</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P165</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange>M43</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U56</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occurred in historical context</standardLabel>
+        <inverseLabel>was historical context of</inverseLabel>
+      </label>
+      <subPropertyOf>U46</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U57</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occurred in religious context</standardLabel>
+        <inverseLabel>was religious context of</inverseLabel>
+      </label>
+      <subPropertyOf>U46</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U58</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is full published recording of</standardLabel>
+        <inverseLabel>has full published recording</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P130</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U59</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is partial published recording of</standardLabel>
+        <inverseLabel>has partial published recording</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P130</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U5</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a une première</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>had premiere</standardLabel>
+        <inverseLabel>was premiere of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="6">F31</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U60</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occurred in cultural context</standardLabel>
+        <inverseLabel>was cultural context of</inverseLabel>
+      </label>
+      <subPropertyOf>U46</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U61</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occurred in geographical context</standardLabel>
+        <inverseLabel>was geographical context of</inverseLabel>
+      </label>
+      <subPropertyOf>U46</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U62</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has form</standardLabel>
+        <inverseLabel>is form of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U63</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has religious context</standardLabel>
+        <inverseLabel>is religious context of</inverseLabel>
+      </label>
+      <subPropertyOf>U52</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U64</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has cultural context</standardLabel>
+        <inverseLabel>is cultural context of</inverseLabel>
+      </label>
+      <subPropertyOf>U52</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U65</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has geographical context</standardLabel>
+        <inverseLabel>is geographical context of</inverseLabel>
+      </label>
+      <subPropertyOf>U52</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U66</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has historical context</standardLabel>
+        <inverseLabel>is historical context of</inverseLabel>
+      </label>
+      <subPropertyOf>U52</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M40</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U6</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees actor</standardLabel>
+        <inverseLabel>is foreseen actor of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange referenceNamespace="1">E39</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U73</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is derivative of</standardLabel>
+        <inverseLabel>has derivative</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P130</subPropertyOf>
+      <hasDomain referenceNamespace="6">F2</hasDomain>
+      <hasRange referenceNamespace="6">F2</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U74</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>cited</standardLabel>
+        <inverseLabel>was cited by</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P16</subPropertyOf>
+      <hasDomain referenceNamespace="6">F28</hasDomain>
+      <hasRange referenceNamespace="6">F22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U75</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has harmonic structure</standardLabel>
+        <inverseLabel>is harmonic structure of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange>M21</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U77</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees performing plan</standardLabel>
+        <inverseLabel>is foreseen plan in</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain>M25</hasDomain>
+      <hasRange referenceNamespace="6">F25</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U7</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees place at</standardLabel>
+        <inverseLabel>is foreseen place of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange referenceNamespace="1">E53</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U81</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>had performer status</standardLabel>
+        <inverseLabel>is performer status of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F31</hasDomain>
+      <hasRange>M49</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U82</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has foreseen performer status</standardLabel>
+        <inverseLabel>is foreseen performer status of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain>M26</hasDomain>
+      <hasRange>M49</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U83</identifierInNamespace>
+      <!--  ARHN 12/09/2022 : Is also rdf:type owl:NamedIndividual, owl:SymmetricObjectProperty -->
+      <label lang="en">
+        <standardLabel>has relative key</standardLabel>
+      </label>
+      <label lang="fr">
+        <standardLabel>a pour tonalité relative</standardLabel>
+      </label>
+      <hasDomain>M4</hasDomain>
+      <hasRange>M4</hasRange>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe permet de connecter deux M4 Tonalité qui sont en relation par rapport à l'armure, c'est-à-dire l'une est la relatif majeur ou mineur de l'autre. see also http://en.wikipedia.org/wiki/Relative_key</scopeNote>
+        <scopeNote lang="en">This class allows to connect two M4 Keys that are in a relative relationship, i.e. one is the relative major or minor of the other one.</scopeNote>
+        <example lang="en">the key of 'C major' has 'A minor' as relative key</example>
+        <example lang="fr">la clé de 'Do majeur' a 'La mineur' pour tonalité relative</example>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U84</identifierInNamespace>
+      <!--  ARHN 12/09/2022 : Is also rdf:type owl:NamedIndividual, owl:SymmetricObjectProperty -->
+      <label lang="fr">
+        <standardLabel>a pour tonalité parallèle</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has parallel key</standardLabel>
+      </label>
+      <hasDomain>M4</hasDomain>
+      <hasRange>M4</hasRange>
+      <textProperties>
+        <scopeNote lang="fr">Cette classe permet de connecter deux M4 Tonalité qui sont en une relation parallèle, c'est-à-dire l'une est la parallèle majeur ou mineur de l'autre.</scopeNote>
+        <scopeNote lang="en">This class allows to connect two M4 Keys that are in a parallel relationship, i.e. one is the parallel major or minor of the other one. see also http://en.wikipedia.org/wiki/Parallel_key</scopeNote>
+        <example lang="en">the key of 'C major' has 'C minor' as parallel key</example>
+        <example lang="fr">la clé de 'Do majeur' a 'Do mineur' pour tonalité parallèle</example>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U85</identifierInNamespace>
+      <!-- ARHN 12/09/2022 :  Is also rdf:type owl:NamedIndividual, owl:SymmetricObjectProperty -->
+      <label lang="fr">
+        <standardLabel>a pour tonalité étroitement lié</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has closely related key</standardLabel>
+      </label>
+      <hasDomain>M4</hasDomain>
+      <hasRange>M4</hasRange>
+      <textProperties>
+        <scopeNote lang="en">This class allows to connect two M4 Keys that are mutually closely related from an harmonic point of view, e.g. they are commonly used destinations or transpositions in a modulation. see also http://en.wikipedia.org/wiki/Closely_related_key</scopeNote>
+        <scopeNote lang="fr">Cette classe permet de connecter deux M4 Tonalité qui sont étroitement liées d'un point de vue harmonique, par ex. ceux sont des destinations ou des transpositions fréquemment utilisées dans une modulation</scopeNote>
+        <example lang="en">the key of 'C major' has 'G major' and 'D minor' as closely related keys</example>
+        <example lang="fr">la clé de 'Do majeur' a 'Sol majeur' et 'Re majeur' pour tonalités étroitement liées</example>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U87</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has member casting detail</standardLabel>
+        <inverseLabel>is member casting detail of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P69</subPropertyOf>
+      <hasDomain>M23</hasDomain>
+      <hasRange>M23</hasRange>
+      <textProperties>
+        <scopeNote lang="en">m.o.p section as foreseen by the composer, performer or programmer.</scopeNote>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U88</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has medium of performance section</standardLabel>
+        <inverseLabel>is member of performance section of</inverseLabel>
+      </label>
+      <subPropertyOf>U87</subPropertyOf>
+      <hasDomain>M23</hasDomain>
+      <hasRange>M23</hasRange>
+      <textProperties>
+        <scopeNote lang="en">U88 has medium of performance section</scopeNote>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U89</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>occured in performance conditions</standardLabel>
+        <inverseLabel>were performance conditions of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="1">E5</hasDomain>
+      <hasRange>M55</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U8</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees time-span</standardLabel>
+        <inverseLabel>is foreseen time-span of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange referenceNamespace="1">E52</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U90</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees creation or performance mode</standardLabel>
+        <inverseLabel>were performance conditions of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain>M23</hasDomain>
+      <hasRange>M50</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U91</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>put into effect</standardLabel>
+        <inverseLabel>was put into effect through</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P33</subPropertyOf>
+      <hasDomain referenceNamespace="1">E7</hasDomain>
+      <hasRange>M59</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U92</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees to put into effect</standardLabel>
+        <inverseLabel>is foreseen to be put into effect  through</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P33</subPropertyOf>
+      <hasDomain>M25</hasDomain>
+      <hasRange>M59</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U93</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>is realised in</standardLabel>
+        <inverseLabel>realises</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="6">R3</subPropertyOf>
+      <hasDomain>M58</hasDomain>
+      <hasRange>M59</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U94</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has work type</standardLabel>
+        <inverseLabel>is work type of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F1</hasDomain>
+      <hasRange>M61</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U95</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has hierarchical level</standardLabel>
+        <inverseLabel>is hierarchical leval of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P2</subPropertyOf>
+      <hasDomain referenceNamespace="6">F1</hasDomain>
+      <hasRange>M62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U96</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees vocal or instrumental technique</standardLabel>
+        <inverseLabel>is foreseen vocal or instrumental technique of</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain>M23</hasDomain>
+      <hasRange referenceNamespace="1">E1</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U10</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has order number</standardLabel>
+      </label>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange referenceNamespace="1">E60</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U15</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has history</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <!-- ARHN 08/09/2022 - <hasRange> ajouté pour cohérence. -->
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U193</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>used historical instruments</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F31</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U194</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has system requirements</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U199</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has sponsor</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U200</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has supplementary content</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U201</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has illustrative content</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U202</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has colour details</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U203</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has summary or abstract</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U204</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has reproduction note</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F24</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U205</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has cast detail</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain>M42</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U208</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has extent of carrier</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F3</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U211</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has composition of material</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U212</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has technical features</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U213</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has recording method</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E73</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U215</identifierInNamespace>
+      <label lang="en">
+        <standardLabel> has groove caracteristics</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U216</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has tape configuration</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U226</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has responsibility detail</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F28</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U228</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has other distinguishing characteristic of expression</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="6">F22</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U30</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees quantity of medium of performance</standardLabel>
+      </label>
+      <hasDomain>M23</hasDomain>
+      <hasRange referenceNamespace="1">E60</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U3</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>forees use of specific object</standardLabel>
+        <inverseLabel>is foreseen specific medium of performance in</inverseLabel>
+      </label>
+      <label lang="fr">
+        <standardLabel>utilisation prévue de l'objet spécifique</standardLabel>
+        <inverseLabel>est le type d'objet spécifique prévu pour</inverseLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P67</subPropertyOf>
+      <hasDomain referenceNamespace="1">E29</hasDomain>
+      <hasRange referenceNamespace="1">E22</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U41</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has catalogue number</standardLabel>
+      </label>
+      <hasDomain>M1</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U42</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has opus number</standardLabel>
+      </label>
+      <hasDomain>M2</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U43</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has opus subnumber</standardLabel>
+      </label>
+      <hasDomain>M2</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U48</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>foresees quantity of actors</standardLabel>
+      </label>
+      <hasDomain>M23</hasDomain>
+      <hasRange referenceNamespace="1">E60</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U50</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>Has annotation</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E1</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U67</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour sous-titre</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has subtitle</standardLabel>
+      </label>
+      <!-- ARHN 12/09/2022 : rdfs:subPropertyOf supprimé car l'objet était une classe (dc:title). -->
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U68</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour variante de titre</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has variant title</standardLabel>
+      </label>
+      <!-- ARHN 12/09/2022 : rdfs:subPropertyOf supprimé car l'objet était une classe (dc:title). -->
+      <hasDomain referenceNamespace="1">E71</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U69</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour numéro de WoO</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has WoO number</standardLabel>
+      </label>
+      <hasDomain>M2</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U70</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour titre originel</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has original title</standardLabel>
+      </label>
+      <!-- ARHN 12/09/2022 : rdfs:subPropertyOf supprimé car l'objet était une classe (dc:title). -->
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U71</identifierInNamespace>
+      <label lang="fr">
+        <standardLabel>a pour titre uniforme</standardLabel>
+      </label>
+      <label lang="en">
+        <standardLabel>has uniform title</standardLabel>
+      </label>
+      <!-- ARHN 12/09/2022 : rdfs:subPropertyOf supprimé car l'objet était une classe (dc:title). -->
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U72</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has title note</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain referenceNamespace="1">E89</hasDomain>
+      <!-- ARHN 08/09/2022 - <hasRange> ajouté pour cohérence. -->
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U76</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has WoO subnumber</standardLabel>
+      </label>
+      <hasDomain>M2</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <!-- ARHN 08/09/2022 - U227 retiré car trop peu d'information. -->
+    <property>
+      <identifierInNamespace>U79</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has lowest pitch</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain>M30</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U80</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has highest pitch</standardLabel>
+      </label>
+      <subPropertyOf referenceNamespace="1">P3</subPropertyOf>
+      <hasDomain>M30</hasDomain>
+      <hasRange referenceNamespace="1">E62</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+    <property>
+      <identifierInNamespace>U9</identifierInNamespace>
+      <label lang="en">
+        <standardLabel>has quantity</standardLabel>
+      </label>
+      <hasDomain referenceNamespace="1">E77</hasDomain>
+      <hasRange referenceNamespace="1">E60</hasRange>
+      <textProperties>
+      </textProperties>
+    </property>
+  </properties>
+</namespace>
