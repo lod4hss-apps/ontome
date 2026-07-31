@@ -14,6 +14,11 @@ use App\Entity\OntoClass;
 use App\Entity\Property;
 use App\Entity\SystemType;
 use App\Form\LabelForm;
+use App\Repository\ClassVersionRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\ProjectRepository;
+use App\Repository\PropertyVersionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,9 +28,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Doctrine\Persistence\ManagerRegistry;
 
 class LabelController  extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/label/{id}", name="label_show", requirements={"id"="^[0-9]+"})
      * @param string $id
@@ -42,11 +56,11 @@ class LabelController  extends AbstractController
     /**
      * @Route("/label/{id}/edit", name="label_edit", requirements={"id"="^[0-9]+"})
      */
-    public function editAction(Label $label, Request $request)
+    public function editAction(Label $label, Request $request, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
         $canInverseLabel = false;
         $allEntities = null;
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         if(!is_null($label->getClass())){
             $object = $label->getClass();
@@ -64,7 +78,7 @@ class LabelController  extends AbstractController
             $redirectToRoute = 'profile_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'profile';
-            $allEntities = $em->getRepository(Profile::class)->findAll();
+            $allEntities = $profileRepository->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProfile();});
         }
         else if(!is_null($label->getProject())){
@@ -72,7 +86,7 @@ class LabelController  extends AbstractController
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'project';
-            $allEntities = $em->getRepository(Project::class)->findAll();
+            $allEntities = $projectRepository->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProject();});
         }
         else if(!is_null($label->getNamespace())){
@@ -83,7 +97,7 @@ class LabelController  extends AbstractController
             $redirectToRoute = 'namespace_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'namespace';
-            $allEntities = $em->getRepository(OntoNamespace::class)->findAll();
+            $allEntities = $namespaceRepository->findAll();
             $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getNamespace();});
         }
         else throw $this->createNotFoundException('The related object for the label n° '.$label->getId().' does not exist. Please contact an administrator.');
@@ -124,7 +138,7 @@ class LabelController  extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid() && $isLabelValid) {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             if(!is_null($label->getNamespace()) && $label->getNamespace()->getIsOngoing()){
                 $label->setLabel($label->getLabel().' ongoing');
             }
@@ -158,16 +172,16 @@ class LabelController  extends AbstractController
     /**
      * @Route("/label/new/{object}/{objectId}", name="label_new", requirements={"object"="^(class|property|profile|project|namespace){1}$","objectId"="^[0-9]+"})
      */
-    public function newAction($object, $objectId, Request $request)
+    public function newAction($object, $objectId, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $label = new Label();
         $canInverseLabel = false;
 
         if($object === 'class') {
             // Récupérer la version ongoing de la classe identifiée par objectId
-            $associatedEntity = $em->getRepository(OntoClassVersion::class)->findOngoingVersion($objectId);
+            $associatedEntity = $classVersionRepository->findOngoingVersion($objectId);
 
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The ongoing version of class n° '.$objectId.' does not exist');
@@ -181,7 +195,7 @@ class LabelController  extends AbstractController
         }
         else if($object === 'property') {
             // Récupérer la version ongoing de la propriété identifiée par objectId
-            $associatedEntity = $em->getRepository(PropertyVersion::class)->findOngoingVersion($objectId);
+            $associatedEntity = $propertyVersionRepository->findOngoingVersion($objectId);
 
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The ongoing version of property n° '.$objectId.' does not exist');
@@ -195,7 +209,7 @@ class LabelController  extends AbstractController
             $canInverseLabel = true;
         }
         else if($object === 'profile') {
-            $associatedEntity = $em->getRepository(Profile::class)->find($objectId);
+            $associatedEntity = $profileRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
             }
@@ -205,7 +219,7 @@ class LabelController  extends AbstractController
             $redirectToRouteFragment = 'identification';
         }
         else if($object === 'project') {
-            $associatedEntity = $em->getRepository(Project::class)->find($objectId);
+            $associatedEntity = $projectRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
             }
@@ -215,9 +229,9 @@ class LabelController  extends AbstractController
             $redirectToRouteFragment = 'identification';
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
+            $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
-                throw $this->createNotFoundException('The namepsace n° '.$objectId.' does not exist');
+                throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
             $label->setNamespace($associatedEntity);
             $associatedObject = $associatedEntity;
@@ -256,7 +270,6 @@ class LabelController  extends AbstractController
             $label->setCreationTime(new \DateTime('now'));
             $label->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
             $em->persist($label);
             $em->flush();
 
@@ -322,7 +335,7 @@ class LabelController  extends AbstractController
         $newValidationStatus = new SystemType();
 
         try{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {

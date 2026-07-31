@@ -9,22 +9,18 @@
 namespace App\Controller;
 
 use Psr\Log\LoggerInterface;
-use App\Entity\ClassAssociation;
-use App\Entity\EntityAssociation;
 use App\Entity\Label;
 use App\Entity\OntoClass;
 use App\Entity\OntoClassVersion;
 use App\Entity\OntoNamespace;
-use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\ClassEditIdentifierForm;
 use App\Form\ClassEditUriIdentifierForm;
-use App\Form\NamespaceEditIdentifiersForm;
 use App\Form\ClassQuickAddForm;
-use App\Form\NamespaceUriParameterForm;
-use App\Form\TextPropertyForm;
+use App\Repository\ClassRepository;
+use App\Repository\NamespaceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\DBALException;
 use Symfony\Component\Routing\Annotation\Route;
@@ -41,21 +37,19 @@ class ClassController extends AbstractController
     /**
      * @Route("/class")
      */
-    public function listAction(){
-        $em = $this->getDoctrine()->getManager();
-
+    public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository){
         // FILTRAGE : Récupérer les namespaces
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // Compléter avec les références parents (directs/indirects)
         $refsNsId = [];
         foreach($namespacesId as $nsId){
-            $ns = $em->getRepository(OntoNamespace::class)->find($nsId);
+            $ns = $namespaceRepository->find($nsId);
             foreach ($ns->getAllReferencedNamespaces() as $refNs){
                 if(!in_array($refNs->getId(), $refsNsId)){$refsNsId[] = $refNs->getId();}
             }
@@ -65,14 +59,14 @@ class ClassController extends AbstractController
         // Récupérer l'ensemble des namespaces root déjà utilisé pour le filtrage
         $rootNamespacesId = [];
         foreach ($namespacesId as $namespaceId){
-            $rootNamespacesId[] = $em->getRepository(OntoNamespace::class)->find($namespaceId)->getTopLevelNamespace()->getId();
+            $rootNamespacesId[] = $namespaceRepository->find($namespaceId)->getTopLevelNamespace()->getId();
         }
 
         // Récupérer toutes les classes sans le filtrage
         // N'afficher que les classes/propriétés de la version choisie par l'utilisateur sinon dernière publiée d'un espace de noms ou,
         // si l'espace n'a pas de version publiée, la version ongoing.
         // 1- Récuperer tous les roots
-        $allRootNamespaces = $em->getRepository(OntoNamespace::class)->findBy(array("isTopLevelNamespace" => true));
+        $allRootNamespaces = $namespaceRepository->findBy(array("isTopLevelNamespace" => true));
         // 2- Récupérer la bonne version (choisie par l'utilisateur sinon dernière publiée sinon ongoing)
         $allNamespacesId = $namespacesId;
 
@@ -92,7 +86,7 @@ class ClassController extends AbstractController
         }
 
         // Récupérer toutes les classes
-        $allClasses = $em->getRepository(OntoClass::class)->findAll(); //->findClassesByNamespacesId($allNamespacesId);
+        $allClasses = $classRepository->findClassesByNamespacesId($allNamespacesId);
 
         return $this->render('class/list.html.twig', [
             'classes' => $allClasses,

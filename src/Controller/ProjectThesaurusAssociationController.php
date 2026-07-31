@@ -8,16 +8,26 @@
 
 namespace App\Controller;
 
-
+use App\Repository\ProjectRepository;
+use App\Entity\Project;
 use App\Entity\ProjectThesaurusAssociation;
 use App\Form\ProjectThesaurusAssociationForm;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ProjectThesaurusAssociationController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/project-thesaurus-association/project/{projectId}/json",
      *     name="project_thesaurus_association_show_json",
@@ -25,11 +35,9 @@ class ProjectThesaurusAssociationController extends AbstractController
      * @param int  $projectId    The id of the object
      * @return JsonResponse a Json formatted ProjectThesaurusAssociation list
      */
-    public function getProjectThesaurusAssociationAction($projectId)
+    public function getProjectThesaurusAssociationAction($projectId, ProjectRepository $projectRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
-        $project = $em->getRepository(Project::class)->find($projectId);
+        $project = $projectRepository->find($projectId);
         if (!$project) {
             throw $this->createNotFoundException('The project n° '.$projectId.' does not exist');
         }
@@ -54,13 +62,11 @@ class ProjectThesaurusAssociationController extends AbstractController
     /**
      * @Route("/project-thesaurus-association/new/project/{projectId}", name="project_thesaurus_association_new", requirements={"projectId"="^[0-9]+$"}), methods={"POST"})
      */
-    public function newAction($projectId, Request $request)
+    public function newAction($projectId, Request $request, ProjectRepository $projectRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
         $projectThesaurusAssociation = new ProjectThesaurusAssociation();
 
-        $project = $em->getRepository(Project::class)->find($projectId);
+        $project = $projectRepository->find($projectId);
 
         if (!$project) {
             throw $this->createNotFoundException('The project n° '.$projectId.' does not exist');
@@ -91,7 +97,7 @@ class ProjectThesaurusAssociationController extends AbstractController
             $projectThesaurusAssociation->setCreationTime(new \DateTime('now'));
             $projectThesaurusAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($projectThesaurusAssociation);
             $em->flush();
 
@@ -149,7 +155,7 @@ class ProjectThesaurusAssociationController extends AbstractController
 
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->remove($projectThesaurusAssociation);
         $em->flush();
         return new JsonResponse(null, 204);

@@ -8,11 +8,9 @@
 
 namespace App\Controller;
 
-use App\App;
-use App\Entity\ClassAssociation;
+
 use App\Entity\EntityUserProjectAssociation;
 use App\Entity\Label;
-use App\Entity\OntoClass;
 use App\Entity\OntoClassVersion;
 use App\Entity\OntoNamespace;
 use App\Entity\Profile;
@@ -20,21 +18,21 @@ use App\Entity\Project;
 use App\Entity\PropertyVersion;
 use App\Entity\ReferencedNamespaceAssociation;
 use App\Entity\TextProperty;
+use App\Entity\SystemType;
+use App\Entity\UserProjectAssociation;
 use App\Form\NamespaceEditIdentifiersForm;
 use App\Form\NamespaceForm;
-use App\Form\NamespacePublicationForm;
 use App\Form\NamespaceQuickAddForm;
 use App\Form\NamespaceUriParameterForm;
+use App\Repository\NamespaceRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\TextPropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use PhpOffice\PhpWord\Element\Footer;
-use PhpOffice\PhpWord\Element\TextBreak;
-use PhpOffice\PhpWord\Element\TextRun;
+use Doctrine\Persistence\ManagerRegistry;
 use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\SimpleType\VerticalJc;
 use PhpOffice\PhpWord\Style\Language;
-use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -49,15 +47,20 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class NamespaceController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/namespace")
      */
-    public function listAction()
+    public function listAction(NamespaceRepository $namespaceRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
-        $namespaces = $em->getRepository(OntoNamespace::class)
-            ->findAll();
+        $namespaces = $namespaceRepository->findAll();
         //->findAllOrderedById();
 
         return $this->render('namespace/list.html.twig', [
@@ -68,7 +71,7 @@ class NamespaceController extends AbstractController
     /**
      * @Route("/namespace/new/{project}", name="namespace_new", requirements={"project"="^[0-9]+$"})
      */
-    public function newNamespaceAction(Project $project, Request $request, TokenStorageInterface $tokenStorage)
+    public function newNamespaceAction(Project $project, Request $request, TokenStorageInterface $tokenStorage, NamespaceRepository $namespaceRepository)
     {
 
         $tokenInterface = $tokenStorage->getToken();
@@ -86,7 +89,7 @@ class NamespaceController extends AbstractController
         $namespaceLabel = new Label();
         $ongoingNamespaceLabel = new Label();
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = Description
         $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); //systemType 2 = Contributors
 
@@ -115,9 +118,9 @@ class NamespaceController extends AbstractController
 
         // Pour forcer le champ Contributors à ne pas avoir l'éditeur enrichi
         $txtpContributors = new TextProperty();
-        $txtpContributors->setSystemType($txtpContributors);
+        $txtpContributors->setSystemType($systemTypeContributors);
 
-        $allNamespaces = $em->getRepository(OntoNamespace::class)->findAll();
+        $allNamespaces = $namespaceRepository->findAll();
         $allLabels = new ArrayCollection();
 
         foreach ($allNamespaces as $var_namespace) {
@@ -164,7 +167,7 @@ class NamespaceController extends AbstractController
                 foreach ($referencesNamespaces as $referenceNamespace => $labelNamespace) {
                     $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
                     $referencedNamespaceAssociation->setNamespace($ongoingNamespace);
-                    $referenceNamespace = $em->getRepository("OntoNamespace::class")->find(intval($referenceNamespace));
+                    $referenceNamespace = $namespaceRepository->find(intval($referenceNamespace));
                     $referencedNamespaceAssociation->setReferencedNamespace($referenceNamespace);
                     $referencedNamespaceAssociation->setCreator($this->getUser());
                     $referencedNamespaceAssociation->setModifier($this->getUser());
@@ -230,7 +233,7 @@ class NamespaceController extends AbstractController
                 $em->persist($eupa);
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($namespace);
             $em->persist($ongoingNamespace);
             $em->flush();
@@ -242,8 +245,7 @@ class NamespaceController extends AbstractController
 
         }
 
-        $rootNamespaces = $em->getRepository(OntoNamespace::class)
-            ->findBy(array("isTopLevelNamespace" => true), array("standardLabel" => "ASC"));
+        $rootNamespaces = $namespaceRepository->findBy(array("isTopLevelNamespace" => true), array("standardLabel" => "ASC"));
         $rootNamespaces = array_filter($rootNamespaces, function ($v) {
             return $v->getId() != 5;
         });
@@ -260,13 +262,9 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return Response the rendered template
      */
-    public function showAction(OntoNamespace $namespace)
+    public function showAction(OntoNamespace $namespace, TextPropertyRepository $textPropertyRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
-        $textProperties = $em
-            ->getRepository(TextProperty::class)
-            ->findBy(array("namespaceForVersion" => $namespace->getId()));
+        $textProperties = $textPropertyRepository->findBy(array("namespaceForVersion" => $namespace->getId()));
         return $this->render('namespace/show.html.twig', array(
             'namespace' => $namespace,
             'textProperties' => $textProperties
@@ -278,7 +276,7 @@ class NamespaceController extends AbstractController
      * @param string $namespace
      * @return Response the rendered template
      */
-    public function editAction(OntoNamespace $namespace, Request $request)
+    public function editAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, TextPropertyRepository $textPropertyRepository)
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
@@ -288,27 +286,23 @@ class NamespaceController extends AbstractController
 
         $namespace->setModifier($this->getUser());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
-        $rootNamespacesBrut = $em->getRepository(OntoNamespace::class)
-            ->findAllNonAssociatedToNamespaceByNamespaceId($namespace);
+        $rootNamespacesBrut = $namespaceRepository->findAllNonAssociatedToNamespaceByNamespaceId($namespace);
 
         $rootNamespaces = new ArrayCollection();
         foreach ($rootNamespacesBrut as $rootNamespace) {
-            $rootNamespaces->add($em->getRepository(OntoNamespace::class)->find($rootNamespace['id']));
+            $rootNamespaces->add($namespaceRepository->find($rootNamespace['id']));
         }
         $rootNamespaces = $rootNamespaces->filter(function ($v) {
             return $v->getId() != 5;
         });
 
-        $textProperties = $em
-            ->getRepository(TextProperty::class)
-            ->findBy(array("namespaceForVersion" => $namespace->getId()));
+        $textProperties = $textPropertyRepository->findBy(array("namespaceForVersion" => $namespace->getId()));
 
         if ($this->isGranted('full_edit', $namespace)) {
 
-            $ongoingNamespaceHasChanged = $em->getRepository(OntoNamespace::class)
-                ->checkNamespaceChange($namespace);
+            $ongoingNamespaceHasChanged = $namespaceRepository->checkNamespaceChange($namespace);
 
             $isRoot = $namespace->getIsTopLevelNamespace();
 
@@ -354,7 +348,7 @@ class NamespaceController extends AbstractController
             $formIdentifiers->handleRequest($request);
             if ($formIdentifiers->isSubmitted() && $formIdentifiers->isValid()) {
 
-                $em = $this->getDoctrine()->getManager();
+                $em = $this->doctrine->getManager();
                 $em->persist($namespace);
                 $em->flush();
 
@@ -368,7 +362,7 @@ class NamespaceController extends AbstractController
             $formUriParameter = $this->createForm(NamespaceUriParameterForm::class, $namespace, array('default_choice' => $namespace->getUriParameter()));
             $formUriParameter->handleRequest($request);
             if ($formUriParameter->isSubmitted() && $formUriParameter->isValid()) {
-                $em = $this->getDoctrine()->getManager();
+                $em = $this->doctrine->getManager();
                 $ongoingNamespace = $namespace->getChildVersions()->filter(function ($v) {
                     return $v->getIsOngoing();
                 })->first();
@@ -435,7 +429,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return Response the rendered template
      */
-    public function validatePublicationAction(OntoNamespace $namespace, Request $request)
+    public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository)
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
@@ -448,12 +442,9 @@ class NamespaceController extends AbstractController
             $namespace->setNamespaceURI(str_replace('-ongoing', '', $namespace->getNamespaceURI()));
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $newNamespaceId = $namespaceRepository->publishNamespace($namespace);
 
-        $newNamespaceId = $em->getRepository(OntoNamespace::class)
-            ->publishNamespace($namespace);
-
-        $newNamespace = $em->getRepository(OntoNamespace::class)->findOneBy(['id' => $newNamespaceId]);
+        $newNamespace = $namespaceRepository->find($newNamespaceId);
 
         $newNamespaceLabel = new Label();
         $newNamespaceLabel->setIsStandardLabelForLanguage(true);
@@ -468,6 +459,7 @@ class NamespaceController extends AbstractController
         $newNamespace->setIsExternalNamespace($namespace->getIsExternalNamespace());
         $newNamespace->setIsVisible(true);
 
+        $em = $this->doctrine->getManager();
         $em->persist($namespace);
         $em->persist($newNamespace);
         $em->flush();
@@ -507,7 +499,7 @@ class NamespaceController extends AbstractController
             $namespace->setCurrentPropertyNumber(0);
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->persist($namespace);
         $em->flush();
 
@@ -574,11 +566,9 @@ class NamespaceController extends AbstractController
      * @param Profile $profile The profile to be associated with a namespace
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function getRootNamespacesForAssociationWithProfile(Profile $profile)
+    public function getRootNamespacesForAssociationWithProfile(Profile $profile, NamespaceRepository $namespaceRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $rootNamespaces = $em->getRepository(OntoNamespace::class)
-            ->findAllNonAssociatedToProfileByProfileId($profile);
+        $rootNamespaces = $namespaceRepository->findAllNonAssociatedToProfileByProfileId($profile);
 
         if (!is_null($rootNamespaces)) {
             $status = 'Success';
@@ -602,11 +592,9 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return JsonResponse a Json formatted graph representation of Namespaces
      */
-    public function getGraphJson(OntoNamespace $namespace)
+    public function getGraphJson(OntoNamespace $namespace, NamespaceRepository $namespaceRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $namespaces = $em->getRepository(OntoNamespace::class)
-            ->findNamespacesGraph($namespace);
+        $namespaces = $namespaceRepository->findNamespacesGraph($namespace);
 
         return new JsonResponse($namespaces[0]['json'], 200, array(), true);
     }
@@ -622,7 +610,7 @@ class NamespaceController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
@@ -642,10 +630,9 @@ class NamespaceController extends AbstractController
             $referencedNamespaceAssociation->setCreationTime(new \DateTime('now'));
             $referencedNamespaceAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
             $em->persist($referencedNamespaceAssociation);
-
             $em->flush();
+            
             $status = 'Success';
             $message = 'Namespace successfully associated';
         }
@@ -671,7 +658,7 @@ class NamespaceController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
@@ -700,7 +687,7 @@ class NamespaceController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
@@ -814,8 +801,6 @@ class NamespaceController extends AbstractController
      */
     public function getChoicesNamespaceAssociation(OntoNamespace $namespace)
     {
-        $em = $this->getDoctrine()->getManager();
-
         $rootNamespace = $namespace->getTopLevelNamespace();
 
         $childVersions = array();
@@ -834,7 +819,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace The namespace
      * @return BinaryFileResponse
      */
-    public function getNamespaceOdt(OntoNamespace $namespace, Request $request)
+    public function getNamespaceOdt(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
     {
         function specialCharactersConversion($string, $forHTML = false)
         {
@@ -846,15 +831,13 @@ class NamespaceController extends AbstractController
             return $string;
         }
 
-        $em = $this->getDoctrine()->getManager();
-
         $optionCardinality = $request->get('optCardinality', 'cardinality-opt-uml'); //cardinality-opt-er est l'autre option
         $optionTextCardinality = filter_var($request->get('optTextCardinality', true), FILTER_VALIDATE_BOOLEAN);; //false est l'autre option
         $optionFol = filter_var($request->get('optFol', true), FILTER_VALIDATE_BOOLEAN);; //false est l'autre option
 
         $allNamespacesReferences = $namespace->getAllReferencedNamespaces();
         $allNamespacesReferences->add($namespace);
-        $allNamespacesReferences->add($em->getRepository(OntoNamespace::class)->findOneBy(array('id' => 4)));
+        $allNamespacesReferences->add($namespaceRepository->findOneBy(array('id' => 4)));
         //var_dump($allNamespacesReferences->map(function($v){return $v->getId();})->toArray()); die;
 
         foreach ($namespace->getTextProperties()->filter(function ($v) {
@@ -1642,9 +1625,8 @@ class NamespaceController extends AbstractController
             }
 
             $i = 0;
-            $em = $this->getDoctrine()->getManager();
             //$outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
-            $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(function ($v) {
+            $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(function ($v) {
                 return $v->getId();
             })->toArray());
             foreach ($outgoingProperties as $outgoingProperty) {
@@ -1653,7 +1635,7 @@ class NamespaceController extends AbstractController
                     $section->addText('Properties:', "gras");
                     $i++;
                 }
-                $propertyVersion = $em->getRepository(PropertyVersion::class)->findOneBy(array("property" => $outgoingProperty['propertyId'], "namespaceForVersion" => $outgoingProperty['propertyNamespaceId']));
+                $propertyVersion = $propertyRepository->findOneBy(array("property" => $outgoingProperty['propertyId'], "namespaceForVersion" => $outgoingProperty['propertyNamespaceId']));
                 $section->addText($propertyVersion->getInvertedLabel() . ": " . $propertyVersion->getRange()->getIdentifierInNamespace() . ' ' . $propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel(), null, array('indentation' => array('left' => 1100)));
             }
         }
@@ -1855,7 +1837,7 @@ class NamespaceController extends AbstractController
         $this->denyAccessUnlessGranted('edit', $namespace);
         try {
             $namespace->setIsVisible(true);
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($namespace);
             $em->flush();
         } catch (\Exception $e) {

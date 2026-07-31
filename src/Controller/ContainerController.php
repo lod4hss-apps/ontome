@@ -4,24 +4,36 @@ namespace App\Controller;
 
 use App\Entity\Label;
 use App\Entity\Container;
+use App\Repository\ContainerRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\ProjectRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ContainerController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/container/{id}/fetch", name="container", methods={"GET"})
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
-    public function getContainer(Request $request)
+    public function getContainer(Request $request, ContainerRepository $containerRepository)
     {
         $id = $request->get('id');
 
-        $container = $this->getDoctrine()->getRepository(Container::class)->find($id);
+        $container = $containerRepository->find($id);
 
         if (!$container) {
             throw new NotFoundHttpException("Container not found");
@@ -73,11 +85,11 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
-    public function getRootNamespacesNotAssociated(Request $request)
+    public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
     {
         $id = $request->get('id');
 
-        $container = $this->getDoctrine()->getRepository(Container::class)->find($id);
+        $container = $containerRepository->find($id);
 
         if (!$container) {
             throw new NotFoundHttpException("Container not found");
@@ -90,7 +102,7 @@ class ContainerController extends AbstractController
         }
 
         // Récupération de tous les root namespaces qui ne sont pas associés au container
-        $qb = $this->getDoctrine()->getRepository(OntoNamespace::class)->createQueryBuilder('n')
+        $qb = $namespaceRepository->createQueryBuilder('n')
             ->select('DISTINCT n')
             ->innerJoin('App:OntoNamespace', 'child', 'WITH', 'child.topLevelNamespace = n')
             ->where('n.isTopLevelNamespace = :isTop')
@@ -123,11 +135,11 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
-    public function createContainer(Request $request)
+    public function createContainer(Request $request, ProjectRepository $projectRepository)
     {
         $projectId = $request->get('project_id');
         $label = $request->get('label');
-        $project = $this->getDoctrine()->getRepository(Project::class)->find($projectId);
+        $project = $projectRepository->find($projectId);
 
         $newLabel = new Label();
         $newLabel->setLabel($label);
@@ -146,7 +158,7 @@ class ContainerController extends AbstractController
         $newContainer->setCreationTime(new \DateTime());
         $newContainer->setModificationTime(new \DateTime());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->persist($newLabel);
         $em->persist($newContainer);
         $em->flush();
@@ -162,14 +174,14 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
-    public function createAssociationContainerNamespace(Request $request)
+    public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
     {
 
         $containerId = $request->get('container_id');
         $namespaceId = $request->get('namespace_id');
 
-        $container = $this->getDoctrine()->getRepository(Container::class)->find($containerId);
-        $namespace = $this->getDoctrine()->getRepository(OntoNamespace::class)->find($namespaceId);
+        $container = $containerRepository->find($containerId);
+        $namespace = $namespaceRepository->find($namespaceId);
 
         if (!$container || !$namespace) {
             return new JsonResponse(['status' => 'Error', 'message' => 'Container or Namespace not found'], 404);
@@ -182,7 +194,7 @@ class ContainerController extends AbstractController
         $container->setModifier($this->getUser());
         $container->setModificationTime(new \DateTime());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->persist($container);
         $em->flush();
 
@@ -197,21 +209,21 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
-    public function deleteAssociationContainerNamespace(Request $request)
+    public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
 
         $containerId = $request->get('containerId');
         $namespaceId = $request->get('namespaceId');
 
-        $container = $this->getDoctrine()->getRepository(Container::class)->find($containerId);
-        $namespace = $this->getDoctrine()->getRepository(OntoNamespace::class)->find($namespaceId);
+        $container = $containerRepository->find($containerId);
+        $namespace = $namespaceRepository->find($namespaceId);
 
         $container->removeNamespace($namespace);
         $container->setModifier($this->getUser());
         $container->setModificationTime(new \DateTime());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->persist($container);
         $em->flush();
 

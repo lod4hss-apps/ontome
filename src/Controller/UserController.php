@@ -8,19 +8,23 @@
 
 namespace App\Controller;
 
-
+use App\Repository\ProjectRepository;
 use App\Entity\EntityUserProjectAssociation;
 use App\Entity\OntoNamespace;
 use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Entity\UserProjectAssociation;
+use App\Entity\SystemType;
 use App\Form\UserEditForm;
 use App\Form\UserRegistrationForm;
 use App\Form\UserRequestPasswordForm;
 use App\Form\UserResetPasswordForm;
 use App\Form\UserSelfEditForm;
 use App\Security\LoginFormAuthenticator;
+use App\Repository\NamespaceRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,18 +35,22 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Doctrine\Persistence\ManagerRegistry;
 
 class UserController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
     private $recaptchaSecret;
 
     /**
      * UserController constructor.
      * @param $recaptchaSecret
      */
-    public function __construct($recaptchaSecret)
+    public function __construct(ManagerRegistry $doctrine, $recaptchaSecret)
     {
-        $this->$recaptchaSecret = $recaptchaSecret;
+        $this->recaptchaSecret = $recaptchaSecret;
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
     }
 
     /**
@@ -58,7 +66,7 @@ class UserController extends AbstractController
      * @param Request $request
      * @return Response a response instance
      */
-    public function registerAction(Request $request, LoginFormAuthenticator $authenticator, MailerInterface $mailer, GuardAuthenticatorHandler $guardAuthenticatorHandler)
+    public function registerAction(Request $request, LoginFormAuthenticator $authenticator, MailerInterface $mailer, GuardAuthenticatorHandler $guardAuthenticatorHandler, ProjectRepository $projectRepository)
     {
         $form = $this->createForm(UserRegistrationForm::class);
 
@@ -70,12 +78,11 @@ class UserController extends AbstractController
             $user = $form->getData();
             $user->setStatus(true);
 
-            $em = $this->getDoctrine()->getManager();
-
             // Initialiser fk_current_active_project à 21 (public project)
-            $publicProject = $em->getRepository(Project::class)->find(21);
+            $publicProject = $projectRepository->find(21);
             $user->setCurrentActiveProject($publicProject);
 
+            $em = $this->doctrine->getManager();
             $em->persist($user);
             $em->flush();
 
@@ -122,18 +129,18 @@ class UserController extends AbstractController
      * @param Request $request
      * @return Response a response instance
      */
-    public function requestPasswordAction(Request $request, MailerInterface $mailer)
+    public function requestPasswordAction(Request $request, MailerInterface $mailer, UserRepository $userRepository)
     {
         $tmpUser = new User();
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $form = $this->createForm(UserRequestPasswordForm::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $tmpUser = $form->getData();
-            $user = $em->getRepository(User::class)->findOneBy(['email'=>$tmpUser['email']]);
+            $user = $userRepository->findOneBy(['email'=>$tmpUser['email']]);
             if($user){
                 $token = md5(random_bytes(10));
                 $user->setToken($token);
@@ -169,10 +176,10 @@ class UserController extends AbstractController
     /**
      * @Route("/reset-password/{token}", name="user_reset_password")
      */
-    public function resetPasswordAction(Request $request, $token)
+    public function resetPasswordAction(Request $request, $token, UserRepository $userRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $tmpUser = $em->getRepository(User::class)->findOneBy(['token'=>$token]);
+        $em = $this->doctrine->getManager();
+        $tmpUser = $userRepository->findOneBy(['token'=>$token]);
         $formView = null;
 
         if($tmpUser){
@@ -246,16 +253,13 @@ class UserController extends AbstractController
     /**
      * @Route("/user")
      */
-    public function listAction(AuthorizationCheckerInterface $authorizationChecker)
+    public function listAction(AuthorizationCheckerInterface $authorizationChecker, UserRepository $userRepository)
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
         }
 
-        $em = $this->getDoctrine()->getManager();
-
-        $users = $em->getRepository(User::class)
-            ->findAll();
+        $users = $userRepository->findAll();
 
         return $this->render('user/list.html.twig', [
             'users' => $users
@@ -267,7 +271,7 @@ class UserController extends AbstractController
      * @param $user User
      * @return Response
      */
-    public function showAction(Request $request, User $user, AuthorizationCheckerInterface $authorizationChecker)
+    public function showAction(Request $request, User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository)
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
@@ -276,13 +280,12 @@ class UserController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $em = $this->getDoctrine()->getManager();
-
         // Public project = 21
-        $publicProject = $em->getRepository(Project::class)->find(21);
+        $publicProject = $projectRepository->find(21);
 
         // Pour l'onglet My Project
         // On récupère tous les userProjectAssociations de l'utilisateur dans un ArrayCollection
+        $em = $this->doctrine->getManager();
         $userProjectAssociations = new ArrayCollection($em->getRepository(UserProjectAssociation::class)
             ->findBy(array('user' => $user->getId())));
 
@@ -313,24 +316,19 @@ class UserController extends AbstractController
 
             // Pour l'onglet My Current Namespaces
             // L'espace de nom géré par le projet - il est unique
-            $defaultNamespace = $em->getRepository(OntoNamespace::class)
-                ->findDefaultNamespaceForProject($userActiveProjectAssociation->getProject());
+            $defaultNamespace = $namespaceRepository->findDefaultNamespaceForProject($userActiveProjectAssociation->getProject());
 
             // Les profils utilisés par le projet
-            $profilesUserProject = new ArrayCollection($em->getRepository(Profile::class)
-                ->findAllProfilesForUser($user));
+            $profilesUserProject = new ArrayCollection($profileRepository->findAllProfilesForUser($user));
 
             // Les profils actifs
-            $activeProfiles = new ArrayCollection($em->getRepository(Profile::class)
-                ->findAllActiveProfilesForUser($user));
+            $activeProfiles = new ArrayCollection($profileRepository->findAllActiveProfilesForUser($user));
 
             // Les espaces de noms actifs
-            $activeNamespaces = new ArrayCollection($em->getRepository(OntoNamespace::class)
-                ->findActiveNamespacesWithoutReferencesForUser($user));
+            $activeNamespaces = new ArrayCollection($namespaceRepository->findActiveNamespacesWithoutReferencesForUser($user));
 
             // Et enfin, tous les namespaces, y compris le defaut et ceux des profils, qu'il faut donc retirer ci-dessous
-            $additionalNamespaces = new ArrayCollection($em->getRepository(OntoNamespace::class)
-                ->findAdditionalNamespacesForUser($user));
+            $additionalNamespaces = new ArrayCollection($namespaceRepository->findAdditionalNamespacesForUser($user));
 
             // On retire le namespace géré par le projet des additionals.
             if($additionalNamespaces->contains($defaultNamespace)) {
@@ -346,8 +344,7 @@ class UserController extends AbstractController
                 }
             }
 
-            $rootNamespaces = $em->getRepository(OntoNamespace::class)
-                ->findBy(array('isTopLevelNamespace' => true));
+            $rootNamespaces = $namespaceRepository->findBy(array('isTopLevelNamespace' => true));
             $rootNamespaces = array_filter($rootNamespaces, function($v){return $v->getId() != 5;});
 
             return $this->render('user/show.html.twig', array(
@@ -388,15 +385,15 @@ class UserController extends AbstractController
      * @param $project Project
      * @return Response
      */
-    public function editCurrentActiveProjectAction(Project $project)
+    public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository)
     {
         $user = $this->getUser();
         $this->denyAccessUnlessGranted('edit', $user);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         // Public project = 21
-        $publicProject = $em->getRepository(Project::class)->find(21);
+        $publicProject = $projectRepository->find(21);
 
         // Vérifier si le projet peut lui être attribué, autre que 21.
         $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
@@ -416,8 +413,7 @@ class UserController extends AbstractController
                 ->findOneBy(array('user' => $user, 'project' => $project));
 
             // Le namespace par défaut du projet
-            $defaultNamespace = $em->getRepository(OntoNamespace::class)
-                ->findDefaultNamespaceForProject($project);
+            $defaultNamespace = $namespaceRepository->findDefaultNamespaceForProject($project);
 
             if(!is_null($defaultNamespace))
             {
@@ -442,8 +438,7 @@ class UserController extends AbstractController
             }
 
             // 2. Les profils (et leurs namespaces associés) associés au projet
-            $profilesUserProject = new ArrayCollection($em->getRepository(Profile::class)
-                ->findAllProfilesForUser($user));
+            $profilesUserProject = new ArrayCollection($profileRepository->findAllProfilesForUser($user));
 
             foreach ($project->getOwnedProfiles() as $profile) {
                 // Vérifier si on a déjà pas un eupa sur ce profile
@@ -509,7 +504,7 @@ class UserController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($user);
             $em->flush();
 
@@ -549,7 +544,7 @@ class UserController extends AbstractController
             // Si oui : remettre le system type à 25
             // Si non : créer l'association
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $eupa = null;
         if($namespace->getIsTopLevelNamespace()) {
@@ -622,7 +617,7 @@ class UserController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $eupa = null;
 
@@ -689,7 +684,7 @@ class UserController extends AbstractController
         // Si oui : remettre le system type à 25
         // Si non : créer l'association
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $eupa = null;
 
@@ -807,7 +802,7 @@ class UserController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $eupa = null;
 
@@ -914,14 +909,14 @@ class UserController extends AbstractController
      * @param $user User
      * @return Response
      */
-    public function reinitialization(Request $request, User $user){
+    public function reinitialization(Request $request, User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository){
 
         $this->denyAccessUnlessGranted('edit', $user);
 
         // récupérer l'id du projet actif
         $currentProject = $user->getCurrentActiveProject();
         if($currentProject->getId() != 21) {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $upa = $em->getRepository(UserProjectAssociation::class)
                 ->findOneBy(array("user" => $user, "project" => $currentProject));
 
@@ -949,8 +944,7 @@ class UserController extends AbstractController
             if ($currentProject->getId() != 21) {
                 // remettre à 25 les profiles/namespaces rattachés au projet par défaut
 
-                $defaultNamespace = $em->getRepository(OntoNamespace::class)
-                    ->findDefaultNamespaceForProject($user->getCurrentActiveProject());
+                $defaultNamespace = $namespaceRepository->findDefaultNamespaceForProject($user->getCurrentActiveProject());
 
                 if(!is_null($defaultNamespace)) {
                     $eupa = $em->getRepository(EntityUserProjectAssociation::class)
@@ -1001,8 +995,7 @@ class UserController extends AbstractController
                 }
             }
 
-            $profilesUserProject = new ArrayCollection($em->getRepository(Profile::class)
-                ->findAllProfilesForUser($user));
+            $profilesUserProject = new ArrayCollection($profileRepository->findAllProfilesForUser($user));
 
 
             foreach ($profilesUserProject as $profile) {

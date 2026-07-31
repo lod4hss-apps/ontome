@@ -8,12 +8,17 @@
 
 namespace App\Repository;
 
+use App\Entity\TextProperty;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-use App\Entity\Project;
-use Doctrine\ORM\EntityRepository;
-
-class TextPropertyRepository extends EntityRepository
+class TextPropertyRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, TextProperty::class);
+    }
+
     /**
      * @param string $query
      * @return array

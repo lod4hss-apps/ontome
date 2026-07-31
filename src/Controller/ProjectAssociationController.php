@@ -12,23 +12,33 @@ use App\Entity\ProjectAssociation;
 use App\Form\PublicProjectNamespaceAssociationAddForm;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\SystemType;
+use App\Repository\ProjectRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ProjectAssociationController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
 
     /**
      * @param Request $request
      * @Route("/public-project-namespace-association/new", name="public_project_namespace_association_new")
      */
-    public function newPublicProjectNamespaceAssociationAction(Request $request)
+    public function newPublicProjectNamespaceAssociationAction(Request $request, ProjectRepository $projectRepository)
     {
         $projectAssociation = new ProjectAssociation();
-        $em = $this->getDoctrine()->getManager();
-        $publicProject =  $em->getRepository(Project::class)->find(21); //public project = 21
+        $publicProject =  $projectRepository->find(21); //public project = 21
 
         $this->denyAccessUnlessGranted('full_edit', $publicProject); //admins only can add a new namespace to the public project
 
+        $em = $this->doctrine->getManager();
         $systemType= $em->getRepository(SystemType::class)->find(17); //systemType 17 = Default display
 
         $form = $this->createForm(PublicProjectNamespaceAssociationAddForm::class, $projectAssociation);
@@ -44,8 +54,6 @@ class ProjectAssociationController extends AbstractController
             $projectAssociation->setCreationTime(new \DateTime('now'));
             $projectAssociation->setModificationTime(new \DateTime('now'));
 
-
-            $em = $this->getDoctrine()->getManager();
             $em->persist($projectAssociation);
             $em->flush();
 
@@ -76,7 +84,7 @@ class ProjectAssociationController extends AbstractController
         }
 
         try {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->remove($projectAssociation);
             $em->flush();
         }

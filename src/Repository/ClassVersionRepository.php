@@ -9,11 +9,16 @@
 namespace App\Repository;
 
 use App\Entity\OntoClass;
-use App\Entity\OntoNamespace;
-use Doctrine\ORM\EntityRepository;
+use App\Entity\OntoClassVersion;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class ClassVersionRepository extends EntityRepository
+class ClassVersionRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, OntoClassVersion::class);
+    }
     /**
      * @param OntoClass $class
      * @param array $namespacesId

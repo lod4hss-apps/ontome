@@ -1,10 +1,19 @@
 <?php
 namespace App\Repository;
-use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\EntityRepository;
 
-class ContainerRepository extends EntityRepository
+use App\Entity\Container;
+use Doctrine\DBAL\DBALException;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+class ContainerRepository extends ServiceEntityRepository
 {
+
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Container::class);
+    }
+
     /**
      * @param $lang string the language iso code
      * @param $container int the ID of the container

@@ -16,10 +16,16 @@ use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
-class ClassRepository extends EntityRepository
+class ClassRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, OntoClass::class);
+    }
+    
     /**
      * @return OntoClass[]
      */

@@ -16,11 +16,20 @@ use App\Entity\Profile;
 use App\Entity\ProfileAssociation;
 use App\Entity\Project;
 use App\Entity\Property;
+use App\Entity\SystemType;
 use App\Entity\TextProperty;
+use App\Entity\UserProjectAssociation;
 use App\Form\ProfileEditForm;
 use App\Form\ProfileQuickAddForm;
 use App\Form\TextPropertyForm;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\PropertyVersionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -32,18 +41,24 @@ use Symfony\Component\Form\FormFactoryInterface;
 
 class ProfileController  extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
 
     /**
      * @Route("/profile/{id}", name="profile_show", requirements={"id"="^([0-9]+)|(profileID){1}$"})
      * @param Profile $profile
      * @return Response the rendered template
      */
-    public function showAction(Profile $profile)
+    public function showAction(Profile $profile, ClassRepository $classRepository)
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
-        $classes = $em->getRepository(OntoClass::class)
-            ->findClassesByProfileId($profile);
+        $classes = $classRepository->findClassesByProfileId($profile);
 
         //$properties = $em->getRepository(Property::class)->findPropertiesByProfileId($profile);
 
@@ -62,12 +77,9 @@ class ProfileController  extends AbstractController
     /**
      * @Route("/profile")
      */
-    public function listAction()
+    public function listAction(ProfileRepository $profileRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
-        $profiles = $em->getRepository(Profile::class)
-            ->findAll();
+        $profiles = $profileRepository->findAll();
 
         return $this->render('profile/list.html.twig', [
             'profiles' => $profiles
@@ -77,11 +89,11 @@ class ProfileController  extends AbstractController
     /**
      * @Route("profile/new/{project}", name="profile_new", requirements={"project"="^[0-9]+$"})
      */
-    public function newAction(Request $request, Project $project)
+    public function newAction(Request $request, Project $project, ProfileRepository $profileRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = description
 
@@ -115,7 +127,7 @@ class ProfileController  extends AbstractController
         $rootProfileLabel->setModificationTime(new \DateTime('now'));
         $rootProfile->addLabel($rootProfileLabel);
 
-        $allProfiles = $em->getRepository(Profile::class)->findAll();
+        $allProfiles = $profileRepository->findAll();
         $allLabels = new ArrayCollection();
         foreach ($allProfiles as $profile){
             foreach ($profile->getLabels() as $label){
@@ -181,7 +193,7 @@ class ProfileController  extends AbstractController
             $ongoingDescription->setProfile($ongoingProfile);
             $ongoingProfile->addTextProperty($ongoingDescription);
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($rootProfile);
             $em->persist($ongoingProfile);
             $em->flush();
@@ -205,7 +217,7 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return Response the rendered template
      */
-    public function editAction(Profile $profile, Request $request)
+    public function editAction(Profile $profile, Request $request, ClassRepository $classRepository, NamespaceRepository $namespaceRepository)
     {
 
         if(is_null($profile)) {
@@ -224,7 +236,7 @@ class ProfileController  extends AbstractController
 
         $form = $this->createForm(ProfileEditForm::class, $profile);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -252,22 +264,19 @@ class ProfileController  extends AbstractController
             ]);
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
-        $classes = $em->getRepository(OntoClass::class)
-            ->findClassesByProfileId($profile);
+        $classes = $classRepository->findClassesByProfileId($profile);
 
-        $selectableClasses = $em->getRepository(OntoClass::class)
-            ->findClassesForAssociationWithProfileByProfileId($profile);
+        $selectableClasses = $classRepository->findClassesForAssociationWithProfileByProfileId($profile);
 
         //$properties = $em->getRepository(Property::class)->findPropertiesByProfileId($profile);
 
-        $rootNamespacesBrut = $em->getRepository(OntoNamespace::class)
-            ->findAllNonAssociatedToProfileByProfileId($profile);
+        $rootNamespacesBrut = $namespaceRepository->findAllNonAssociatedToProfileByProfileId($profile);
 
         $rootNamespaces = new ArrayCollection();
         foreach($rootNamespacesBrut as $rootNamespace){
-            $rootNamespaces->add($em->getRepository(OntoNamespace::class)->find($rootNamespace['id']));
+            $rootNamespaces->add($namespaceRepository->find($rootNamespace['id']));
         }
         $rootNamespaces = $rootNamespaces->filter(function($v){return $v->getId() != 5;});
 
@@ -305,8 +314,6 @@ class ProfileController  extends AbstractController
         //only the project of belonging administrator car publish a profile
         $this->denyAccessUnlessGranted('full_edit', $profile->getProjectOfBelonging());
 
-        $em = $this->getDoctrine()->getManager();
-
         $profile->setIsOngoing(false);
         $profile->setIsForcedPublication(false);
         $profile->setStartDate(new \DateTime('now'));
@@ -314,6 +321,7 @@ class ProfileController  extends AbstractController
         $stateOfVisibility = $profile->getIsVisible();
         $profile->setIsVisible(true);
 
+        $em = $this->doctrine->getManager();
         $em->persist($profile);
         $em->flush();
 
@@ -387,7 +395,7 @@ class ProfileController  extends AbstractController
         //only the project of belonging administrator car deprecate a profile
         $this->denyAccessUnlessGranted('full_edit', $profile->getProjectOfBelonging());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $profile->setEndDate(new \DateTime('now'));
 
@@ -431,7 +439,7 @@ class ProfileController  extends AbstractController
             $message = 'This namespace is already used by this profile';
         }
         else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $profile->addNamespace($namespace);
             foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace){
                 if(!$arrayAllReferencesNamespacesForProfile->contains($referencedNamespace) and $referencedNamespace != $namespace){
@@ -504,7 +512,7 @@ class ProfileController  extends AbstractController
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
         $profile->removeNamespace($namespace);
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $em->persist($profile);
         $em->flush();
 
@@ -522,7 +530,7 @@ class ProfileController  extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $profile->removeNamespace($associatedNamespace);
 
         if($newAssociatedNamespace->getIsTopLevelNamespace()) {
@@ -535,7 +543,7 @@ class ProfileController  extends AbstractController
         }
         else {
             $profile->addNamespace($newAssociatedNamespace);
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($profile);
 
             // Créer les entity_to_user_project pour les activer par défaut
@@ -599,12 +607,10 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
-    public function getSelectableClassesByProfile(Profile $profile)
+    public function getSelectableClassesByProfile(Profile $profile, ClassRepository $classRepository)
     {
         try{
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findClassesForAssociationWithProfileByProfileId($profile);
+            $classes = $classRepository->findClassesForAssociationWithProfileByProfileId($profile);
             $data['data'] = $classes;
             $data = json_encode($data);
         }
@@ -624,12 +630,10 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
-    public function getAssociatedClassesByProfile(Profile $profile)
+    public function getAssociatedClassesByProfile(Profile $profile, ClassRepository $classRepository)
     {
         try{
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findClassesByProfileId($profile);
+            $classes = $classRepository->findClassesByProfileId($profile);
             $data['data'] = $classes;
             $data = json_encode($data);
         }
@@ -651,11 +655,11 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, Request $request)
+    public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, Request $request, ClassVersionRepository $classVersionRepository)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'class' => $class->getId()));
 
@@ -675,7 +679,7 @@ class ProfileController  extends AbstractController
             }
         }
         else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
@@ -690,7 +694,7 @@ class ProfileController  extends AbstractController
                     }
                 }
             }
-            $classVersion = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($class, $namespacesId);
+            $classVersion = $classVersionRepository->findClassVersionByClassAndNamespacesId($class, $namespacesId);
             $profileAssociation->setEntityNamespaceForVersion($classVersion->getNamespaceForVersion());
 
             $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
@@ -722,11 +726,11 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfilePropertyAssociationAction(Property $property, Profile $profile, Request $request)
+    public function newProfilePropertyAssociationAction(Property $property, Profile $profile, Request $request, PropertyVersionRepository $propertyVersionRepository)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => null, 'range' => null));
 
@@ -746,7 +750,7 @@ class ProfileController  extends AbstractController
             }
         }
         else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
@@ -761,7 +765,7 @@ class ProfileController  extends AbstractController
                     }
                 }
             }
-            $propertyVersion = $em->getRepository("PropertyVersion::class")->findPropertyVersionByPropertyAndNamespacesId($property, $namespacesId);
+            $propertyVersion = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($property, $namespacesId);
             $profileAssociation->setEntityNamespaceForVersion($propertyVersion->getNamespaceForVersion());
 
             $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
@@ -795,11 +799,11 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, Request $request)
+    public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => $domain->getId(), 'range' => $range->getId()));
 
@@ -819,7 +823,7 @@ class ProfileController  extends AbstractController
             }
         }
         else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
@@ -834,15 +838,15 @@ class ProfileController  extends AbstractController
                     }
                 }
             }
-            $propertyVersion = $em->getRepository("PropertyVersion::class")->findPropertyVersionByPropertyAndNamespacesId($property, $namespacesId);
+            $propertyVersion = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($property, $namespacesId);
             $profileAssociation->setEntityNamespaceForVersion($propertyVersion->getNamespaceForVersion());
 
             $profileAssociation->setDomain($domain);
-            $domainVersion = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($domain, $namespacesId);
+            $domainVersion = $classVersionRepository->findClassVersionByClassAndNamespacesId($domain, $namespacesId);
             $profileAssociation->setDomainNamespace($domainVersion->getNamespaceForVersion());
 
             $profileAssociation->setRange($range);
-            $rangeVersion = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($range, $namespacesId);
+            $rangeVersion = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId);
             $profileAssociation->setRangeNamespace($rangeVersion->getNamespaceForVersion());
 
             $systemType = $em->getRepository(SystemType::class)->find(5); //systemType 5 = selected
@@ -876,7 +880,7 @@ class ProfileController  extends AbstractController
     public function deleteProfileClassAssociationAction(OntoClass $class, Profile $profile, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(array('profile' => $profile->getId(), 'class' => $class->getId()));
@@ -922,7 +926,7 @@ class ProfileController  extends AbstractController
     public function deleteProfilePropertyAssociationAction(Property $property, Profile $profile, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
 
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
@@ -950,7 +954,7 @@ class ProfileController  extends AbstractController
     public function deleteProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
 
         try {
@@ -994,12 +998,10 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing Properties selectable by Class and Profile
      */
-    public function getSelectableOutgoingPropertiesByClassAndProfile(OntoClass $class, Profile $profile)
+    public function getSelectableOutgoingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findOutgoingPropertiesByClassAndProfileId($class, $profile);
+            $properties = $propertyRepository->findOutgoingPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
             $data['data'] = $properties;
@@ -1018,12 +1020,10 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming Properties selectable by Class and Profile
      */
-    public function getSelectableIncomingPropertiesByClassAndProfile(OntoClass $class, Profile $profile)
+    public function getSelectableIncomingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
     {
         try{
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findIncomingPropertiesByClassAndProfileId($class, $profile);
+            $properties = $propertyRepository->findIncomingPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
             $data['data'] = $properties;
@@ -1042,12 +1042,10 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing inherited Properties selectable by Class and Profile
      */
-    public function getSelectableOutgoingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile)
+    public function getSelectableOutgoingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
     {
         try{
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findOutgoingInheritedPropertiesByClassAndProfileId($class, $profile);
+            $properties = $propertyRepository->findOutgoingInheritedPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
             $data['data'] = $properties;
@@ -1066,12 +1064,10 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming inherited Properties selectable by Class and Profile
      */
-    public function getSelectableIncomingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile)
+    public function getSelectableIncomingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
     {
         try{
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findIncomingInheritedPropertiesByClassAndProfileId($class, $profile);
+            $properties = $propertyRepository->findIncomingInheritedPropertiesByClassAndProfileId($class, $profile);
             $data['recordsTotal'] = count($properties); //mandatory for datatable
             $data['recordsFiltered'] = count($properties); //mandatory for datatable
             $data['data'] = $properties;
@@ -1092,14 +1088,12 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request)
+    public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findDescendantsByProfileAndClassId($profile, $class, $property, $searchTerm);
+            $classes = $classRepository->findDescendantsByProfileAndClassId($profile, $class, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
         }
@@ -1123,14 +1117,13 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request)
+    public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findDescendantsDomainByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
+            $em = $this->doctrine->getManager();
+            $classes = $classRepository->findDescendantsDomainByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
         }
@@ -1154,14 +1147,12 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request)
+    public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findDescendantsRangeByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
+            $classes = $classRepository->findDescendantsRangeByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
         }
@@ -1181,11 +1172,9 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse a Json formatted graph representation of Profile
      */
-    public function getGraphJson(Profile $profile)
+    public function getGraphJson(Profile $profile, ProfileRepository $profileRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $profile = $em->getRepository(Profile::class)
-            ->findProfileGraph($profile);
+        $profile = $profileRepository->findProfileGraph($profile);
 
         return new JsonResponse($profile[0]['json'],200, array(), true);
     }
@@ -1269,7 +1258,7 @@ class ProfileController  extends AbstractController
     public function recreateProfileFromPublishedProfileAction(Profile $profile, Request $request)
     {
         $this->denyAccessUnlessGranted('duplicate', $profile);
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $newProfile = new Profile();
 
@@ -1332,13 +1321,13 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return Response the rendered template
      */
-    public function editCustomisationAction(ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory)
+    public function editCustomisationAction(ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory, TextPropertyRepository $textPropertyRepository)
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         // Justification form
         $systemTypeJustification = $em->getRepository(SystemType::class)->find(15);
-        $textPropertyJustification = $em->getRepository("TextProperty::class")->findOneBy(
+        $textPropertyJustification = $textPropertyRepository->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeJustification->getId())
         );
         if(is_null($textPropertyJustification)){
@@ -1370,7 +1359,7 @@ class ProfileController  extends AbstractController
 
         // Use case form
         $systemTypeUseCase = $em->getRepository(SystemType::class)->find(36);
-        $textPropertyUseCase = $em->getRepository("TextProperty::class")->findOneBy(
+        $textPropertyUseCase = $textPropertyRepository->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeUseCase->getId())
         );
         if(is_null($textPropertyUseCase)){
@@ -1402,7 +1391,7 @@ class ProfileController  extends AbstractController
 
         // Profile internal note form
         $systemTypeNote = $em->getRepository(SystemType::class)->find(33);
-        $textPropertyNote = $em->getRepository("TextProperty::class")->findOneBy(
+        $textPropertyNote = $textPropertyRepository->findOneBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeNote->getId())
         );
         if(is_null($textPropertyNote)){
@@ -1461,7 +1450,7 @@ class ProfileController  extends AbstractController
         }
 
         // Next examples is only for edit
-        $textPropertyExamples = $em->getRepository("TextProperty::class")->findBy(
+        $textPropertyExamples = $textPropertyRepository->findBy(
             array("profileAssociation" => $profileAssociation->getId(), "systemType" => $systemTypeExample->getId())
         );
 
@@ -1512,7 +1501,7 @@ class ProfileController  extends AbstractController
         $this->denyAccessUnlessGranted('edit', $profile);
         try {
             $profile->setIsVisible(true);
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($profile);
             $em->flush();
         }

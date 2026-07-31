@@ -9,6 +9,12 @@
 namespace App\Controller;
 
 use App\Entity\Project;
+use App\Repository\ClassRepository;
+use App\Repository\ContainerRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\ProjectRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\NamespaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,12 +31,10 @@ class ApiController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
-    public function getClassesByProject(Project $project)
+    public function getClassesByProject(Project $project, ClassRepository $classRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findClassesByProjectId($project);
+            $classes = $classRepository->findClassesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(null, 404, 'content-type:application/problem+json');
@@ -49,12 +53,10 @@ class ApiController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Property related to a Project
      */
-    public function getPropertiesByProject(Project $project)
+    public function getPropertiesByProject(Project $project, PropertyRepository $propertyRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findPropertiesByProjectId($project);
+            $properties = $propertyRepository->findPropertiesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
             return new JsonResponse(null, 404, 'content-type:application/problem+json');
@@ -72,16 +74,14 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of profiles
      */
-    public function getProfiles(Request $request)
+    public function getProfiles(Request $request, ProfileRepository $profileRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $selectingProject = intval($request->get('selected-by-project', 0));
             $owningProject = intval($request->get('owned-by-project', 0));
 
-            $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository(Profile::class)
-                ->findProfilesApi($lang, $selectingProject, $owningProject);
+            $profiles = $profileRepository->findProfilesApi($lang, $selectingProject, $owningProject);
 
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -105,16 +105,14 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of classes with profile
      */
-    public function getClassesWithProfile(Request $request)
+    public function getClassesWithProfile(Request $request, ClassRepository $classRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $availableInProfile = intval($request->get('available-in-profile', 0));
             $selectedByProject = intval($request->get('selected-by-project', 0));
 
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findClassesWithProfileApi($lang, $availableInProfile, $selectedByProject);
+            $classes = $classRepository->findClassesWithProfileApi($lang, $availableInProfile, $selectedByProject);
 
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -138,16 +136,14 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of properties with profile
      */
-    public function getPropertiesWithProfile(Request $request)
+    public function getPropertiesWithProfile(Request $request, PropertyRepository $propertyRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $availableInProfile = intval($request->get('available-in-profile', 0));
             $selectedByProject = intval($request->get('selected-by-project', 0));
 
-            $em = $this->getDoctrine()->getManager();
-            $properties = $em->getRepository(Property::class)
-                ->findPropertiesWithProfileApi($lang, $availableInProfile, $selectedByProject);
+            $properties = $propertyRepository->findPropertiesWithProfileApi($lang, $availableInProfile, $selectedByProject);
 
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -169,15 +165,13 @@ class ApiController extends AbstractController
     /**
      * @Route("/api/shacl-profile.ttl", name="api_shacl_profile", methods={"GET"})
      */
-    public function getShaclWithProfile(Request $request)
+    public function getShaclWithProfile(Request $request, ProfileRepository $profileRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $profileId = intval($request->get('profile-id', 0));
 
-            $em = $this->getDoctrine()->getManager();
-            $output = $em->getRepository(Profile::class)
-                ->findShaclWithProfile($lang, $profileId);
+            $output = $profileRepository->findShaclWithProfile($lang, $profileId);
 
         } catch (\Exception $e) {
             $message = "# Error: (PHP" . phpversion() . ")" . $e->getMessage(); // Commentaire en Turtle
@@ -197,14 +191,12 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getClassesAndPropertiesByNamespace(Request $request)
+    public function getClassesAndPropertiesByNamespace(Request $request, NamespaceRepository $namespaceRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('namespace', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(OntoNamespace::class)
-                ->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
+            $xml = $namespaceRepository->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -223,7 +215,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getOwlWisskiByNamespace(Request $request)
+    public function getOwlWisskiByNamespace(Request $request, NamespaceRepository $namespaceRepository)
     {
         // Let's see what environment we're in. If dev, we do not persist files
         $persistent = true;
@@ -250,14 +242,12 @@ class ApiController extends AbstractController
             // If the file does not exist or if reloading is forced
             if (!file_exists($owlFilePath) || $reload) {
                 // In this case, we generate the XML with the SQL query.
-                $em = $this->getDoctrine()->getManager();
-                $xml = $em->getRepository(OntoNamespace::class)
-                    ->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
+                $xml = $namespaceRepository->findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespaceId);
 
                 // The file is saved if the namespace is not ongoing.
                 // unless $persistent is false, we do not save
                 if ($persistent) {
-                    $isOngoing = $em->getRepository(OntoNamespace::class)->find($namespaceId)->getIsOngoing();
+                    $isOngoing = $namespaceRepository->find($namespaceId)->getIsOngoing();
                     if (!$isOngoing) {
                         $xmlContent = simplexml_load_string($xml[0]['result']);
                         if ($xmlContent !== false) {
@@ -290,14 +280,12 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this project
      */
-    public function getClassesAndPropertiesByProject(Request $request)
+    public function getClassesAndPropertiesByProject(Request $request, ProjectRepository $projectRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $projectId = intval($request->get('project', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Project::class)
-                ->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
+            $xml = $projectRepository->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -316,14 +304,12 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
-    public function getClassesAndPropertiesByProfile(Request $request)
+    public function getClassesAndPropertiesByProfile(Request $request, ProfileRepository $profileRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $profileId = intval($request->get('profile', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Profile::class)
-                ->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
+            $xml = $profileRepository->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -342,16 +328,14 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getClassesAndPropertiesByNamespaceRdfs(Request $request)
+    public function getClassesAndPropertiesByNamespaceRdfs(Request $request, NamespaceRepository $namespaceRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('namespace', 0));
             $withInverseProperties = intval($request->get('withInverseProperties', 0));
             $withSpecificUri = intval($request->get('withSpecificUri', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(OntoNamespace::class)
-                ->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId, $withInverseProperties, $withSpecificUri);
+            $xml = $namespaceRepository->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId, $withInverseProperties, $withSpecificUri);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -373,14 +357,12 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
-    public function getClassesAndPropertiesByProfileRdfs(Request $request)
+    public function getClassesAndPropertiesByProfileRdfs(Request $request, ProfileRepository $profileRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $profileId = intval($request->get('profile', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Profile::class)
-                ->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
+            $xml = $profileRepository->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -403,14 +385,12 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getOwlWisskiByProject(Request $request)
+    public function getOwlWisskiByProject(Request $request, ProjectRepository $projectRepository)
     {
         try {
             $lang = $request->get('lang', 'en');
             $namespaceId = intval($request->get('project', 0));
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Project::class)
-                ->findNamespacesByProjectIdApi($lang, $namespaceId);
+            $xml = $projectRepository->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xml .= '<error code="500" message="Error: ' . $e->getMessage() . '"/>';
@@ -429,7 +409,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
      */
-    public function getOwlWisskiByContainer(Request $request)
+    public function getOwlWisskiByContainer(Request $request, ContainerRepository $containerRepository)
     {
         try {
             // Langue par défaut: en, sinon celle passée en paramètre
@@ -439,8 +419,7 @@ class ApiController extends AbstractController
             $containerId = intval($request->get('container', 0));
 
             // Récupérer le container
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Container::class)->findNamespacesByContainerIdApi($lang, $containerId);
+            $xml = $containerRepository->findNamespacesByContainerIdApi($lang, $containerId);
 
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -465,15 +444,14 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response a XML formatted response of namespaces and pathbuilders related to this container
      */
-    public function getApiContainer(Request $request)
+    public function getApiContainer(Request $request, ContainerRepository $containerRepository)
     {
         try {
             // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
             $containerId = intval($request->get('container', 0));
 
             // Récupérer le container
-            $em = $this->getDoctrine()->getManager();
-            $xml = $em->getRepository(Container::class)->findContainerApi($containerId);
+            $xml = $containerRepository->findContainerApi($containerId);
 
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -493,12 +471,10 @@ class ApiController extends AbstractController
      * @param String $label the class label to find
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
-    public function getE55ChildrenClassesByLabel($label)
+    public function getE55ChildrenClassesByLabel($label, ClassRepository $classRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(OntoClass::class)
-                ->findE55ChildClassesFromLabel($label);
+            $classes = $classRepository->findE55ChildClassesFromLabel($label);
         } catch (\Exception $e) {
             $message = $e->getMessage();
             $status = 'Error';
@@ -522,7 +498,7 @@ class ApiController extends AbstractController
      * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
      * This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
      */
-    public function getOntoMeUriFromOfficialUri(Request $request)
+    public function getOntoMeUriFromOfficialUri(Request $request, ProjectRepository $projectRepository)
     {
         $officialUri = rawurldecode($request->query->get('officialUri'));
 
@@ -530,9 +506,7 @@ class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Missing officialUri parameter'], 400, array('content-type:application/problem+json'));
         }
 
-        $em = $this->getDoctrine()->getManager();
-        $ontomeUri = $em->getRepository(Project::class)
-            ->findOntoMeUriFromOfficialUri($officialUri);
+        $ontomeUri = $projectRepository->findOntoMeUriFromOfficialUri($officialUri);
 
         if (!$ontomeUri) {
             return new JsonResponse(['error' => 'OntoME URI not found'], 404, array('content-type:application/problem+json'));

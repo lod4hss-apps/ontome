@@ -8,12 +8,14 @@
 
 namespace App\Controller;
 
-
+use Doctrine\Persistence\ManagerRegistry;
+use App\Repository\NamespaceRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
 use App\Entity\Label;
 use App\Entity\OntoClass;
 use App\Entity\OntoNamespace;
-use App\Entity\Profile;
-use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\PropertyVersion;
 use App\Entity\SystemType;
@@ -23,40 +25,44 @@ use App\Form\OutgoingPropertyQuickAddForm;
 use App\Form\PropertyEditForm;
 use App\Form\PropertyEditIdentifierForm;
 use App\Form\PropertyEditUriIdentifierForm;
-use App\Form\TextPropertyForm;
 use Doctrine\Common\Collections\ArrayCollection;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 class PropertyController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/property")
      */
-    public function listAction(){
-        $em = $this->getDoctrine()->getManager();
-
+    public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
+    {
         // FILTRAGE : Récupérer les namespaces
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // Compléter avec les références parents (directs/indirects)
         $refsNsId = [];
         foreach($namespacesId as $nsId){
-            $ns = $em->getRepository(OntoNamespace::class)->find($nsId);
+            $ns = $namespaceRepository->find($nsId);
             foreach ($ns->getAllReferencedNamespaces() as $refNs){
                 if(!in_array($refNs->getId(), $refsNsId)){$refsNsId[] = $refNs->getId();}
             }
@@ -66,14 +72,14 @@ class PropertyController extends AbstractController
         // Récupérer l'ensemble des namespaces root déjà utilisé pour le filtrage
         $rootNamespacesId = [];
         foreach ($namespacesId as $namespaceId){
-            $rootNamespacesId[] = $em->getRepository(OntoNamespace::class)->find($namespaceId)->getTopLevelNamespace()->getId();
+            $rootNamespacesId[] = $namespaceRepository->find($namespaceId)->getTopLevelNamespace()->getId();
         }
 
         // Récupérer toutes les classes sans le filtrage
         // N'afficher que les classes/propriétés de la version choisie par l'utilisateur sinon dernière publiée d'un espace de noms ou,
         // si l'espace n'a pas de version publiée, la version ongoing.
         // 1- Récuperer tous les roots
-        $allRootNamespaces = $em->getRepository(OntoNamespace::class)->findBy(array("isTopLevelNamespace" => true));
+        $allRootNamespaces = $namespaceRepository->findBy(array("isTopLevelNamespace" => true));
         // 2- Récupérer la bonne version (choisie par l'utilisateur sinon dernière publiée sinon ongoing)
         $allNamespacesId = $namespacesId;
 
@@ -93,7 +99,7 @@ class PropertyController extends AbstractController
         }
 
         // Récupérer toutes les propriétés
-        $allProperties= $em->getRepository(Property::class)->findAll(); //->findPropertiesByNamespacesId($allNamespacesId);
+        $allProperties= $propertyRepository->findAll(); //->findPropertiesByNamespacesId($allNamespacesId);
 
         return $this->render('property/list.html.twig', [
             'properties' => $allProperties,
@@ -105,7 +111,7 @@ class PropertyController extends AbstractController
     /**
      * @Route("property/{type}/new/{class}", name="property_new", requirements={"type"="^(ingoing|outgoing){1}$", "class"="^[0-9]+$"})
      */
-    public function newAction($type,Request $request, OntoClass $class)
+    public function newAction($type,Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         $property = new Property();
 
@@ -116,7 +122,7 @@ class PropertyController extends AbstractController
 
         if($type !== 'ingoing' && $type !== 'outgoing') throw $this->createNotFoundException('The requested property type "'.$type.'" does not exist!');
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = scope note
 
@@ -163,7 +169,7 @@ class PropertyController extends AbstractController
         $property->setCreator($this->getUser());
         $property->setModifier($this->getUser());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         // Filtrage
         $namespaceForPropertyVersion = $propertyVersion->getNamespaceForVersion();
@@ -176,8 +182,7 @@ class PropertyController extends AbstractController
             }
         }
 
-        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
-            ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
+        $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
         $namespace = $propertyVersion->getNamespaceForVersion();
         $uriParam = $namespace->getTopLevelNamespace()->getUriParameter();
@@ -230,20 +235,20 @@ class PropertyController extends AbstractController
             $property = $form->getData();
             if($type == 'outgoing') {
                 $propertyVersion->setDomain($class);
-                $domainNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
+                $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setDomainNamespace($domainNamespace);
-                $range = $em->getRepository("OntoClass::class")->find($form->get("rangeVersion")->getData());
+                $range = $classRepository->find($form->get("rangeVersion")->getData());
                 $propertyVersion->setRange($range);
-                $rangeNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
+                $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setRangeNamespace($rangeNamespace);
             }
             elseif ($type == 'ingoing') {
                 $propertyVersion->setRange($class);
-                $rangeNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
+                $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setRangeNamespace($rangeNamespace);
-                $domain = $em->getRepository("OntoClass::class")->find($form->get("domainVersion")->getData());
+                $domain = $classRepository->find($form->get("domainVersion")->getData());
                 $propertyVersion->setDomain($domain);
-                $domainNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
+                $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setDomainNamespace($domainNamespace);
             }
 
@@ -273,7 +278,7 @@ class PropertyController extends AbstractController
             }
 
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($property);
             $em->flush();
 
@@ -283,7 +288,7 @@ class PropertyController extends AbstractController
 
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $template = null;
         if($type == 'outgoing') {
@@ -308,7 +313,7 @@ class PropertyController extends AbstractController
      * @param int|null $namespaceFromUrlId
      * @return Response the rendered template
      */
-    public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId=null)
+    public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId=null, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
     {
         //Vérifier si le namespace -si renseigné- est bien associé à la propriété
         $namespaceFromUrl = null;
@@ -334,19 +339,17 @@ class PropertyController extends AbstractController
             throw $this->createNotFoundException('The property n°'.$property->getId().' has no version. Please contact an administrator.');
         }
 
-        $em = $this->getDoctrine()->getManager();
-
         //Si le namespace n'est pas specifié dans l'url mais dans My Current Namespace, rediriger
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
 
         if(is_null($namespaceFromUrlId)) {
             if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
-                $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+                $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
             } else { // Utilisateur connecté et utilisant un autre projet
-                $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+                $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
             }
             foreach ($namespacesIdFromUser as $namespaceIdFromUser) {
-                $namespaceFromUser = $em->getRepository(OntoNamespace::class)->find($namespaceIdFromUser);
+                $namespaceFromUser = $namespaceRepository->find($namespaceIdFromUser);
                 if ($propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getId() === $namespaceFromUser->getTopLevelNamespace()->getId() and $property->getPropertyVersionForDisplay($namespaceFromUser)->getNamespaceForVersion() === $namespaceFromUser) {
                     return $this->redirectToRoute('property_show_with_version', [
                         'id' => $property->getId(),
@@ -364,20 +367,20 @@ class PropertyController extends AbstractController
         // $rootNamespacesFromPropertyVersion : Ensemble des versions racines (pour contrôle en dessous)
         $nsId = $propertyVersion->getNamespaceForVersion()->getId();
         $namespacesIdFromPropertyVersion[] = $nsId;
-        $rootNamespacesFromClassVersion[] = $em->getRepository(OntoNamespace::class)->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
+        $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
 
         foreach($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace){
             $nsId = $referencedNamespace->getId();
             $namespacesIdFromPropertyVersion[] = $nsId;
-            $rootNamespacesFromClassVersion[] = $em->getRepository(OntoNamespace::class)->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
+            $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
         }
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
         // sauf ceux automatiquement activés par l'entité
         $namespacesIdFromUser = array_diff($namespacesIdFromUser, $namespacesIdFromPropertyVersion);
@@ -386,7 +389,7 @@ class PropertyController extends AbstractController
         $nsIdFromUser = array();
         foreach ($namespacesIdFromUser as $namespaceIdFromUser){
             $isCompatible = true;
-            $nsUser = $em->getRepository(OntoNamespace::class)->findOneBy(array('id' => $namespaceIdFromUser));
+            $nsUser = $namespaceRepository->findOneBy(array('id' => $namespaceIdFromUser));
             $nsRootUser = $nsUser->getTopLevelNamespace();
             if(in_array($nsRootUser, $rootNamespacesFromClassVersion) and !in_array($nsUser->getId(), $namespacesIdFromPropertyVersion)){
                 $isCompatible = false;
@@ -512,10 +515,10 @@ class PropertyController extends AbstractController
         });
         $entityAssociations = new ArrayCollection(iterator_to_array($iterator));
 
-        $ancestors = $em->getRepository(Property::class)->findAncestorsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $descendants = $em->getRepository(Property::class)->findDescendantsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $domainRange = $em->getRepository(Property::class)->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $relations = $em->getRepository(Property::class)->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $ancestors = $propertyRepository->findAncestorsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $descendants = $propertyRepository->findDescendantsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $domainRange = $propertyRepository->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $relations = $propertyRepository->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
 
         $logger->info('Showing property: ' . $property->getIdentifierInNamespace());
 
@@ -541,7 +544,7 @@ class PropertyController extends AbstractController
      * @return Response the rendered template
      * @throws \Exception
      */
-    public function editAction(Property $property, Request $request, LoggerInterface $logger)
+    public function editAction(Property $property, Request $request, LoggerInterface $logger, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         // Récupérer la version de la propriété demandée
         $propertyVersion = $property->getPropertyVersionForDisplay();
@@ -552,8 +555,6 @@ class PropertyController extends AbstractController
         }
 
         $this->denyAccessUnlessGranted('edit', $propertyVersion);
-
-        $em = $this->getDoctrine()->getManager();
 
         // $namespacesIdFromClassVersion : Ensemble de namespaces provenant de la classe affiché (namespaceForVersion + references)
         // $rootNamespacesIdFromPropertyVersion: pour contrôler les versions à ajouter (éviter deux versions différentes d'un même namespace).
@@ -569,17 +570,17 @@ class PropertyController extends AbstractController
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){
-            $namespacesIdFromUserBeforeVerification = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesIdFromUserBeforeVerification = $namespaceRepository->findPublicProjectNamespacesId();
 
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesIdFromUserBeforeVerification = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUserBeforeVerification = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // On élimine les versions des root déjà utilisés
         $namespacesIdFromUser = [];
         foreach($namespacesIdFromUserBeforeVerification as $namespaceId){
-            $namespace = $em->getRepository(OntoNamespace::class)->find($namespaceId);
+            $namespace = $namespaceRepository->find($namespaceId);
             if(!in_array($namespace->getTopLevelNamespace()->getId(), $rootNamespacesId)){
                 $namespacesIdFromUser[] = $namespaceId;
                 $rootNamespacesId[] = $namespace->getTopLevelNamespace()->getId();
@@ -592,13 +593,12 @@ class PropertyController extends AbstractController
         // $namespacesId : Tous les namespaces trouvés ci-dessus
         $namespacesId = array_merge($namespacesIdFromPropertyVersion, $namespacesIdFromUser);
 
-        $ancestors = $em->getRepository(Property::class)->findAncestorsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $descendants = $em->getRepository(Property::class)->findDescendantsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $domainRange = $em->getRepository(Property::class)->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
-        $relations = $em->getRepository(Property::class)->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $ancestors = $propertyRepository->findAncestorsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $descendants = $propertyRepository->findDescendantsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $domainRange = $propertyRepository->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
+        $relations = $propertyRepository->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
 
-        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
-            ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesIdFromPropertyVersion);
+        $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesIdFromPropertyVersion);
 
         $propertyVersion->setCreator($this->getUser());
         $propertyVersion->setModifier($this->getUser());
@@ -626,15 +626,15 @@ class PropertyController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $domain = $em->getRepository("OntoClass::class")->find($form->get("domainVersion")->getData());
+            $domain = $classRepository->find($form->get("domainVersion")->getData());
             $propertyVersion->setDomain($domain);
-            $domainNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
+            $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
             $propertyVersion->setDomainNamespace($domainNamespace);
-            $range = $em->getRepository("OntoClass::class")->find($form->get("rangeVersion")->getData());
+            $range = $classRepository->find($form->get("rangeVersion")->getData());
             $propertyVersion->setRange($range);
-            $rangeNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
+            $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
             $propertyVersion->setRangeNamespace($rangeNamespace);
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($propertyVersion);
             $em->flush();
 
@@ -657,7 +657,7 @@ class PropertyController extends AbstractController
             else{
                 $property->updateIdentifierInUri();
             }
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($property);
             $em->persist($propertyVersion);
             $em->flush();
@@ -672,6 +672,7 @@ class PropertyController extends AbstractController
         $formUriIdentifier = $this->createForm(PropertyEditUriIdentifierForm::class, $property);
         $formUriIdentifier->handleRequest($request);
         if ($formUriIdentifier->isSubmitted() && $formUriIdentifier->isValid()) {
+            $em = $this->doctrine->getManager();
             $em->persist($property);
             $em->flush();
 
@@ -875,7 +876,7 @@ class PropertyController extends AbstractController
         $isMinimumRequirementReached = $txtpValides->count() > 0 && $lblValides->count() > 0;
 
         try{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
@@ -1039,11 +1040,9 @@ class PropertyController extends AbstractController
      * @Route("/properties-tree/json", name="properties_tree_json", methods={"GET"})
      * @return JsonResponse a Json formatted tree representation of Properties
      */
-    public function getTreeJson()
+    public function getTreeJson(PropertyRepository $propertyRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $properties = $em->getRepository(Property::class)
-            ->findPropertiesTree();
+        $properties = $propertyRepository->findPropertiesTree();
 
         return new JsonResponse($properties[0]['json'],200, array(), true);
     }
@@ -1052,11 +1051,9 @@ class PropertyController extends AbstractController
      * @Route("/properties-tree-legend/json", name="properties_tree_legend_json", methods={"GET"})
      * @return JsonResponse a Json formatted legend for the Properties tree
      */
-    public function getTreeLegendJson()
+    public function getTreeLegendJson(PropertyRepository $propertyRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-        $legend = $em->getRepository(Property::class)
-            ->findPropertiesTreeLegend();
+        $legend = $propertyRepository->findPropertiesTreeLegend();
 
 
         return new JsonResponse($legend[0]['json']);

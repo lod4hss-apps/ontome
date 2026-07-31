@@ -10,32 +10,45 @@ namespace App\Controller;
 
 use App\Entity\ClassAssociation;
 use App\Entity\OntoClass;
+use App\Entity\OntoClassVersion;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\ClassAssociationEditForm;
+use App\Form\ParentClassAssociationForm;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
+use App\Repository\NamespaceRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Form\ParentClassAssociationForm;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ClassAssociationController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
 
     /**
      * @Route("/parent-class-association/new/{childClass}", name="new_parent_class_form", requirements={"childClass"="^[0-9]+$"})
      */
-    public function newParentAction(Request $request, OntoClass $childClass)
+    public function newParentAction(Request $request, OntoClass $childClass, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository)
     {
         $classAssociation = new ClassAssociation();
 
         $this->denyAccessUnlessGranted('add_associations', $childClass->getClassVersionForDisplay()->getNamespaceForVersion());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
+
         $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = example
 
@@ -56,8 +69,7 @@ class ClassAssociationController extends AbstractController
         //$namespacesId = $childClass->getClassVersionForDisplay()->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
-        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
-            ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
+        $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayClassesVersion as $cv){
             if($cv['id'] == $childClass->getId()){
@@ -73,17 +85,14 @@ class ClassAssociationController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $classAssociation = $form->getData();
-            $parentClass = $em->getRepository("OntoClass::class")->find($form->get("parentClassVersion")->getData());
+            $parentClass = $classRepository->find($form->get("parentClassVersion")->getData());
             $classAssociation->setParentClass($parentClass);
             $classAssociation->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
             $classAssociation->setChildClassNamespace(
-                $em->getRepository("OntoClassVersion::class")
-                    ->findClassVersionByClassAndNamespacesId($childClass, $namespacesId)
-                    ->getNamespaceForVersion()
+                $classVersionRepository->findClassVersionByClassAndNamespacesId($childClass, $namespacesId)->getNamespaceForVersion()
             );
             $classAssociation->setParentClassNamespace(
-                $em->getRepository("OntoClassVersion::class")
-                    ->findClassVersionByClassAndNamespacesId($parentClass, $namespacesId)
+                $classVersionRepository->findClassVersionByClassAndNamespacesId($parentClass, $namespacesId)
                     ->getNamespaceForVersion()
             );
             $classAssociation->setCreator($this->getUser());
@@ -99,8 +108,6 @@ class ClassAssociationController extends AbstractController
                 $classAssociation->getTextProperties()[1]->setClassAssociation($classAssociation);
             }
 
-
-            $em = $this->getDoctrine()->getManager();
             $em->persist($classAssociation);
             $em->flush();
 
@@ -111,17 +118,15 @@ class ClassAssociationController extends AbstractController
 
         }
 
-        $em = $this->getDoctrine()->getManager();
-
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
         }
         else{ // Utilisateur connecté et utilisant un autre projet
-            $namespacesId = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
-        $ancestors = $em->getRepository(OntoClass::class)->findAncestorsByClassVersionAndNamespacesId($childClass->getClassVersionForDisplay(), $namespacesId);
+        $ancestors = $classRepository->findAncestorsByClassVersionAndNamespacesId($childClass->getClassVersionForDisplay(), $namespacesId);
 
         return $this->render('classAssociation/newParent.html.twig', [
             'childClass' => $childClass,
@@ -148,7 +153,7 @@ class ClassAssociationController extends AbstractController
     /**
      * @Route("/class-association/{id}/edit", name="class_association_edit", requirements={"id"="^[0-9]+$"})
      */
-    public function editAction(Request $request, ClassAssociation $classAssociation)
+    public function editAction(Request $request, ClassAssociation $classAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository)
     {
         // Récupérer la version de la classe demandée
         $childClassVersion = $classAssociation->getChildClass()->getClassVersionForDisplay();
@@ -160,15 +165,12 @@ class ClassAssociationController extends AbstractController
 
         $this->denyAccessUnlessGranted('edit', $classAssociation);
 
-        $em = $this->getDoctrine()->getManager();
-
         // Filtrage
         // On n'utilise pas les espaces de noms additionnels.
         //$namespacesId = $childClassVersion->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
-        $arrayClassesVersion = $em->getRepository(OntoClassVersion::class)
-            ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
+        $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
         foreach ($arrayClassesVersion as $cv){
             if($cv['id'] == $classAssociation->getChildClass()->getId()){
@@ -183,15 +185,15 @@ class ClassAssociationController extends AbstractController
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $parentClass = $em->getRepository("OntoClass::class")->find($form->get("parentClassVersion")->getData());
+            $parentClass = $classRepository->find($form->get("parentClassVersion")->getData());
             $classAssociation->setParentClass($parentClass);
-            $parentClassNamespace = $em->getRepository("OntoClassVersion::class")->findClassVersionByClassAndNamespacesId($parentClass, $namespacesId)->getNamespaceForVersion();
+            $parentClassNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($parentClass, $namespacesId)->getNamespaceForVersion();
             $classAssociation->setParentClassNamespace($parentClassNamespace);
             $classAssociation = $form->getData();
             $classAssociation->setModifier($this->getUser());
             $classAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($classAssociation);
             $em->flush();
 
@@ -246,7 +248,7 @@ class ClassAssociationController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
@@ -289,7 +291,7 @@ class ClassAssociationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('delete', $classAssociation);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         foreach($classAssociation->getTextProperties() as $textProperty)
         {
             $em->remove($textProperty);

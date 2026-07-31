@@ -12,11 +12,17 @@ use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\User;
 use Doctrine\DBAL\DBALException;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
 
-class ProfileRepository extends EntityRepository
+class ProfileRepository extends ServiceEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Profile::class);
+    }
+    
     public function findAllActiveProfilesForUser(User $user)
     {
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());

@@ -8,12 +8,12 @@
 
 namespace App\Controller;
 
-
-use App\App;
+use App\Repository\LabelRepository;
+use App\Repository\TextPropertyRepository;
+use App\Repository\NamespaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Request;
-use Twig_Environment;
+
 
 class MainController extends AbstractController
 {
@@ -45,19 +45,17 @@ class MainController extends AbstractController
      * @Route("/search/{query}", name="search_query")
      * @param string $query
      */
-    public function searchAction($query="")
+    public function searchAction($query="", TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
         // Sécurité anti-injection SQL...
         $query_sanitized = filter_var($query, FILTER_SANITIZE_STRING);
 
         // Retrouver les txtp & labels correspondants à la recherche
-        $resultatTxtp = $em->getRepository(TextProperty::class)->findByFullTextSearch($query_sanitized);
-        $resultatLbl = $em->getRepository(Label::class)->findByFullTextSearch($query_sanitized);
+        $resultatTxtp = $textPropertyRepository->findByFullTextSearch($query_sanitized);
+        $resultatLbl = $labelRepository->findByFullTextSearch($query_sanitized);
 
         // Retrouver les termes qui ont été réellement comparées (pour information à l'utilisateur)
-        $whatSearch = $em->getRepository(TextProperty::class)->findWhatSearch($query_sanitized);
+        $whatSearch = $textPropertyRepository->findWhatSearch($query_sanitized);
         $arrayLexemes = array();
         foreach($whatSearch as $wordSearch){
             foreach($wordSearch as $word){
@@ -70,22 +68,22 @@ class MainController extends AbstractController
 
     /**
      * @Route("/ns/{name}/{identifierInNamespace}")
-     * @param string $query
+     * @param string $name
+     * @param string $identifierInNamespace
      */
-    public function redirectUriAction($name, $identifierInNamespace)
+    public function redirectUriAction($name, $identifierInNamespace, NamespaceRepository $namespaceRepository)
     {
 
         // Sécurité anti-injection SQL...
         $name = filter_var($name, FILTER_SANITIZE_STRING);
         $identifierInNamespace = filter_var($identifierInNamespace, FILTER_SANITIZE_STRING);
 
-        $em = $this->getDoctrine()->getManager();
-        $entity = $em->getRepository(OntoNamespace::class)->findEntity($name,$identifierInNamespace);
+        $entity = $namespaceRepository->findEntity($name,$identifierInNamespace);
 
         if(count($entity) == 0 && substr($identifierInNamespace, -1) === "i"){
             // L'identifier n'a pas été retrouvé mais il se peut que ça soit l'identifiant d'une propriété inverse
             $identifierInNamespace = substr($identifierInNamespace, 0, -1); // Retire le i
-            $entity = $em->getRepository(OntoNamespace::class)->findEntity($name,$identifierInNamespace);
+            $entity = $namespaceRepository->findEntity($name,$identifierInNamespace);
         }
 
         if(count($entity) == 0){

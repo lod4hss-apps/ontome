@@ -9,8 +9,8 @@
 namespace App\Security;
 
 
-use AppBundle\Entity\User;
-use AppBundle\Form\LoginForm;
+use App\Entity\User;
+use App\Form\LoginForm;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;

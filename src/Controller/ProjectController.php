@@ -8,7 +8,7 @@
  */
 
 namespace App\Controller;
-
+use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\ClassAssociation;
 use App\Entity\EntityAssociation;
 use App\Entity\Label;
@@ -24,11 +24,17 @@ use App\Entity\Property;
 use App\Entity\PropertyAssociation;
 use App\Entity\PropertyVersion;
 use App\Entity\ReferencedNamespaceAssociation;
+use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Entity\User;
 use App\Entity\UserProjectAssociation;
 use App\Form\ImportNamespaceForm;
 use App\Form\ProjectQuickAddForm;
+use App\Repository\ProjectRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\ContainerRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,17 +48,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ProjectController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/project")
      * @Route("/domains", name="domain_list")
      */
-    public function listAction()
+    public function listAction(ProjectRepository $projectRepository)
     {
         $displayDomains = $this->get('request_stack')->getCurrentRequest()->attributes->get('_route') === 'domain_list';
 
-        $em = $this->getDoctrine()->getManager();
-
-        $projects = $em->getRepository(Project::class)->findAll();
+        $projects = $projectRepository->findAll();
 
         if ($displayDomains) {
             $projects = array_filter($projects, function ($project) {
@@ -69,7 +81,7 @@ class ProjectController extends AbstractController
     /**
      * @Route("/project/new", name="project_new_user")
      */
-    public function newUserProjectAction(Request $request, TokenStorageInterface $tokenStorage)
+    public function newUserProjectAction(Request $request, TokenStorageInterface $tokenStorage, ProjectRepository $projectRepository)
     {
 
         $tokenInterface = $tokenStorage->getToken();
@@ -79,7 +91,7 @@ class ProjectController extends AbstractController
 
         $project = new Project();
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = Description
 
         $description = new TextProperty();
@@ -109,7 +121,7 @@ class ProjectController extends AbstractController
 
         $project->addLabel($projectLabel);
 
-        $allProjects = $em->getRepository(Project::class)->findAll();
+        $allProjects = $projectRepository->findAll();
 
         $allLabels = new ArrayCollection();
         foreach ($allProjects as $var_project) {
@@ -154,7 +166,7 @@ class ProjectController extends AbstractController
 
             $this->getUser()->setCurrentActiveProject($project);
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($project);
             $em->persist($userProjectAssociation);
             $em->persist($this->getUser());
@@ -165,7 +177,7 @@ class ProjectController extends AbstractController
             ]);
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
 
         return $this->render('project/new.html.twig', [
@@ -180,12 +192,9 @@ class ProjectController extends AbstractController
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(Project $project)
+    public function showAction(Project $project, NamespaceRepository $namespaceRepository)
     {
-        $em = $this->getDoctrine()->getManager();
-
-        $associatedNamespacesForAPIProject = $em->getRepository(OntoNamespace::class)
-            ->findApiNamespacesProject($project);
+        $associatedNamespacesForAPIProject = $namespaceRepository->findApiNamespacesProject($project);
 
         foreach ($associatedNamespacesForAPIProject as &$associate) {
             $associate['namespacesReferenced'] = json_decode($associate['namespacesReferenced']);
@@ -202,20 +211,15 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return Response the rendered template
      */
-    public function editAction(Project $project, Request $request)
+    public function editAction(Project $project, Request $request, UserRepository $userRepository, NamespaceRepository $namespaceRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $users = $userRepository->findAllNotInProject($project);
 
-        $users = $em->getRepository(User::class)
-            ->findAllNotInProject($project);
+        $namespacesPublicProject = $namespaceRepository->findNamespacesInPublicProject();
 
-        $namespacesPublicProject = $em->getRepository(OntoNamespace::class)
-            ->findNamespacesInPublicProject();
-
-        $associatedNamespacesForAPIProject = $em->getRepository(OntoNamespace::class)
-            ->findApiNamespacesProject($project);
+        $associatedNamespacesForAPIProject = $namespaceRepository->findApiNamespacesProject($project);
 
         // On crée le formulaire d'importation XML
         $formImport = $this->createForm(ImportNamespaceForm::class);
@@ -305,6 +309,7 @@ class ProjectController extends AbstractController
                 }
 
                 // On prépare les system types nécessaires
+                $em = $this->doctrine->getManager();
                 $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
                 $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // example
                 $systemTypeVersion = $em->getRepository(SystemType::class)->find(31); //owl:versionInfo
@@ -440,7 +445,7 @@ class ProjectController extends AbstractController
                     }
                     $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
                     $referencedNamespaceAssociation->setNamespace($newNamespaceVersion);
-                    $referencedNamespace = $em->getRepository(OntoNamespace::class)->findOneBy(array("id" => (int) $nodeXmlReferenceNamespace));
+                    $referencedNamespace = $namespaceRepository->findOneBy(array("id" => (int) $nodeXmlReferenceNamespace));
 
                     // Le namespace référencé doit exister
                     if (is_null($referencedNamespace)) {
@@ -469,8 +474,7 @@ class ProjectController extends AbstractController
                 // Namespace URI
                 if (!empty((string) $nodeXmlNamespace->namespaceURI)) {
                     // D'abord vérifier s'il n'y a pas un URI qui existe déjà, dans OntoME
-                    $existingNamespaceWithSameURI = $em->getRepository("OntoNamespace::class")
-                        ->findOneBy(array("namespaceURI" => (string) $nodeXmlNamespace->namespaceURI));
+                    $existingNamespaceWithSameURI = $namespaceRepository->findOneBy(array("namespaceURI" => (string) $nodeXmlNamespace->namespaceURI));
                     if (!is_null($existingNamespaceWithSameURI)) {
                         $this->addFlash('error', "The namespace URI '" . (string) $nodeXmlNamespace->namespaceURI . "' is already used by another namespace in OntoME. Each namespace must have a unique namespace URI.<br>Problematic namespace URI: " . (string) $nodeXmlNamespace->namespaceURI);
                         return $redirectRoute;
@@ -726,8 +730,7 @@ class ProjectController extends AbstractController
                     $xmlDomainNamespace = $nodeXmlProperty->hasDomain->attributes()->referenceNamespace;
                     //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                     if (!is_null($xmlDomainNamespace)) {
-                        $domainNamespace = $em->getRepository("OntoNamespace::class")
-                            ->findOneBy(array("id" => (int) $xmlDomainNamespace));
+                        $domainNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlDomainNamespace));
                         if (!$idsReferences->contains((int) $xmlDomainNamespace)) {
                             $this->addFlash('error', "A reference namespace for hasDomain has not been declared with the referenceNamespace tag. Please add it.<br>Problematic domain: " . (string) $nodeXmlProperty->hasDomain . " - reference ID: " . (int) $xmlDomainNamespace);
                             return $redirectRoute;
@@ -760,8 +763,7 @@ class ProjectController extends AbstractController
                     $xmlRangeNamespace = $nodeXmlProperty->hasRange->attributes()->referenceNamespace;
                     //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                     if (!is_null($xmlRangeNamespace)) {
-                        $rangeNamespace = $em->getRepository("OntoNamespace::class")
-                            ->findOneBy(array("id" => (int) $xmlRangeNamespace));
+                        $rangeNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlRangeNamespace));
                         if (!$idsReferences->contains((int) $xmlRangeNamespace)) {
                             $this->addFlash('error', "A reference namespace for hasRange has not been declared with the referenceNamespace tag. Please add it.<br>Problematic range: " . (string) $nodeXmlProperty->hasRange . " - reference ID: " . (int) $xmlRangeNamespace);
                             return $redirectRoute;
@@ -1014,8 +1016,7 @@ class ProjectController extends AbstractController
                             $xmlParentClassNamespace = $nodeXmlSubClassOf->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlParentClassNamespace)) {
-                                $parentClassNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlParentClassNamespace));
+                                $parentClassNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlParentClassNamespace));
                                 if (!$idsReferences->contains((int) $xmlParentClassNamespace)) {
                                     $this->addFlash('error', "A reference namespace for subclassOf has not been declared with the referenceNamespace tag. Please add it.<br>Problematic class: " . (string) $nodeXmlClass->identifierInNamespace . " - reference ID: " . (int) $xmlParentClassNamespace);
                                     return $redirectRoute;
@@ -1078,8 +1079,7 @@ class ProjectController extends AbstractController
                             $xmlChildClassNamespace = $nodeXmlParentClassOf->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlChildClassNamespace)) {
-                                $childClassNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlChildClassNamespace));
+                                $childClassNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlChildClassNamespace));
                                 if (!$idsReferences->contains((int) $xmlChildClassNamespace)) {
                                     $this->addFlash('error', "A reference namespace for parentClassOf has not been declared with the referenceNamespace tag. Please add it.<br>Problematic class: " . (string) $nodeXmlClass->identifierInNamespace . " - reference ID: " . (int) $xmlChildClassNamespace);
                                     return $redirectRoute;
@@ -1148,8 +1148,7 @@ class ProjectController extends AbstractController
                             $xmlTargetClassNamespace = $nodeXmlEntityAssociation->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlTargetClassNamespace)) {
-                                $targetClassNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlTargetClassNamespace));
+                                $targetClassNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlTargetClassNamespace));
                                 if (!$idsReferences->contains((int) $xmlTargetClassNamespace)) {
                                     $this->addFlash('error', "A reference namespace for targetClass, equivalentClass or disjointWith has not been declared with the referenceNamespace tag. Please add it.<br>Problematic class: " . (string) $nodeXmlClass->identifierInNamespace . " - reference ID: " . (int) $xmlTargetClassNamespace);
                                     return $redirectRoute;
@@ -1222,8 +1221,7 @@ class ProjectController extends AbstractController
                             $xmlParentPropertyNamespace = $nodeXmlSubPropertyOf->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlParentPropertyNamespace)) {
-                                $parentPropertyNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlParentPropertyNamespace));
+                                $parentPropertyNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlParentPropertyNamespace));
                                 if (!$idsReferences->contains((int) $xmlParentPropertyNamespace)) {
                                     $this->addFlash('error', "A reference namespace for subPropertyOf has not been declared with the referenceNamespace tag. Please add it.<br>Problematic property: " . (string) $nodeXmlProperty->identifierInNamespace . " - reference ID: " . (int) $xmlParentPropertyNamespace);
                                     return $redirectRoute;
@@ -1285,8 +1283,7 @@ class ProjectController extends AbstractController
                             $xmlChildPropertyNamespace = $nodeXmlParentPropertyOf->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlChildPropertyNamespace)) {
-                                $childPropertyNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlChildPropertyNamespace));
+                                $childPropertyNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlChildPropertyNamespace));
                                 if (!$idsReferences->contains((int) $xmlChildPropertyNamespace)) {
                                     $this->addFlash('error', "A reference namespace for parentPropertyOf has not been declared with the referenceNamespace tag. Please add it.<br>Problematic property: " . (string) $nodeXmlProperty->identifierInNamespace . " - reference ID: " . (int) $xmlChildPropertyNamespace);
                                     return $redirectRoute;
@@ -1354,8 +1351,7 @@ class ProjectController extends AbstractController
                             $xmlTargetPropertyNamespace = $nodeXmlEntityAssociation->attributes()->referenceNamespace;
                             //Si attribut referenceNamespace existe, utiliser cet id, sinon ce nouveau namespace
                             if (!is_null($xmlTargetPropertyNamespace)) {
-                                $targetPropertyNamespace = $em->getRepository("OntoNamespace::class")
-                                    ->findOneBy(array("id" => (int) $xmlTargetPropertyNamespace));
+                                $targetPropertyNamespace = $namespaceRepository->findOneBy(array("id" => (int) $xmlTargetPropertyNamespace));
                                 if (!$idsReferences->contains((int) $xmlTargetPropertyNamespace)) {
                                     $this->addFlash('error', "A reference namespace for targetProperty, equivalentProperty or inverseOf has not been declared with the referenceNamespace tag. Please add it.<br>Problematic property: " . (string) $nodeXmlProperty->identifierInNamespace . " - reference ID: " . (int) $xmlTargetPropertyNamespace);
                                     return $redirectRoute;
@@ -1462,8 +1458,7 @@ class ProjectController extends AbstractController
             }
         }
 
-        $rootNamespaces = $em->getRepository(OntoNamespace::class)
-            ->findBy(array('isTopLevelNamespace' => true));
+        $rootNamespaces = $namespaceRepository->findBy(array('isTopLevelNamespace' => true));
         $rootNamespaces = array_filter($rootNamespaces, function ($v) {
             return $v->getId() != 5;
         });
@@ -1483,12 +1478,10 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selectable by Project
      */
-    public function getSelectableMembersByProject(Project $project)
+    public function getSelectableMembersByProject(Project $project, UserRepository $userRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $users = $em->getRepository(User::class)
-                ->findAllNotInProject($project);
+            $users = $userRepository->findAllNotInProject($project);
             $data['data'] = $users;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
@@ -1507,12 +1500,10 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selected by Project
      */
-    public function getAssociatedMembersByProject(Project $project)
+    public function getAssociatedMembersByProject(Project $project, UserRepository $userRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $classes = $em->getRepository(User::class)
-                ->findUsersInProject($project);
+            $classes = $userRepository->findUsersInProject($project);
             $data['data'] = $classes;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
@@ -1537,7 +1528,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'user' => $user->getId()));
 
@@ -1545,7 +1536,7 @@ class ProjectController extends AbstractController
             $status = 'Error';
             $message = 'This user is already member of this project.';
         } else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $userProjectAssociation = new UserProjectAssociation();
             $userProjectAssociation->setProject($project);
@@ -1582,7 +1573,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $systemTypeAPISelected = $em->getRepository(SystemType::class)->find(38); //systemType 38 = Associated namespace for API Project
 
@@ -1593,7 +1584,7 @@ class ProjectController extends AbstractController
             $status = 'Error';
             $message = 'This namespace is already associated with this project.';
         } else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $projectAssociation = new ProjectAssociation();
             $projectAssociation->setProject($project);
@@ -1638,7 +1629,7 @@ class ProjectController extends AbstractController
         }
         else {
             try{
-                $em = $this->getDoctrine()->getManager();
+                $em = $this->doctrine->getManager();
 
                 $userProjectAssociation->setPermission($permission);
                 $userProjectAssociation->setModifier($this->getUser());
@@ -1664,17 +1655,17 @@ class ProjectController extends AbstractController
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request)
+    public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository)
     {
         $this->denyAccessUnlessGranted('edit_manager', $userProjectAssociation->getProject());
         try {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $project = $userProjectAssociation->getProject();
             $user = $userProjectAssociation->getUser();
 
             // Si l'utilisateur l'a en projet actif, modifier pour éviter qu'il se retrouve bloqué
             if ($user->getCurrentActiveProject() == $project) {
-                $publicProject = $em->getRepository(Project::class)->find(21);
+                $publicProject = $projectRepository->find(21);
                 $user->setCurrentActiveProject($publicProject);
                 $em->persist($user);
             }
@@ -1697,12 +1688,11 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles selectable by Project
      */
-    public function getSelectableProfilesByProject(Project $project)
+    public function getSelectableProfilesByProject(Project $project, ProfileRepository $profileRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository(Profile::class)
-                ->findProfilesForAssociationWithProjectByProjectId($project);
+            $em = $this->doctrine->getManager();
+            $profiles = $profileRepository->findProfilesForAssociationWithProjectByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
@@ -1721,12 +1711,10 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles associated with Project
      */
-    public function getAssociatedProfilesByProject(Project $project)
+    public function getAssociatedProfilesByProject(Project $project, ProfileRepository $profileRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
-            $profiles = $em->getRepository(Profile::class)
-                ->findProfilesByProjectId($project);
+            $profiles = $profileRepository->findProfilesByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
@@ -1751,7 +1739,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
 
@@ -1770,7 +1758,7 @@ class ProjectController extends AbstractController
                 $message = 'Profile successfully re-associated';
             }
         } else {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
 
             $projectAssociation = new ProjectAssociation();
             $projectAssociation->setProject($project);
@@ -1806,7 +1794,7 @@ class ProjectController extends AbstractController
     public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $project);
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(array('project' => $project->getId(), 'profile' => $profile->getId()));
@@ -1827,7 +1815,7 @@ class ProjectController extends AbstractController
     public function editProjectURIAction(Project $project, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $project);
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $newURI = $request->request->get('newUriProject');
 
@@ -1855,14 +1843,13 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Containers selected by Project
      */
-    public function getContainersByProjectForDatatable(Project $project)
+    public function getContainersByProjectForDatatable(Project $project, ContainerRepository $containerRepository)
     {
         try {
-            $em = $this->getDoctrine()->getManager();
             $containers = [];
 
             // Récupérer les containers associés au projet, triés par création décroissante (ID)
-            $containersResponse = $em->getRepository(Container::class)->createQueryBuilder('c')
+            $containersResponse = $containerRepository->createQueryBuilder('c')
                 ->join('c.project', 'p')
                 ->where('p.id = :projectId')
                 ->setParameter('projectId', $project->getId())
@@ -1932,7 +1919,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         $pathbuilderLabel = trim((string)$request->request->get('label', ''));
         if ($pathbuilderLabel === '') {
             $pathbuilderLabel = $container->getLabel()->getLabel();
@@ -2041,7 +2028,7 @@ class ProjectController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $em->remove($pathbuilder);
         $em->flush();

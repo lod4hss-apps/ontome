@@ -15,12 +15,17 @@ use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\PropertyVersion;
 use App\Entity\User;
-use Doctrine\ORM\EntityRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
-class PropertyRepository extends EntityRepository
+class PropertyRepository extends ServiceEntityRepository
 {
-
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Property::class);
+    }
+    
     /**
      * @return Property[]
      */

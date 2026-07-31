@@ -9,21 +9,37 @@
 namespace App\Controller;
 
 use Psr\Log\LoggerInterface;
-use App\Entity\OntoClass;
-use App\Entity\OntoClassVersion;
-use App\Entity\Property;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
+use App\Entity\ClassAssociation;
+use App\Entity\PropertyAssociation;
+use App\Entity\EntityAssociation;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\ProfileRepository;
+use App\Repository\ProjectRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\PropertyVersionRepository;
 use App\Form\TextPropertyForm;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Doctrine\Persistence\ManagerRegistry;
 
 class TextPropertyController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/text-property/{id}", name="text_property_show", requirements={"id"="^[0-9]+$"})
      * @param string $id
@@ -117,7 +133,7 @@ class TextPropertyController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $textProperty->setModifier($this->getUser());
             $em->persist($textProperty);
             $em->flush();
@@ -151,9 +167,9 @@ class TextPropertyController extends AbstractController
      * @Route("/text-property/{type}/new/{object}/{objectId}/inverse", name="text_property_inverse_new",
      *     requirements={"type"="^(scope-note|example|justification|additional-note|definition|dct:contributor|owl:versionInfo){1}$", "object"="^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$", "objectId"="^[0-9]+$"})
      */
-    public function newAction($type, $object, $objectId, Request $request)
+    public function newAction($type, $object, $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $textProperty = new TextProperty();
 
@@ -188,7 +204,7 @@ class TextPropertyController extends AbstractController
             $redirectToRouteFragment = 'justifications';
         }
         else if($object === 'class') {
-            $associatedEntity = $em->getRepository(OntoClass::class)->find($objectId);
+            $associatedEntity = $classRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
@@ -203,7 +219,7 @@ class TextPropertyController extends AbstractController
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'property') {
-            $associatedEntity = $em->getRepository(Property::class)->find($objectId);
+            $associatedEntity = $propertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
@@ -218,7 +234,7 @@ class TextPropertyController extends AbstractController
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'class-version') {
-            $associatedEntity = $em->getRepository(OntoClassVersion::class)->find($objectId);
+            $associatedEntity = $classVersionRepository->find($objectId);
             $associatedClass = $associatedEntity->getClass();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
 
@@ -239,7 +255,7 @@ class TextPropertyController extends AbstractController
             $objectId = $associatedClass->getId();
         }
         else if($object === 'property-version') {
-            $associatedEntity = $em->getRepository(PropertyVersion::class)->find($objectId);
+            $associatedEntity = $propertyVersionRepository->find($objectId);
             $associatedProperty = $associatedEntity->getProperty();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
 
@@ -260,7 +276,7 @@ class TextPropertyController extends AbstractController
             $objectId = $associatedProperty->getId();
         }
         else if($object === 'project') {
-            $associatedEntity = $em->getRepository(Project::class)->find($objectId);
+            $associatedEntity = $projectRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
             }
@@ -275,7 +291,7 @@ class TextPropertyController extends AbstractController
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'profile') {
-            $associatedEntity = $em->getRepository(Profile::class)->find($objectId);
+            $associatedEntity = $profileRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
             }
@@ -291,7 +307,7 @@ class TextPropertyController extends AbstractController
             $redirectToRouteFragment = 'definition';
         }
         else if($object === 'namespace') {
-            $associatedEntity = $em->getRepository(OntoNamespace::class)->find($objectId);
+            $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
@@ -396,7 +412,7 @@ class TextPropertyController extends AbstractController
             $textProperty->setCreationTime(new \DateTime('now'));
             $textProperty->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($textProperty);
             $em->flush();
 
@@ -472,7 +488,7 @@ class TextPropertyController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {

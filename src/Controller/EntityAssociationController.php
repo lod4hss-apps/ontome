@@ -16,29 +16,41 @@ use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\EntityAssociationForm;
 use App\Form\EntityAssociationEditForm;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\PropertyVersionRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Doctrine\Persistence\ManagerRegistry;
 
 class EntityAssociationController extends AbstractController
 {
+    private ManagerRegistry $doctrine;
+
+    public function __construct(ManagerRegistry $doctrine)
+    {
+        // Inject the ManagerRegistry into the controller
+        $this->doctrine = $doctrine;
+    }
+
     /**
      * @Route("/entity-association/new/{object}/{objectId}", name="new_entity_association_form", requirements={"object"="^(class|property){1}$","objectId"="^[0-9]+$"})
      */
-    public function newEntityAssociationAction(Request $request, $object, $objectId)
+    public function newEntityAssociationAction(Request $request, $object, $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         $entityAssociation = new EntityAssociation();
 
         if($object == 'class')
         {
-            $source = $em->getRepository(OntoClass::class)->find($objectId);
+            $source = $classRepository->find($objectId);
             if (!$source) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
@@ -47,7 +59,7 @@ class EntityAssociationController extends AbstractController
         }
         elseif($object == 'property')
         {
-            $source = $em->getRepository(Property::class)->find($objectId);
+            $source = $propertyRepository->find($objectId);
             if (!$source) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
@@ -91,8 +103,7 @@ class EntityAssociationController extends AbstractController
         $entityAssociation->setSourceNamespaceForVersion($namespaceForEntityVersion);
 
         if($entityAssociation->getSourceObjectType() == "class"){
-            $arrayEntitiesVersion = $em->getRepository(OntoClassVersion::class)
-                ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
+            $arrayEntitiesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
             if(!$entityAssociation->getSourceClass()->getIsRecursive()){
                 foreach ($arrayEntitiesVersion as $cv){
@@ -103,8 +114,7 @@ class EntityAssociationController extends AbstractController
             }
         }
         elseif($entityAssociation->getSourceObjectType() == "property"){
-            $arrayEntitiesVersion = $em->getRepository(PropertyVersion::class)
-                ->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
+            $arrayEntitiesVersion = $propertyRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
             if(!$entityAssociation->getSourceProperty()->getIsRecursive()){
                 foreach ($arrayEntitiesVersion as $pv){
                     if($pv['id'] == $objectId){
@@ -122,18 +132,16 @@ class EntityAssociationController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if($entityAssociation->getSourceObjectType() == 'class'){
-                $targetClass = $em->getRepository("OntoClass::class")->find($form->get("targetClassVersion")->getData());
+                $targetClass = $classRepository->find($form->get("targetClassVersion")->getData());
                 $entityAssociation->setTargetClass($targetClass);
-                $targetNamespace = $em->getRepository("OntoClassVersion::class")
-                    ->findClassVersionByClassAndNamespacesId($targetClass, $namespacesId)
+                $targetNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($targetClass, $namespacesId)
                     ->getNamespaceForVersion();
                 $entityAssociation->setTargetNamespaceForVersion($targetNamespace);
             }
             elseif($entityAssociation->getSourceObjectType() == 'property'){
-                $targetProperty = $em->getRepository("Property::class")->find($form->get("targetPropertyVersion")->getData());
+                $targetProperty = $propertyRepository->find($form->get("targetPropertyVersion")->getData());
                 $entityAssociation->setTargetProperty($targetProperty);
-                $targetNamespace = $em->getRepository("PropertyVersion::class")
-                    ->findPropertyVersionByPropertyAndNamespacesId($targetProperty, $namespacesId)
+                $targetNamespace = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($targetProperty, $namespacesId)
                     ->getNamespaceForVersion();
                 $entityAssociation->setTargetNamespaceForVersion($targetNamespace);
             }
@@ -154,7 +162,6 @@ class EntityAssociationController extends AbstractController
                 $entityAssociation->getTextProperties()[1]->setEntityAssociation($entityAssociation);
             }
 
-            $em = $this->getDoctrine()->getManager();
             $em->persist($entityAssociation);
             $em->flush();
 
@@ -197,18 +204,18 @@ class EntityAssociationController extends AbstractController
      * @Route("/entity-association/{id}/edit", name="entity_association_edit", requirements={"id"="^[0-9]+$"})
      * @Route("/entity-association/{id}/inverse/edit", name="entity_association_inverse_edit", requirements={"id"="^[0-9]+$"})
      */
-    public function editAction(Request $request, EntityAssociation $entityAssociation)
+    public function editAction(Request $request, EntityAssociation $entityAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $inverse = false;
         if($request->attributes->get('_route') == 'entity_association_inverse_edit'){
             $inverse = true;
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
 
         if($entityAssociation->getSourceObjectType() == 'class' and !$inverse)
         {
-            $firstEntity = $em->getRepository(OntoClass::class)->find($entityAssociation->getSourceClass()->getId());
+            $firstEntity = $classRepository->find($entityAssociation->getSourceClass()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The class n° '.$entityAssociation->getSourceClass()->getId().' does not exist');
             }
@@ -216,7 +223,7 @@ class EntityAssociationController extends AbstractController
         }
         elseif($entityAssociation->getSourceObjectType() == 'property' and !$inverse)
         {
-            $firstEntity = $em->getRepository(Property::class)->find($entityAssociation->getSourceProperty()->getId());
+            $firstEntity = $propertyRepository->find($entityAssociation->getSourceProperty()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The property n° '.$entityAssociation->getSourceProperty()->getId().' does not exist');
             }
@@ -224,7 +231,7 @@ class EntityAssociationController extends AbstractController
         }
         elseif($entityAssociation->getTargetObjectType() == 'class' and $inverse)
         {
-            $firstEntity = $em->getRepository(OntoClass::class)->find($entityAssociation->getTargetClass()->getId());
+            $firstEntity = $classRepository->find($entityAssociation->getTargetClass()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The class n° '.$entityAssociation->getTargetClass()->getId().' does not exist');
             }
@@ -232,7 +239,7 @@ class EntityAssociationController extends AbstractController
         }
         elseif($entityAssociation->getTargetObjectType() == 'property' and $inverse)
         {
-            $firstEntity = $em->getRepository(Property::class)->find($entityAssociation->getTargetProperty()->getId());
+            $firstEntity = $propertyRepository->find($entityAssociation->getTargetProperty()->getId());
             if (!$firstEntity) {
                 throw $this->createNotFoundException('The property n° '.$entityAssociation->getTargetProperty()->getId().' does not exist');
             }
@@ -252,12 +259,10 @@ class EntityAssociationController extends AbstractController
         }
 
         if($entityAssociation->getSourceObjectType() == "class"){
-            $arrayEntitiesVersion = $em->getRepository(OntoClassVersion::class)
-                ->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
+            $arrayEntitiesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
         }
         elseif($entityAssociation->getSourceObjectType() == "property"){
-            $arrayEntitiesVersion = $em->getRepository(PropertyVersion::class)
-                ->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
+            $arrayEntitiesVersion = $propertyVersionRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
         }
 
         $form = $this->createForm(EntityAssociationEditForm::class, $entityAssociation, array(
@@ -272,35 +277,27 @@ class EntityAssociationController extends AbstractController
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if($entityAssociation->getTargetObjectType() == 'class' and $inverse){
-                $sourceClass = $em->getRepository("OntoClass::class")->find($form->get("sourceClassVersion")->getData());
+                $sourceClass = $classRepository->find($form->get("sourceClassVersion")->getData());
                 $entityAssociation->setSourceClass($sourceClass);
-                $sourceNamespace = $em->getRepository("OntoClassVersion::class")
-                    ->findClassVersionByClassAndNamespacesId($sourceClass, $namespacesId)
-                    ->getNamespaceForVersion();
+                $sourceNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($sourceClass, $namespacesId)->getNamespaceForVersion();
                 $entityAssociation->setSourceNamespaceForVersion($sourceNamespace);
             }
             elseif($entityAssociation->getTargetObjectType() == 'class' and !$inverse){
-                $targetClass = $em->getRepository("OntoClass::class")->find($form->get("targetClassVersion")->getData());
+                $targetClass = $classRepository->find($form->get("targetClassVersion")->getData());
                 $entityAssociation->setTargetClass($targetClass);
-                $targetNamespace = $em->getRepository("OntoClassVersion::class")
-                    ->findClassVersionByClassAndNamespacesId($targetClass, $namespacesId)
-                    ->getNamespaceForVersion();
+                $targetNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($targetClass, $namespacesId)->getNamespaceForVersion();
                 $entityAssociation->setTargetNamespaceForVersion($targetNamespace);
             }
             elseif($entityAssociation->getTargetObjectType() == 'property' and $inverse){
-                $sourceProperty = $em->getRepository("Property::class")->find($form->get("sourcePropertyVersion")->getData());
+                $sourceProperty = $propertyRepository->find($form->get("sourcePropertyVersion")->getData());
                 $entityAssociation->setSourceProperty($sourceProperty);
-                $sourceNamespace = $em->getRepository("PropertyVersion::class")
-                    ->findPropertyVersionByPropertyAndNamespacesId($sourceProperty, $namespacesId)
-                    ->getNamespaceForVersion();
+                $sourceNamespace = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($sourceProperty, $namespacesId)->getNamespaceForVersion();
                 $entityAssociation->setSourceNamespaceForVersion($sourceNamespace);
             }
             elseif($entityAssociation->getTargetObjectType() == 'property' and !$inverse){
-                $targetProperty = $em->getRepository("Property::class")->find($form->get("targetPropertyVersion")->getData());
+                $targetProperty = $propertyRepository->find($form->get("targetPropertyVersion")->getData());
                 $entityAssociation->setTargetProperty($targetProperty);
-                $targetNamespace = $em->getRepository("PropertyVersion::class")
-                    ->findPropertyVersionByPropertyAndNamespacesId($targetProperty, $namespacesId)
-                    ->getNamespaceForVersion();
+                $targetNamespace = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($targetProperty, $namespacesId)->getNamespaceForVersion();
                 $entityAssociation->setTargetNamespaceForVersion($targetNamespace);
             }
 
@@ -308,7 +305,7 @@ class EntityAssociationController extends AbstractController
             $entityAssociation->setModifier($this->getUser());
             $entityAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $em->persist($entityAssociation);
             $em->flush();
 
@@ -328,7 +325,6 @@ class EntityAssociationController extends AbstractController
             }
         }
 
-        $em = $this->getDoctrine()->getManager();
         return $this->render('entityAssociation/edit.html.twig', array(
             'entityAssociation' => $entityAssociation,
             'inverse' => $inverse,
@@ -372,7 +368,7 @@ class EntityAssociationController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(array('id' => $validationStatus->getId()));
         } catch (\Exception $e) {
@@ -414,7 +410,7 @@ class EntityAssociationController extends AbstractController
     {
         $this->denyAccessUnlessGranted('delete', $entityAssociation);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->doctrine->getManager();
         foreach($entityAssociation->getTextProperties() as $textProperty)
         {
             $em->remove($textProperty);
