@@ -31,3 +31,8 @@ web/images/logo.png
 .env.local
 .env.phn-dev
 .gitignore
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###

@@ -33,6 +33,7 @@
         "sensio/framework-extra-bundle": "^6.0",
         "stof/doctrine-extensions-bundle": "^1.7",
         "symfony/doctrine-messenger": "^5.4",
+        "symfony/flex": "^1.22",
         "symfony/mailer": "^5.4",
         "symfony/monolog-bundle": "^3.1",
         "symfony/polyfill-apcu": "^1.0",
@@ -64,6 +65,9 @@
         "sort-packages": true,
         "audit": {
             "block-insecure": false
+        },
+        "allow-plugins": {
+            "symfony/flex": true
         }
     },
     "extra": {
