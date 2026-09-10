@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\OntoNamespace;
+use App\Entity\User;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;

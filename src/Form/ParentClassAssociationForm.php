@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\ClassAssociation;
+use App\Entity\User;
 use App\Form\DataTransformer\OntoClassToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;

@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\TextProperty;
+use App\Entity\User;
 use App\Form\DataTransformer\SystemTypeToNumberTransformer;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;

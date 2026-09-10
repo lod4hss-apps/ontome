@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Profile;
 use App\Entity\Project;
+use App\Entity\User;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
