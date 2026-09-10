@@ -26,6 +26,7 @@ use App\Repository\NamespaceRepository;
 use App\Repository\ProfileRepository;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -229,7 +230,7 @@ class UserController extends AbstractController
     /**
      * @Route("/user/test-mail")
      */
-    public function testMailAction(MailerInterface $mailer)
+    public function testMailAction(MailerInterface $mailer): Response
     {
         $user = $this->getUser();
         //send Welcome e-mail
@@ -252,7 +253,7 @@ class UserController extends AbstractController
     /**
      * @Route("/user")
      */
-    public function listAction(AuthorizationCheckerInterface $authorizationChecker, UserRepository $userRepository)
+    public function listAction(AuthorizationCheckerInterface $authorizationChecker, UserRepository $userRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
@@ -270,7 +271,7 @@ class UserController extends AbstractController
      * @param $user User
      * @return Response
      */
-    public function showAction(Request $request, User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository)
+    public function showAction(User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
@@ -384,7 +385,7 @@ class UserController extends AbstractController
      * @param $project Project
      * @return Response
      */
-    public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository)
+    public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
     {
         $user = $this->getUser();
         $this->denyAccessUnlessGranted('edit', $user);
@@ -534,7 +535,7 @@ class UserController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation, Request $request)
+    public function newUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -612,7 +613,7 @@ class UserController extends AbstractController
      * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation, Request $request)
+    public function deleteUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -663,7 +664,7 @@ class UserController extends AbstractController
             $em->persist($eupa);
         $em->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 
     }
 
@@ -674,7 +675,7 @@ class UserController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted profile list
      */
-    public function newUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation, Request $request)
+    public function newUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -797,7 +798,7 @@ class UserController extends AbstractController
      * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be disassociated from a profile
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation, Request $request)
+    public function deleteUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -908,8 +909,8 @@ class UserController extends AbstractController
      * @param $user User
      * @return Response
      */
-    public function reinitialization(Request $request, User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository){
-
+    public function reinitialization(User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
+    {
         $this->denyAccessUnlessGranted('edit', $user);
 
         // récupérer l'id du projet actif

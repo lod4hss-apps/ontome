@@ -45,6 +45,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.4",
+        "rector/rector": "^2.6",
         "symfony/dotenv": "^5.4",
         "symfony/phpunit-bridge": "^5.4",
         "symfony/stopwatch": "^5.4",
@@ -68,7 +69,8 @@
     },
     "extra": {
         "symfony": {
-            "allow-contrib": true
+            "allow-contrib": true,
+            "require": "5.4.*"
         },
         "symfony-app-dir": "app",
         "symfony-bin-dir": "bin",

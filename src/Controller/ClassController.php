@@ -37,7 +37,7 @@ class ClassController extends AbstractController
     /**
      * @Route("/class")
      */
-    public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository){
+    public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository): Response{
         // FILTRAGE : Récupérer les namespaces
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
             $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
@@ -746,11 +746,10 @@ class ClassController extends AbstractController
      * @Route("/class-version/{id}/edit-validity/{validationStatus}", name="class_version_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^26|27|28|37$"})
      * @param OntoClassVersion $classVersion
      * @param SystemType $validationStatus
-     * @param Request $request
      * @throws \Exception in case of unsuccessful validation
      * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(OntoClassVersion $classVersion, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(OntoClassVersion $classVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
         if(is_null($classVersion)){
@@ -973,7 +972,7 @@ class ClassController extends AbstractController
     /**
      * @Route("/classes-tree")
      */
-    public function getTreeAction()
+    public function getTreeAction(): Response
     {
         return $this->render('class/tree.html.twig');
     }
@@ -982,7 +981,7 @@ class ClassController extends AbstractController
      * @Route("/classes-tree/json", name="classes_tree_json", methods={"GET"})
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
-    public function getTreeJson()
+    public function getTreeJson(): JsonResponse
     {
         $em = $this->getDoctrine()->getManager();
 
@@ -995,14 +994,14 @@ class ClassController extends AbstractController
                 ->findClassesTree();
         }
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'],Response::HTTP_OK, array(), true);
     }
 
     /**
      * @Route("/classes-tree-legend/json", name="classes_tree_legend_json", methods={"GET"})
      * @return JsonResponse a Json formatted legend for the OntoClasses tree
      */
-    public function getTreeLegendJson()
+    public function getTreeLegendJson(): JsonResponse
     {
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
             $context = 'public_namespace_classes_tree';
@@ -1025,13 +1024,13 @@ class ClassController extends AbstractController
      * @param OntoNamespace $namespace
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
-    public function getGraphJson(OntoClass $class, OntoNamespace $namespace)
+    public function getGraphJson(OntoClass $class, OntoNamespace $namespace): JsonResponse
     {
         $em = $this->getDoctrine()->getManager();
         $classes = $em->getRepository(OntoClass::class)
             ->findClassesGraphById($class, $namespace);
 
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'],Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1039,7 +1038,7 @@ class ClassController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
-    public function getClassesByProject(Project $project)
+    public function getClassesByProject(Project $project): JsonResponse
     {
         try{
             $em = $this->getDoctrine()->getManager();
@@ -1048,10 +1047,10 @@ class ClassController extends AbstractController
 
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, 'content-type:application/problem+json');
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         //return new JsonResponse(null,404, array('content-type'=>'application/problem+json'));
-        return new JsonResponse($classes[0]['json'],200, array(), true);
+        return new JsonResponse($classes[0]['json'],Response::HTTP_OK, array(), true);
     }
 }

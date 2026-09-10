@@ -151,7 +151,7 @@ class PropertyAssociationController extends AbstractController
      * @param PropertyAssociation $propertyAssociation
      * @return Response the rendered template
      */
-    public function showAction(PropertyAssociation $propertyAssociation, LoggerInterface $logger)
+    public function showAction(PropertyAssociation $propertyAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing property association: '.$propertyAssociation->getObjectIdentification());
 
@@ -255,7 +255,7 @@ class PropertyAssociationController extends AbstractController
      * @param PropertyAssociation $propertyAssociation
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteAction(Request $request, PropertyAssociation $propertyAssociation)
+    public function deleteAction(PropertyAssociation $propertyAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $propertyAssociation);
 
@@ -270,7 +270,7 @@ class PropertyAssociationController extends AbstractController
         }
         $em->remove($propertyAssociation);
         $em->flush();
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -281,7 +281,7 @@ class PropertyAssociationController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(PropertyAssociation $propertyAssociation, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(PropertyAssociation $propertyAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if(is_null($propertyAssociation)){

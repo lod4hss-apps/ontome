@@ -13,12 +13,14 @@ use App\Repository\TextPropertyRepository;
 use App\Repository\NamespaceRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
 class MainController extends AbstractController
 {
 
-    public function homepageAction()
+    public function homepageAction(): Response
     {
         return $this->render('main/homepage.html.twig');
     }
@@ -26,7 +28,7 @@ class MainController extends AbstractController
     /**
      * @Route("/terms-of-service")
      */
-    public function legalNoticeAction()
+    public function legalNoticeAction(): Response
     {
         return $this->render('main/legalNotice.html.twig');
     }
@@ -34,7 +36,7 @@ class MainController extends AbstractController
     /**
      * @Route("/the-data-for-history-consortium")
      */
-    public function projectDescriptionAction()
+    public function projectDescriptionAction(): Response
     {
         return $this->render('main/projectDescription.html.twig');
     }
@@ -45,7 +47,7 @@ class MainController extends AbstractController
      * @Route("/search/{query}", name="search_query")
      * @param string $query
      */
-    public function searchAction($query="", TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
+    public function searchAction($query="", TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository): Response
     {
         // Sécurité anti-injection SQL...
         $query_sanitized = filter_var($query, FILTER_SANITIZE_STRING);
@@ -71,7 +73,7 @@ class MainController extends AbstractController
      * @param string $name
      * @param string $identifierInNamespace
      */
-    public function redirectUriAction($name, $identifierInNamespace, NamespaceRepository $namespaceRepository)
+    public function redirectUriAction($name, $identifierInNamespace, NamespaceRepository $namespaceRepository): RedirectResponse
     {
 
         // Sécurité anti-injection SQL...

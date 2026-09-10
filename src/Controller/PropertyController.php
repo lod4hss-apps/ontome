@@ -49,7 +49,7 @@ class PropertyController extends AbstractController
     /**
      * @Route("/property")
      */
-    public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
+    public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): Response
     {
         // FILTRAGE : Récupérer les namespaces
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
@@ -111,7 +111,7 @@ class PropertyController extends AbstractController
     /**
      * @Route("property/{type}/new/{class}", name="property_new", requirements={"type"="^(ingoing|outgoing){1}$", "class"="^[0-9]+$"})
      */
-    public function newAction($type,Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
+    public function newAction(string $type,Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         $property = new Property();
 
@@ -834,7 +834,7 @@ class PropertyController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(PropertyVersion $propertyVersion, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(PropertyVersion $propertyVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
         if(is_null($propertyVersion)){
@@ -1031,7 +1031,7 @@ class PropertyController extends AbstractController
     /**
      * @Route("/properties-tree")
      */
-    public function getTreeAction()
+    public function getTreeAction(): Response
     {
         return $this->render('property/tree.html.twig');
     }
@@ -1040,18 +1040,18 @@ class PropertyController extends AbstractController
      * @Route("/properties-tree/json", name="properties_tree_json", methods={"GET"})
      * @return JsonResponse a Json formatted tree representation of Properties
      */
-    public function getTreeJson(PropertyRepository $propertyRepository)
+    public function getTreeJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $properties = $propertyRepository->findPropertiesTree();
 
-        return new JsonResponse($properties[0]['json'],200, array(), true);
+        return new JsonResponse($properties[0]['json'],Response::HTTP_OK, array(), true);
     }
 
     /**
      * @Route("/properties-tree-legend/json", name="properties_tree_legend_json", methods={"GET"})
      * @return JsonResponse a Json formatted legend for the Properties tree
      */
-    public function getTreeLegendJson(PropertyRepository $propertyRepository)
+    public function getTreeLegendJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $legend = $propertyRepository->findPropertiesTreeLegend();
 

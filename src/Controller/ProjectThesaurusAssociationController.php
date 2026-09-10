@@ -15,6 +15,7 @@ use App\Form\ProjectThesaurusAssociationForm;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -35,7 +36,7 @@ class ProjectThesaurusAssociationController extends AbstractController
      * @param int  $projectId    The id of the object
      * @return JsonResponse a Json formatted ProjectThesaurusAssociation list
      */
-    public function getProjectThesaurusAssociationAction($projectId, ProjectRepository $projectRepository)
+    public function getProjectThesaurusAssociationAction(string $projectId, ProjectRepository $projectRepository): JsonResponse
     {
         $project = $projectRepository->find($projectId);
         if (!$project) {
@@ -62,7 +63,7 @@ class ProjectThesaurusAssociationController extends AbstractController
     /**
      * @Route("/project-thesaurus-association/new/project/{projectId}", name="project_thesaurus_association_new", requirements={"projectId"="^[0-9]+$"}), methods={"POST"})
      */
-    public function newAction($projectId, Request $request, ProjectRepository $projectRepository)
+    public function newAction(string $projectId, Request $request, ProjectRepository $projectRepository)
     {
         $projectThesaurusAssociation = new ProjectThesaurusAssociation();
 
@@ -146,10 +147,10 @@ class ProjectThesaurusAssociationController extends AbstractController
 
     /**
      * @Route("/project-thesaurus-association/{id}/delete", name="project_thesaurus_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
-     * @param ProjectThesaurusAssociation $ProjectThesaurusAssociation
+     * @param ProjectThesaurusAssociation $projectThesaurusAssociation
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteAction(Request $request, ProjectThesaurusAssociation $projectThesaurusAssociation)
+    public function deleteAction(ProjectThesaurusAssociation $projectThesaurusAssociation): JsonResponse
     {
         $project = $projectThesaurusAssociation->getProject();
 
@@ -158,7 +159,7 @@ class ProjectThesaurusAssociationController extends AbstractController
         $em = $this->doctrine->getManager();
         $em->remove($projectThesaurusAssociation);
         $em->flush();
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
 }

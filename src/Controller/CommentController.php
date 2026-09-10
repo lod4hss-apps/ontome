@@ -50,7 +50,7 @@ class CommentController extends AbstractController
      * @param int  $objectId    The id of the object
      * @return JsonResponse a Json formatted comments list
      */
-    public function getCommentsAction($objectType, $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository)
+    public function getCommentsAction(string $objectType, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();
 
@@ -126,7 +126,7 @@ class CommentController extends AbstractController
     /**
      * @Route("/comment/new/{object}/{objectId}", name="comment_new", requirements={"object"="^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"}, methods={"POST"})
      */
-    public function newAction($object, $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
+    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
     {
         $em = $this->doctrine->getManager();
 
@@ -287,7 +287,7 @@ class CommentController extends AbstractController
      * @Route("/comment/{object}/{objectId}/viewedby/json", name="viewed_by_json", requirements={"object"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$","objectId"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
      * @return JsonResponse
      */
-    public function viewedByJson($object, $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository)
+    public function viewedByJson(string $object, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();
 

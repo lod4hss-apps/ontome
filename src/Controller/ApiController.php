@@ -31,21 +31,21 @@ class ApiController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
-    public function getClassesByProject(Project $project, ClassRepository $classRepository)
+    public function getClassesByProject(Project $project, ClassRepository $classRepository): JsonResponse
     {
         try {
             $classes = $classRepository->findClassesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($classes[0]['json'])) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
         //return new JsonResponse(null,404, array('content-type'=>'application/problem+json'));
-        return new JsonResponse($classes[0]['json'], 200, array(), true);
+        return new JsonResponse($classes[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -53,20 +53,20 @@ class ApiController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Property related to a Project
      */
-    public function getPropertiesByProject(Project $project, PropertyRepository $propertyRepository)
+    public function getPropertiesByProject(Project $project, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
             $properties = $propertyRepository->findPropertiesByProjectId($project);
 
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($properties[0]['json'])) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($properties[0]['json'], 200, array(), true);
+        return new JsonResponse($properties[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -74,7 +74,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of profiles
      */
-    public function getProfiles(Request $request, ProfileRepository $profileRepository)
+    public function getProfiles(Request $request, ProfileRepository $profileRepository): JsonResponse
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -90,14 +90,14 @@ class ApiController extends AbstractController
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
 
         if (empty($profiles[0]['json'])) {
-            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+            return new JsonResponse('[]', Response::HTTP_OK, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($profiles[0]['json'], 200, array(), true);
+        return new JsonResponse($profiles[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -105,7 +105,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of classes with profile
      */
-    public function getClassesWithProfile(Request $request, ClassRepository $classRepository)
+    public function getClassesWithProfile(Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -121,14 +121,14 @@ class ApiController extends AbstractController
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
 
         if (empty($classes[0]['json'])) {
-            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+            return new JsonResponse('[]', Response::HTTP_OK, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($classes[0]['json'], 200, array(), true);
+        return new JsonResponse($classes[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -136,7 +136,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of properties with profile
      */
-    public function getPropertiesWithProfile(Request $request, PropertyRepository $propertyRepository)
+    public function getPropertiesWithProfile(Request $request, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -152,20 +152,20 @@ class ApiController extends AbstractController
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
 
         if (empty($properties[0]['json'])) {
-            return new JsonResponse('[]', 200, array(), true);//envoi d'un tableau JSON vide si pas de résultat
+            return new JsonResponse('[]', Response::HTTP_OK, array(), true);//envoi d'un tableau JSON vide si pas de résultat
         }
 
-        return new JsonResponse($properties[0]['json'], 200, array(), true);
+        return new JsonResponse($properties[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
      * @Route("/api/shacl-profile.ttl", name="api_shacl_profile", methods={"GET"})
      */
-    public function getShaclWithProfile(Request $request, ProfileRepository $profileRepository)
+    public function getShaclWithProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -175,14 +175,14 @@ class ApiController extends AbstractController
 
         } catch (\Exception $e) {
             $message = "# Error: (PHP" . phpversion() . ")" . $e->getMessage(); // Commentaire en Turtle
-            return new Response($message, 500, ['Content-Type' => 'text/turtle']);
+            return new Response($message, Response::HTTP_INTERNAL_SERVER_ERROR, ['Content-Type' => 'text/turtle']);
         }
 
         if (empty($output)) {
-            return new Response("", 200, ['Content-Type' => 'text/turtle']); // Fichier Turtle vide
+            return new Response("", Response::HTTP_OK, ['Content-Type' => 'text/turtle']); // Fichier Turtle vide
         }
 
-        return new Response($output, 200, ['Content-Type' => 'text/turtle']);
+        return new Response($output, Response::HTTP_OK, ['Content-Type' => 'text/turtle']);
     }
 
 
@@ -191,7 +191,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getClassesAndPropertiesByNamespace(Request $request, NamespaceRepository $namespaceRepository)
+    public function getClassesAndPropertiesByNamespace(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -215,7 +215,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getOwlWisskiByNamespace(Request $request, NamespaceRepository $namespaceRepository)
+    public function getOwlWisskiByNamespace(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         // Let's see what environment we're in. If dev, we do not persist files
         $persistent = true;
@@ -280,7 +280,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this project
      */
-    public function getClassesAndPropertiesByProject(Request $request, ProjectRepository $projectRepository)
+    public function getClassesAndPropertiesByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -304,7 +304,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
-    public function getClassesAndPropertiesByProfile(Request $request, ProfileRepository $profileRepository)
+    public function getClassesAndPropertiesByProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -328,7 +328,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getClassesAndPropertiesByNamespaceRdfs(Request $request, NamespaceRepository $namespaceRepository)
+    public function getClassesAndPropertiesByNamespaceRdfs(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -357,7 +357,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response XML formatted response of classes and properties related to this profile
      */
-    public function getClassesAndPropertiesByProfileRdfs(Request $request, ProfileRepository $profileRepository)
+    public function getClassesAndPropertiesByProfileRdfs(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -385,7 +385,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function getOwlWisskiByProject(Request $request, ProjectRepository $projectRepository)
+    public function getOwlWisskiByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
             $lang = $request->get('lang', 'en');
@@ -409,7 +409,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
      */
-    public function getOwlWisskiByContainer(Request $request, ContainerRepository $containerRepository)
+    public function getOwlWisskiByContainer(Request $request, ContainerRepository $containerRepository): Response
     {
         try {
             // Langue par défaut: en, sinon celle passée en paramètre
@@ -431,7 +431,7 @@ class ApiController extends AbstractController
 
         if (empty($xml) || !isset($xml[0]['result'])) {
             $xmlError = '<?xml version="1.0" encoding="UTF-8" ?><error code="404" message="Container data not found"/>';
-            return new Response($xmlError, 404, ['Content-Type' => 'application/rdf+xml']);
+            return new Response($xmlError, Response::HTTP_NOT_FOUND, ['Content-Type' => 'application/rdf+xml']);
         }
 
         $response = new Response($xml[0]['result']);
@@ -444,7 +444,7 @@ class ApiController extends AbstractController
      * @param Request $request
      * @return Response a XML formatted response of namespaces and pathbuilders related to this container
      */
-    public function getApiContainer(Request $request, ContainerRepository $containerRepository)
+    public function getApiContainer(Request $request, ContainerRepository $containerRepository): Response
     {
         try {
             // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
@@ -471,7 +471,7 @@ class ApiController extends AbstractController
      * @param String $label the class label to find
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
-    public function getE55ChildrenClassesByLabel($label, ClassRepository $classRepository)
+    public function getE55ChildrenClassesByLabel(string $label, ClassRepository $classRepository): JsonResponse
     {
         try {
             $classes = $classRepository->findE55ChildClassesFromLabel($label);
@@ -482,14 +482,14 @@ class ApiController extends AbstractController
                 'status' => $status,
                 'message' => $message
             );
-            return new JsonResponse($response, 500, array('content-type:application/problem+json'));
+            return new JsonResponse($response, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
 
         if (empty($classes[0]['json'])) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($classes[0]['json'], 200, array(), true);
+        return new JsonResponse($classes[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -498,20 +498,20 @@ class ApiController extends AbstractController
      * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
      * This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
      */
-    public function getOntoMeUriFromOfficialUri(Request $request, ProjectRepository $projectRepository)
+    public function getOntoMeUriFromOfficialUri(Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $officialUri = rawurldecode($request->query->get('officialUri'));
 
         if (!$officialUri) {
-            return new JsonResponse(['error' => 'Missing officialUri parameter'], 400, array('content-type:application/problem+json'));
+            return new JsonResponse(['error' => 'Missing officialUri parameter'], Response::HTTP_BAD_REQUEST, array('content-type:application/problem+json'));
         }
 
         $ontomeUri = $projectRepository->findOntoMeUriFromOfficialUri($officialUri);
 
         if (!$ontomeUri) {
-            return new JsonResponse(['error' => 'OntoME URI not found'], 404, array('content-type:application/problem+json'));
+            return new JsonResponse(['error' => 'OntoME URI not found'], Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
-        return new JsonResponse(['ontome_uri' => $ontomeUri], 200, array('content-type:application/json'));
+        return new JsonResponse(['ontome_uri' => $ontomeUri], Response::HTTP_OK, array('content-type:application/json'));
     }
 }

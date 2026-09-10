@@ -26,6 +26,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -45,7 +46,7 @@ class TextPropertyController extends AbstractController
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(TextProperty $textProperty, LoggerInterface $logger)
+    public function showAction(TextProperty $textProperty, LoggerInterface $logger): Response
     {
         $logger->info('Showing text property: ' . $textProperty->getId());
         return $this->render('textProperty/show.html.twig', array(
@@ -58,7 +59,7 @@ class TextPropertyController extends AbstractController
      * @Route("/text-property/{id}/inverse/edit", name="text_property_inverse_edit", requirements={"id"="^[0-9]+$"})
      * @param TextProperty $textProperty
      * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @return RedirectResponse|Response
      */
     public function editAction(TextProperty $textProperty, Request $request)
     {
@@ -167,7 +168,7 @@ class TextPropertyController extends AbstractController
      * @Route("/text-property/{type}/new/{object}/{objectId}/inverse", name="text_property_inverse_new",
      *     requirements={"type"="^(scope-note|example|justification|additional-note|definition|dct:contributor|owl:versionInfo){1}$", "object"="^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$", "objectId"="^[0-9]+$"})
      */
-    public function newAction($type, $object, $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
+    public function newAction(string $type, string $object, string $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
     {
         $em = $this->doctrine->getManager();
 
@@ -445,9 +446,9 @@ class TextPropertyController extends AbstractController
      * @param SystemType $validationStatus
      * @param Request $request
      * @throws \Exception in case of unsuccessful association
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(TextProperty $textProperty, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(TextProperty $textProperty, SystemType $validationStatus): RedirectResponse
     {
         $object = null;
         if(!is_null($textProperty->getClassAssociation())){

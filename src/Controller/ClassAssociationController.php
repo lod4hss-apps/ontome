@@ -140,7 +140,7 @@ class ClassAssociationController extends AbstractController
      * @param ClassAssociation $classAssociation
      * @return Response the rendered template
      */
-    public function showAction(ClassAssociation $classAssociation, LoggerInterface $logger)
+    public function showAction(ClassAssociation $classAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing class association: '.$classAssociation->getObjectIdentification());
 
@@ -215,11 +215,10 @@ class ClassAssociationController extends AbstractController
      * @Route("/class-association/{id}/edit-validity/{validationStatus}", name="class_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
      * @param ClassAssociation $classAssociation
      * @param SystemType $validationStatus
-     * @param Request $request
      * @throws \Exception in case of unsuccessful validation
      * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(ClassAssociation $classAssociation, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(ClassAssociation $classAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if(is_null($classAssociation)){
@@ -287,7 +286,7 @@ class ClassAssociationController extends AbstractController
      * @param ClassAssociation  $classAssociation
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteAction(Request $request, ClassAssociation $classAssociation)
+    public function deleteAction(ClassAssociation $classAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $classAssociation);
 
@@ -302,6 +301,6 @@ class ClassAssociationController extends AbstractController
         }
         $em->remove($classAssociation);
         $em->flush();
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

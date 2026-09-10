@@ -45,7 +45,7 @@ class LabelController  extends AbstractController
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(Label $label, LoggerInterface $logger)
+    public function showAction(Label $label, LoggerInterface $logger): Response
     {
         $logger->info('Showing text property: ' . $label->getId());
         return $this->render('label/show.html.twig', array(
@@ -172,7 +172,7 @@ class LabelController  extends AbstractController
     /**
      * @Route("/label/new/{object}/{objectId}", name="label_new", requirements={"object"="^(class|property|profile|project|namespace){1}$","objectId"="^[0-9]+"})
      */
-    public function newAction($object, $objectId, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
+    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
         $em = $this->doctrine->getManager();
 
@@ -293,11 +293,10 @@ class LabelController  extends AbstractController
      * @Route("/label/{id}/edit-validity/{validationStatus}", name="label_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
      * @param Label $label
      * @param SystemType $validationStatus
-     * @param Request $request
      * @throws \Exception in case of unsuccessful association
      * @return RedirectResponse
      */
-    public function editValidationStatusAction(Label $label, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(Label $label, SystemType $validationStatus): RedirectResponse
     {
         $object = null;
         if(!is_null($label->getClass())){

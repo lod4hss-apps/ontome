@@ -41,6 +41,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -58,7 +59,7 @@ class NamespaceController extends AbstractController
     /**
      * @Route("/namespace")
      */
-    public function listAction(NamespaceRepository $namespaceRepository)
+    public function listAction(NamespaceRepository $namespaceRepository): Response
     {
         $namespaces = $namespaceRepository->findAll();
         //->findAllOrderedById();
@@ -262,7 +263,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return Response the rendered template
      */
-    public function showAction(OntoNamespace $namespace, TextPropertyRepository $textPropertyRepository)
+    public function showAction(OntoNamespace $namespace, TextPropertyRepository $textPropertyRepository): Response
     {
         $textProperties = $textPropertyRepository->findBy(array("namespaceForVersion" => $namespace->getId()));
         return $this->render('namespace/show.html.twig', array(
@@ -411,7 +412,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return Response the rendered template
      */
-    public function publishAction(OntoNamespace $namespace, Request $request)
+    public function publishAction(OntoNamespace $namespace, Request $request): Response
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
@@ -429,7 +430,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return Response the rendered template
      */
-    public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository)
+    public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository): RedirectResponse
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
@@ -474,7 +475,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return JsonResponse
      */
-    public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request)
+    public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request): JsonResponse
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
@@ -503,7 +504,7 @@ class NamespaceController extends AbstractController
         $em->persist($namespace);
         $em->flush();
 
-        return new JsonResponse("", 204, array(), true);
+        return new JsonResponse("", Response::HTTP_NO_CONTENT, array(), true);
     }
 
     /**
@@ -511,7 +512,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $rootNamespace The root namespace
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function getNamespacesByRootNamespaceID(OntoNamespace $rootNamespace)
+    public function getNamespacesByRootNamespaceID(OntoNamespace $rootNamespace): JsonResponse
     {
         $namespaces = [];
 
@@ -566,7 +567,7 @@ class NamespaceController extends AbstractController
      * @param Profile $profile The profile to be associated with a namespace
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function getRootNamespacesForAssociationWithProfile(Profile $profile, NamespaceRepository $namespaceRepository)
+    public function getRootNamespacesForAssociationWithProfile(Profile $profile, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $rootNamespaces = $namespaceRepository->findAllNonAssociatedToProfileByProfileId($profile);
 
@@ -592,11 +593,11 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return JsonResponse a Json formatted graph representation of Namespaces
      */
-    public function getGraphJson(OntoNamespace $namespace, NamespaceRepository $namespaceRepository)
+    public function getGraphJson(OntoNamespace $namespace, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $namespaces = $namespaceRepository->findNamespacesGraph($namespace);
 
-        return new JsonResponse($namespaces[0]['json'], 200, array(), true);
+        return new JsonResponse($namespaces[0]['json'], Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -606,7 +607,7 @@ class NamespaceController extends AbstractController
      * @return JsonResponse a Json formatted namespaces list
      * @throws \Exception in case of unsuccessful association
      */
-    public function newReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request)
+    public function newReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
@@ -654,7 +655,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $referencedNamespace The referenced namespace to be disassociated from a namespace
      * @return JsonResponse
      */
-    public function deleteReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request)
+    public function deleteReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
@@ -683,7 +684,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $referencedNamespace The referenced namespace to be changed from a namespace
      * @return JsonResponse
      */
-    public function changeReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request)
+    public function changeReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
 
@@ -799,7 +800,7 @@ class NamespaceController extends AbstractController
      * @return JsonResponse
      * Cette fonction retrouve les espaces de noms soeurs
      */
-    public function getChoicesNamespaceAssociation(OntoNamespace $namespace)
+    public function getChoicesNamespaceAssociation(OntoNamespace $namespace): JsonResponse
     {
         $rootNamespace = $namespace->getTopLevelNamespace();
 
@@ -819,7 +820,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace The namespace
      * @return BinaryFileResponse
      */
-    public function getNamespaceOdt(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
+    public function getNamespaceOdt(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): BinaryFileResponse
     {
         function specialCharactersConversion($string, $forHTML = false)
         {
@@ -1832,7 +1833,7 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $namespace
      * @return JsonResponse
      */
-    public function makeVisibleAction(OntoNamespace $namespace)
+    public function makeVisibleAction(OntoNamespace $namespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
         try {
@@ -1841,8 +1842,8 @@ class NamespaceController extends AbstractController
             $em->persist($namespace);
             $em->flush();
         } catch (\Exception $e) {
-            return new JsonResponse(null, 500, array('content-type:application/problem+json'));
+            return new JsonResponse(null, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

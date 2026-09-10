@@ -45,6 +45,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Entity\EntityUserProjectAssociation;
 
 class ProjectController extends AbstractController
 {
@@ -60,9 +61,9 @@ class ProjectController extends AbstractController
      * @Route("/project")
      * @Route("/domains", name="domain_list")
      */
-    public function listAction(ProjectRepository $projectRepository)
+    public function listAction(Request $request, ProjectRepository $projectRepository): Response
     {
-        $displayDomains = $this->get('request_stack')->getCurrentRequest()->attributes->get('_route') === 'domain_list';
+        $displayDomains = $request->attributes->get('_route') === 'domain_list';
 
         $projects = $projectRepository->findAll();
 
@@ -192,7 +193,7 @@ class ProjectController extends AbstractController
      * @param string $id
      * @return Response the rendered template
      */
-    public function showAction(Project $project, NamespaceRepository $namespaceRepository)
+    public function showAction(Project $project, NamespaceRepository $namespaceRepository): Response
     {
         $associatedNamespacesForAPIProject = $namespaceRepository->findApiNamespacesProject($project);
 
@@ -1478,21 +1479,21 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selectable by Project
      */
-    public function getSelectableMembersByProject(Project $project, UserRepository $userRepository)
+    public function getSelectableMembersByProject(Project $project, UserRepository $userRepository): JsonResponse
     {
         try {
             $users = $userRepository->findAllNotInProject($project);
             $data['data'] = $users;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($users)) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data, 200, array(), true);
+        return new JsonResponse($data, Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1500,21 +1501,21 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Users selected by Project
      */
-    public function getAssociatedMembersByProject(Project $project, UserRepository $userRepository)
+    public function getAssociatedMembersByProject(Project $project, UserRepository $userRepository): JsonResponse
     {
         try {
             $classes = $userRepository->findUsersInProject($project);
             $data['data'] = $classes;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($classes)) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data, 200, array(), true);
+        return new JsonResponse($data, Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1524,7 +1525,7 @@ class ProjectController extends AbstractController
      * @return JsonResponse $response
      * @throws \Exception in case of unsuccessful association
      */
-    public function newProjectUserAssociationAction(Project $project, User $user, Request $request)
+    public function newProjectUserAssociationAction(Project $project, User $user, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
@@ -1569,7 +1570,7 @@ class ProjectController extends AbstractController
      * @return JsonResponse $response
      * @throws \Exception in case of unsuccessful association
      */
-    public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request)
+    public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
@@ -1618,7 +1619,7 @@ class ProjectController extends AbstractController
      * @return JsonResponse $response
      * @throws \Exception in case of unsuccessful association
      */
-    public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, $permission, Request $request)
+    public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, string $permission, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('full_edit', $userProjectAssociation->getProject());
 
@@ -1638,7 +1639,7 @@ class ProjectController extends AbstractController
                 $status = 'Success';
                 $message = 'Permission successfully edited.';
             } catch (\Exception $e) {
-                return new JsonResponse(null, 400, 'content-type:application/problem+json');
+                return new JsonResponse(null, Response::HTTP_BAD_REQUEST, ['content-type:application/problem+json']);
             }
         }
 
@@ -1655,7 +1656,7 @@ class ProjectController extends AbstractController
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository)
+    public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $userProjectAssociation->getProject());
         try {
@@ -1678,9 +1679,9 @@ class ProjectController extends AbstractController
             $em->remove($userProjectAssociation);
             $em->flush();
         } catch (\Exception $e) {
-            return new JsonResponse($e->getMessage(), 400, array('content-type:application/problem+json'));
+            return new JsonResponse($e->getMessage(), Response::HTTP_BAD_REQUEST, array('content-type:application/problem+json'));
         }
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -1688,7 +1689,7 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles selectable by Project
      */
-    public function getSelectableProfilesByProject(Project $project, ProfileRepository $profileRepository)
+    public function getSelectableProfilesByProject(Project $project, ProfileRepository $profileRepository): JsonResponse
     {
         try {
             $em = $this->doctrine->getManager();
@@ -1696,14 +1697,14 @@ class ProjectController extends AbstractController
             $data['data'] = $profiles;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($profiles)) {
-            return new JsonResponse(null, 204, array());
+            return new JsonResponse(null, Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data, 200, array(), true);
+        return new JsonResponse($data, Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1711,21 +1712,21 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Profiles associated with Project
      */
-    public function getAssociatedProfilesByProject(Project $project, ProfileRepository $profileRepository)
+    public function getAssociatedProfilesByProject(Project $project, ProfileRepository $profileRepository): JsonResponse
     {
         try {
             $profiles = $profileRepository->findProfilesByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
         if (empty($profiles)) {
-            return new JsonResponse('{"data":[]}', 200, array(), true);
+            return new JsonResponse('{"data":[]}', Response::HTTP_OK, array(), true);
         }
 
-        return new JsonResponse($data, 200, array(), true);
+        return new JsonResponse($data, Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1735,7 +1736,7 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json formatted namespaces list
      * @throws \Exception in case of unsuccessful association
      */
-    public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
+    public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
@@ -1791,7 +1792,7 @@ class ProjectController extends AbstractController
      * @param Project $project The project to be disassociated from a profile
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request)
+    public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
         $em = $this->doctrine->getManager();
@@ -1802,7 +1803,7 @@ class ProjectController extends AbstractController
         $em->remove($projectAssociation);
         $em->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 
     }
 
@@ -1812,7 +1813,7 @@ class ProjectController extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json response with the new project URI
      */
-    public function editProjectURIAction(Project $project, Request $request)
+    public function editProjectURIAction(Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
         $em = $this->doctrine->getManager();
@@ -1843,7 +1844,7 @@ class ProjectController extends AbstractController
      * @param Project $project
      * @return JsonResponse a Json formatted list representation of Containers selected by Project
      */
-    public function getContainersByProjectForDatatable(Project $project, ContainerRepository $containerRepository)
+    public function getContainersByProjectForDatatable(Project $project, ContainerRepository $containerRepository): JsonResponse
     {
         try {
             $containers = [];
@@ -1887,10 +1888,10 @@ class ProjectController extends AbstractController
                 );
             }
         } catch (NotFoundHttpException $e) {
-            return new JsonResponse(null, 404, 'content-type:application/problem+json');
+            return new JsonResponse(null, Response::HTTP_NOT_FOUND, ['content-type:application/problem+json']);
         }
 
-        return new JsonResponse(json_encode(['data' => $containers]), 200, array(), true);
+        return new JsonResponse(json_encode(['data' => $containers]), Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1898,7 +1899,7 @@ class ProjectController extends AbstractController
      * @param Pathbuilder $pathbuilder
      * @return Response an XML file response with the content of the pathbuilder to export
      */
-    public function exportPathbuilderAction(Pathbuilder $pathbuilder)
+    public function exportPathbuilderAction(Pathbuilder $pathbuilder): Response
     {
         $xmlContent = $pathbuilder->getXmlContent();
 
@@ -1915,7 +1916,7 @@ class ProjectController extends AbstractController
      * @param Container $container
      * @return JsonResponse a Json response with the id and label of the created pathbuilder
      */
-    public function createAssociationContainerPathbuilderAction(Container $container, Request $request)
+    public function createAssociationContainerPathbuilderAction(Container $container, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
@@ -1957,12 +1958,12 @@ class ProjectController extends AbstractController
                     return new JsonResponse([
                         'status' => 'Error',
                         'message' => 'The provided URL is not allowed. Please use a URL from the allowed domains.'
-                    ], 400);
+                    ], Response::HTTP_BAD_REQUEST);
                 }
 
                 $urlContent = file_get_contents($pathbuilderUrl);
             } catch (\Exception $e) {
-                return new JsonResponse(['status' => 'Error', 'message' => 'Unable to retrieve content from the provided URL. Please check the URL and try again.'], 400);
+                return new JsonResponse(['status' => 'Error', 'message' => 'Unable to retrieve content from the provided URL. Please check the URL and try again.'], Response::HTTP_BAD_REQUEST);
             }
             if ($urlContent !== false && trim($urlContent) !== '') {
                 // On s'assure que c'est bien du XML
@@ -1979,7 +1980,7 @@ class ProjectController extends AbstractController
                 if ($xml !== false) {
                     $xmlContent = $urlContent;
                 } else {
-                    return new JsonResponse(['status' => 'Error', 'message' => 'The content retrieved from the URL is not valid XML.'], 400);
+                    return new JsonResponse(['status' => 'Error', 'message' => 'The content retrieved from the URL is not valid XML.'], Response::HTTP_BAD_REQUEST);
                 }
             }
         }
@@ -2024,7 +2025,7 @@ class ProjectController extends AbstractController
      * @param Pathbuilder $pathbuilder
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request)
+    public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
@@ -2033,6 +2034,6 @@ class ProjectController extends AbstractController
         $em->remove($pathbuilder);
         $em->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

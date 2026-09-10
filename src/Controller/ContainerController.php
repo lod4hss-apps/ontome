@@ -10,6 +10,7 @@ use App\Repository\ProjectRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,7 +30,7 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
-    public function getContainer(Request $request, ContainerRepository $containerRepository)
+    public function getContainer(Request $request, ContainerRepository $containerRepository): JsonResponse
     {
         $id = $request->get('id');
 
@@ -85,7 +86,7 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
-    public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
+    public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $id = $request->get('id');
 
@@ -135,7 +136,7 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
-    public function createContainer(Request $request, ProjectRepository $projectRepository)
+    public function createContainer(Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $projectId = $request->get('project_id');
         $label = $request->get('label');
@@ -174,7 +175,7 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
-    public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
+    public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
 
         $containerId = $request->get('container_id');
@@ -184,7 +185,7 @@ class ContainerController extends AbstractController
         $namespace = $namespaceRepository->find($namespaceId);
 
         if (!$container || !$namespace) {
-            return new JsonResponse(['status' => 'Error', 'message' => 'Container or Namespace not found'], 404);
+            return new JsonResponse(['status' => 'Error', 'message' => 'Container or Namespace not found'], Response::HTTP_NOT_FOUND);
         }
 
         // Droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
@@ -209,7 +210,7 @@ class ContainerController extends AbstractController
      * @param Request $request
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
-    public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository)
+    public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
 

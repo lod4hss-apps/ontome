@@ -42,7 +42,7 @@ class EntityAssociationController extends AbstractController
     /**
      * @Route("/entity-association/new/{object}/{objectId}", name="new_entity_association_form", requirements={"object"="^(class|property){1}$","objectId"="^[0-9]+$"})
      */
-    public function newEntityAssociationAction(Request $request, $object, $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
+    public function newEntityAssociationAction(Request $request, string $object, string $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $em = $this->doctrine->getManager();
 
@@ -187,7 +187,7 @@ class EntityAssociationController extends AbstractController
      * @param EntityAssociation $entityAssociation
      * @return Response the rendered template
      */
-    public function showAction(Request $request, EntityAssociation $entityAssociation)
+    public function showAction(Request $request, EntityAssociation $entityAssociation): Response
     {
         $inverse = false;
         if($request->attributes->get('_route') == 'entity_association_inverse_show'){
@@ -340,7 +340,7 @@ class EntityAssociationController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      * @return RedirectResponse|Response
      */
-    public function editValidationStatusAction(EntityAssociation $entityAssociation, SystemType $validationStatus, Request $request)
+    public function editValidationStatusAction(EntityAssociation $entityAssociation, SystemType $validationStatus, Request $request): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if(is_null($entityAssociation)){
@@ -406,7 +406,7 @@ class EntityAssociationController extends AbstractController
     /**
      * @Route("/entity-association/{id}/delete", name="entity_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
      */
-    public function deleteAction(Request $request, EntityAssociation $entityAssociation)
+    public function deleteAction(Request $request, EntityAssociation $entityAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $entityAssociation);
 
@@ -421,6 +421,6 @@ class EntityAssociationController extends AbstractController
         }
         $em->remove($entityAssociation);
         $em->flush();
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

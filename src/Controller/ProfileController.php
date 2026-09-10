@@ -36,8 +36,10 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Form\FormFactoryInterface;
+use App\Repository\TextPropertyRepository;
 
 class ProfileController  extends AbstractController
 {
@@ -54,7 +56,7 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return Response the rendered template
      */
-    public function showAction(Profile $profile, ClassRepository $classRepository)
+    public function showAction(Profile $profile, ClassRepository $classRepository): Response
     {
         $em = $this->doctrine->getManager();
 
@@ -77,7 +79,7 @@ class ProfileController  extends AbstractController
     /**
      * @Route("/profile")
      */
-    public function listAction(ProfileRepository $profileRepository)
+    public function listAction(ProfileRepository $profileRepository): Response
     {
         $profiles = $profileRepository->findAll();
 
@@ -298,10 +300,9 @@ class ProfileController  extends AbstractController
     /**
      * @Route("/profile/{id}/publish", name="profile_publish", requirements={"id"="^([0-9]+)|(profileID){1}$"})
      * @param Profile $profile
-     * @param Request $request
      * @return Response the rendered template
      */
-    public function publishAction(Profile $profile, Request $request)
+    public function publishAction(Profile $profile): RedirectResponse
     {
         if(!$profile->isPublishable()){
             throw $this->createAccessDeniedException('The profile n° '.$profile->getId().' can\'t be published. Please verify your profile.');
@@ -383,10 +384,9 @@ class ProfileController  extends AbstractController
     /**
      * @Route("/profile/{id}/deprecate", name="profile_deprecate", requirements={"id"="^([0-9]+)|(profileID){1}$"})
      * @param Profile $profile
-     * @param Request $request
      * @return Response the rendered template
      */
-    public function deprecateAction(Profile $profile, Request $request)
+    public function deprecateAction(Profile $profile): RedirectResponse
     {
         if(is_null($profile)) {
             throw $this->createNotFoundException('The profile n° '.$profile->getId().' does not exist. Please contact an administrator.');
@@ -417,7 +417,7 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile, Request $request)
+    public function newProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -507,7 +507,7 @@ class ProfileController  extends AbstractController
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile, Request $request)
+    public function deleteProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -516,7 +516,7 @@ class ProfileController  extends AbstractController
         $em->persist($profile);
         $em->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -526,7 +526,7 @@ class ProfileController  extends AbstractController
      * @param OntoNamespace  $newAssociatedNamespace    The new associated namespace to be changed from an associated namespace
      * @return JsonResponse
      */
-    public function changeReferencedNamespaceAssociationAction(Profile $profile, OntoNamespace $associatedNamespace, OntoNamespace $newAssociatedNamespace, Request $request)
+    public function changeReferencedNamespaceAssociationAction(Profile $profile, OntoNamespace $associatedNamespace, OntoNamespace $newAssociatedNamespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -615,14 +615,14 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
         if(empty($classes)) {
-            return new JsonResponse('{"data":[]}',200, array(), true);
+            return new JsonResponse('{"data":[]}',Response::HTTP_OK, array(), true);
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -630,7 +630,7 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
-    public function getAssociatedClassesByProfile(Profile $profile, ClassRepository $classRepository)
+    public function getAssociatedClassesByProfile(Profile $profile, ClassRepository $classRepository): JsonResponse
     {
         try{
             $classes = $classRepository->findClassesByProfileId($profile);
@@ -638,14 +638,14 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
         if(empty($classes)) {
-            return new JsonResponse('{"data":[]}',200, array(), true);
+            return new JsonResponse('{"data":[]}',Response::HTTP_OK, array(), true);
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -655,7 +655,7 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, Request $request, ClassVersionRepository $classVersionRepository)
+    public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, ClassVersionRepository $classVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -726,7 +726,7 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfilePropertyAssociationAction(Property $property, Profile $profile, Request $request, PropertyVersionRepository $propertyVersionRepository)
+    public function newProfilePropertyAssociationAction(Property $property, Profile $profile, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -799,7 +799,7 @@ class ProfileController  extends AbstractController
      * @throws \Exception in case of unsuccessful association
      * @return JsonResponse a Json formatted namespaces list
      */
-    public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository)
+    public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -877,7 +877,7 @@ class ProfileController  extends AbstractController
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProfileClassAssociationAction(OntoClass $class, Profile $profile, Request $request)
+    public function deleteProfileClassAssociationAction(OntoClass $class, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
         $em = $this->doctrine->getManager();
@@ -923,7 +923,7 @@ class ProfileController  extends AbstractController
      * @param Profile  $profile    The profile to be disassociated from a namespace
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProfilePropertyAssociationAction(Property $property, Profile $profile, Request $request)
+    public function deleteProfilePropertyAssociationAction(Property $property, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
         $em = $this->doctrine->getManager();
@@ -939,7 +939,7 @@ class ProfileController  extends AbstractController
         $em->persist($profile);
         $em->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 
     }
 
@@ -951,7 +951,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass  $range    The range to be disassociated
      * @return JsonResponse a Json 204 HTTP response
      */
-    public function deleteProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, Request $request)
+    public function deleteProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
         $em = $this->doctrine->getManager();
@@ -970,9 +970,9 @@ class ProfileController  extends AbstractController
         }
 
         catch (\Exception $e) {
-            return new JsonResponse(null, 400, array('content-type:application/problem+json'));
+            return new JsonResponse(null, Response::HTTP_BAD_REQUEST, array('content-type:application/problem+json'));
         }
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 
     }
 
@@ -982,7 +982,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return Response the rendered template
      */
-    public function editProfilePropertiesAction(OntoClass $class, Profile $profile)
+    public function editProfilePropertiesAction(OntoClass $class, Profile $profile): Response
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
         //TODO: mettre erreur 403 en cas d'accès à une classe non associée au profil
@@ -998,7 +998,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing Properties selectable by Class and Profile
      */
-    public function getSelectableOutgoingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
+    public function getSelectableOutgoingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
             $properties = $propertyRepository->findOutgoingPropertiesByClassAndProfileId($class, $profile);
@@ -1008,10 +1008,10 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1020,7 +1020,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming Properties selectable by Class and Profile
      */
-    public function getSelectableIncomingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
+    public function getSelectableIncomingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try{
             $properties = $propertyRepository->findIncomingPropertiesByClassAndProfileId($class, $profile);
@@ -1030,10 +1030,10 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1042,7 +1042,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of outgoing inherited Properties selectable by Class and Profile
      */
-    public function getSelectableOutgoingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
+    public function getSelectableOutgoingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try{
             $properties = $propertyRepository->findOutgoingInheritedPropertiesByClassAndProfileId($class, $profile);
@@ -1052,10 +1052,10 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1064,7 +1064,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse a Json formatted list representation of incoming inherited Properties selectable by Class and Profile
      */
-    public function getSelectableIncomingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository)
+    public function getSelectableIncomingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try{
             $properties = $propertyRepository->findIncomingInheritedPropertiesByClassAndProfileId($class, $profile);
@@ -1074,10 +1074,10 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1088,7 +1088,7 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
+    public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
@@ -1098,14 +1098,14 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
         if(empty($classes)) {
-            return new JsonResponse(null,204, array());
+            return new JsonResponse(null,Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1117,7 +1117,7 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
+    public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
@@ -1128,14 +1128,14 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
         if(empty($classes)) {
-            return new JsonResponse(null,204, array());
+            return new JsonResponse(null,Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1147,7 +1147,7 @@ class ProfileController  extends AbstractController
      * @param Request $request
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
-    public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository)
+    public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
             $searchTerm = $request->get('term'); //récupération du paramètre "term" envoyé par select2 pour la requête AJAX
@@ -1157,14 +1157,14 @@ class ProfileController  extends AbstractController
             $data = json_encode($data);
         }
         catch (NotFoundHttpException $e) {
-            return new JsonResponse(null,404, array('content-type:application/problem+json'));
+            return new JsonResponse(null,Response::HTTP_NOT_FOUND, array('content-type:application/problem+json'));
         }
 
         if(empty($classes)) {
-            return new JsonResponse(null,204, array());
+            return new JsonResponse(null,Response::HTTP_NO_CONTENT, array());
         }
 
-        return new JsonResponse($data,200, array(), true);
+        return new JsonResponse($data,Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1172,11 +1172,11 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse a Json formatted graph representation of Profile
      */
-    public function getGraphJson(Profile $profile, ProfileRepository $profileRepository)
+    public function getGraphJson(Profile $profile, ProfileRepository $profileRepository): JsonResponse
     {
         $profile = $profileRepository->findProfileGraph($profile);
 
-        return new JsonResponse($profile[0]['json'],200, array(), true);
+        return new JsonResponse($profile[0]['json'],Response::HTTP_OK, array(), true);
     }
 
     /**
@@ -1241,7 +1241,7 @@ class ProfileController  extends AbstractController
      * @param OntoClass $class
      * @return JsonResponse
      */
-    public function getAlertClassIfDeselect(Profile $profile, OntoClass $class)
+    public function getAlertClassIfDeselect(Profile $profile, OntoClass $class): JsonResponse
     {
         $message = 'not-alert';
         if(!empty($this->getProfileAssociationsWithPropertiesDeselectablesIfProfileAssociationWithThisClassWillDeselect($profile, $class))){
@@ -1253,9 +1253,9 @@ class ProfileController  extends AbstractController
     /**
      * @Route("/profile/{profile}/recreate", name="profile_recreate", requirements={"profile"="^[0-9]+$|(profileID){1}$"}, methods={"GET"})
      * @param Profile  $profile    The published profile to be recreate
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     * @return RedirectResponse
      */
-    public function recreateProfileFromPublishedProfileAction(Profile $profile, Request $request)
+    public function recreateProfileFromPublishedProfileAction(Profile $profile): RedirectResponse
     {
         $this->denyAccessUnlessGranted('duplicate', $profile);
         $em = $this->doctrine->getManager();
@@ -1310,15 +1310,13 @@ class ProfileController  extends AbstractController
      * @param ProfileAssociation $profileAssociation
      * @return Response the rendered template
      */
-    public function showCustomisationAction(ProfileAssociation $profileAssociation)
+    public function showCustomisationAction(ProfileAssociation $profileAssociation): Response
     {
         return $this->render('profileAssociation/show_customisation.html.twig', array('profileAssociation' => $profileAssociation));
     }
 
     /**
      * @Route("/profileAssociation/{id}/custom/edit", name="edit_customisation", requirements={"id"="^([0-9]+)|(profileAssociationID){1}$"})
-     * @param Property $property
-     * @param Profile $profile
      * @return Response the rendered template
      */
     public function editCustomisationAction(ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory, TextPropertyRepository $textPropertyRepository)
@@ -1496,7 +1494,7 @@ class ProfileController  extends AbstractController
      * @param Profile $profile
      * @return JsonResponse
      */
-    public function makeVisibleAction(Profile $profile)
+    public function makeVisibleAction(Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile);
         try {
@@ -1506,8 +1504,8 @@ class ProfileController  extends AbstractController
             $em->flush();
         }
         catch (\Exception $e) {
-            return new JsonResponse(null, 500, array('content-type:application/problem+json'));
+            return new JsonResponse(null, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
         }
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
