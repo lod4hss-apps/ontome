@@ -272,7 +272,7 @@ class ProfileController extends AbstractController
         foreach ($rootNamespacesBrut as $rootNamespace) {
             $rootNamespaces->add($namespaceRepository->find($rootNamespace['id']));
         }
-        $rootNamespaces = $rootNamespaces->filter(fn($v) => $v->getId() != 5);
+        $rootNamespaces = $rootNamespaces->filter(fn ($v) => $v->getId() != 5);
 
         $profileAssociations = $em->getRepository(ProfileAssociation::class)
             ->findBy(['profile' => $profile]);

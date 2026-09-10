@@ -345,7 +345,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getCurrentOngoingNamespace()
     {
-        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(fn(OntoNamespace $namespace) => $namespace->getIsOngoing());
+        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(fn (OntoNamespace $namespace) => $namespace->getIsOngoing());
 
         if ($namespaces->first()) {
             return $namespaces->first();

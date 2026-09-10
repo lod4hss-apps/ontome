@@ -246,7 +246,7 @@ class NamespaceController extends AbstractController
         }
 
         $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true], ['standardLabel' => 'ASC']);
-        $rootNamespaces = array_filter($rootNamespaces, fn($v) => $v->getId() != 5);
+        $rootNamespaces = array_filter($rootNamespaces, fn ($v) => $v->getId() != 5);
 
         return $this->render('namespace/new.html.twig', [
             'namespace' => $namespace,
@@ -295,7 +295,7 @@ class NamespaceController extends AbstractController
         foreach ($rootNamespacesBrut as $rootNamespace) {
             $rootNamespaces->add($namespaceRepository->find($rootNamespace['id']));
         }
-        $rootNamespaces = $rootNamespaces->filter(fn($v) => $v->getId() != 5);
+        $rootNamespaces = $rootNamespaces->filter(fn ($v) => $v->getId() != 5);
 
         $textProperties = $textPropertyRepository->findBy(['namespaceForVersion' => $namespace->getId()]);
 
@@ -306,7 +306,7 @@ class NamespaceController extends AbstractController
 
             $form = $this->createForm(NamespaceForm::class, $namespace, [
                 'is_root_namespace' => $isRoot,
-                'validation_groups' => fn(FormInterface $form) => $isRoot === true ? ['Default', 'RequirePrefix'] : ['Default'],
+                'validation_groups' => fn (FormInterface $form) => $isRoot === true ? ['Default', 'RequirePrefix'] : ['Default'],
             ]);
 
             $form->handleRequest($request);
@@ -359,7 +359,7 @@ class NamespaceController extends AbstractController
             $formUriParameter->handleRequest($request);
             if ($formUriParameter->isSubmitted() && $formUriParameter->isValid()) {
                 $em = $this->doctrine->getManager();
-                $ongoingNamespace = $namespace->getChildVersions()->filter(fn($v) => $v->getIsOngoing())->first();
+                $ongoingNamespace = $namespace->getChildVersions()->filter(fn ($v) => $v->getIsOngoing())->first();
                 if ($ongoingNamespace instanceof OntoNamespace) {
                     foreach ($ongoingNamespace->getClasses() as $class) {
                         $class->updateIdentifierInUri();
@@ -514,7 +514,7 @@ class NamespaceController extends AbstractController
             $status = 'Success';
             $message = 'This namespace is valid';
             $user = $this->getUser();
-            foreach ($rootNamespace->getChildVersions()->filter(fn($v) => $v->getIsVisible() or $v->getProjectForTopLevelNamespace()->getuserProjectAssociations()->filter(fn($v) => $v->getUser() == $user)->count() == 1) as $namespace) {
+            foreach ($rootNamespace->getChildVersions()->filter(fn ($v) => $v->getIsVisible() or $v->getProjectForTopLevelNamespace()->getuserProjectAssociations()->filter(fn ($v) => $v->getUser() == $user)->count() == 1) as $namespace) {
                 $referencedNamespaces = [];
                 foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
                     $referencedNamespaces[$referencedNamespace->getTopLevelNamespace()->getId()] = [$referencedNamespace->getId(), $referencedNamespace->getStandardLabel()];
@@ -833,7 +833,7 @@ class NamespaceController extends AbstractController
         $allNamespacesReferences->add($namespaceRepository->findOneBy(['id' => 4]));
         // var_dump($allNamespacesReferences->map(function($v){return $v->getId();})->toArray()); die;
 
-        foreach ($namespace->getTextProperties()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
+        foreach ($namespace->getTextProperties()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
             if ($textProperty->getSystemType()->getId() == 2 and $textProperty->getLanguageIsoCode() == 'en') {
                 $textp_contributors = $textProperty;
             }
@@ -942,8 +942,8 @@ class NamespaceController extends AbstractController
         $section = $phpWord->addSection();
         if ($namespace->getDirectReferencedNamespaces()->count() > 0) { // S'il y a les NS références
             $directNamespacesReferences = $namespace->getDirectReferencedNamespaces();
-            $standardLabelDirectNamespacesReferences = $directNamespacesReferences->map(fn(OntoNamespace $ns) => $ns->getStandardLabel());
-            $nsCRM = $allNamespacesReferences->filter(fn($v) => $v->getTopLevelNamespace()->getId() == 7);
+            $standardLabelDirectNamespacesReferences = $directNamespacesReferences->map(fn (OntoNamespace $ns) => $ns->getStandardLabel());
+            $nsCRM = $allNamespacesReferences->filter(fn ($v) => $v->getTopLevelNamespace()->getId() == 7);
 
             // Plusieurs formulations
             // Soit le CIDOC CRM est l'unique référence
@@ -968,12 +968,12 @@ class NamespaceController extends AbstractController
             $section->addListItem('all classes declared in '.$namespace->getStandardLabel());
             $section->addTextBreak();
             // Les NS ref CRM
-            foreach ($namespace->getAllReferencedNamespaces()->filter(fn($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
+            foreach ($namespace->getAllReferencedNamespaces()->filter(fn ($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns
                     ->getTextProperties()
-                    ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31
+                    ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31
                     );
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
@@ -982,12 +982,12 @@ class NamespaceController extends AbstractController
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
-            foreach ($directNamespacesReferences->filter(fn($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
+            foreach ($directNamespacesReferences->filter(fn ($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns
                     ->getTextProperties()
-                    ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31
+                    ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31
                     );
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
@@ -996,12 +996,12 @@ class NamespaceController extends AbstractController
                 $section->addTextBreak();
             }
             // Les NS ref CRM
-            foreach ($namespace->getAllReferencedNamespaces()->filter(fn($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
+            foreach ($namespace->getAllReferencedNamespaces()->filter(fn ($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns
                     ->getTextProperties()
-                    ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31);
+                    ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31);
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
@@ -1009,12 +1009,12 @@ class NamespaceController extends AbstractController
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
-            foreach ($directNamespacesReferences->filter(fn($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
+            foreach ($directNamespacesReferences->filter(fn ($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns
                     ->getTextProperties()
-                    ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31
+                    ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31
                     );
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
@@ -1039,7 +1039,7 @@ class NamespaceController extends AbstractController
         $allClasses = $namespace->getClasses()
             ->filter(
                 // On retire les classes denied
-                fn($v) => is_null($v->getClassVersionForDisplay($namespace)->getValidationStatus()) || !is_null($v->getClassVersionForDisplay($namespace)->getValidationStatus()) && $v->getClassVersionForDisplay($namespace)->getValidationStatus()->getId() != 27);
+                fn ($v) => is_null($v->getClassVersionForDisplay($namespace)->getValidationStatus()) || !is_null($v->getClassVersionForDisplay($namespace)->getValidationStatus()) && $v->getClassVersionForDisplay($namespace)->getValidationStatus()->getId() != 27);
         foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
             foreach ($referencedNamespace->getClasses() as $class) {
                 if (is_null($class->getClassVersionForDisplay($referencedNamespace)->getValidationStatus()) || !is_null($class->getClassVersionForDisplay($referencedNamespace)) && $class->getClassVersionForDisplay($referencedNamespace)->getValidationStatus()->getId() != 27) {// On retire les classes denied
@@ -1048,12 +1048,12 @@ class NamespaceController extends AbstractController
             }
         }
         $rootClasses = $allClasses
-            ->filter(fn($v) => $v->getChildClassAssociations()
-                    ->filter(fn($w) => $namespace == $w->getNamespaceForVersion()
+            ->filter(fn ($v) => $v->getChildClassAssociations()
+                    ->filter(fn ($w) => $namespace == $w->getNamespaceForVersion()
                         and $nsRef->contains($w->getParentClassNamespace()))
                     ->count() == 0
                 and $v->getParentClassAssociations()
-                    ->filter(fn($w) => $w->getNamespaceForVersion() == $namespace)
+                    ->filter(fn ($w) => $w->getNamespaceForVersion() == $namespace)
                     ->count() > 0);
         /*foreach($namespace->getAllReferencedNamespaces() as $referencedNamespace){
             $rootClassesRef = $referencedNamespace->getClasses()->filter(function ($v) use ($namespace, $nsRef){return $v->getChildClassAssociations()->filter(function($w) use ($namespace, $nsRef){return $namespace == $w->getNamespaceForVersion() and $nsRef->contains($w->getParentClassNamespace());})->count() == 0;});
@@ -1074,7 +1074,7 @@ class NamespaceController extends AbstractController
         // tableau
         $table = $section->addTable($fancyTableStyleName);
         foreach ($rootClasses as $rootClass) {
-            $classVersion = $rootClass->getClassVersions()->filter(fn($v) => $nsRef->contains($v->getNamespaceForVersion()))->first();
+            $classVersion = $rootClass->getClassVersions()->filter(fn ($v) => $nsRef->contains($v->getNamespaceForVersion()))->first();
             $table->addRow();
             $cell = $table->addCell(1000);
             $cell->addText($rootClass->getIdentifierInNamespace());
@@ -1136,7 +1136,7 @@ class NamespaceController extends AbstractController
                      ->filter(function ($v) {
                          return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                      })
-                     ->filter(fn($v) => !is_null($v->getSourceClass())) as $classAssociation) {
+                     ->filter(fn ($v) => !is_null($v->getSourceClass())) as $classAssociation) {
             if ($classAssociation->getSourceNamespaceForVersion() != $namespace && $classAssociation->getSourceNamespaceForVersion()->getId() != 4 and !$classesVersionWithNSref->contains($classAssociation->getSourceClass())) {
                 if (!$classesVersionWithNSref->contains($classAssociation->getSourceClass()->getClassVersionForDisplay($classAssociation->getSourceNamespaceForVersion()))) {
                     $classesVersionWithNSref->add($classAssociation->getSourceClass()->getClassVersionForDisplay($classAssociation->getSourceNamespaceForVersion()));
@@ -1183,7 +1183,7 @@ class NamespaceController extends AbstractController
                 $table->addCell(2000)->addText($classVersion->getClass()->getIdentifierInNamespace());
                 $table->addCell(2000)->addText($classVersion->getStandardLabel());
                 $table->addCell(2000)->addText($classVersion->getNamespaceForVersion()->getTopLevelNamespace());
-                $txtps_version = $classVersion->getNamespaceForVersion()->getTextProperties()->filter(fn($v) => $v->getSystemType()->getId() == 31);
+                $txtps_version = $classVersion->getNamespaceForVersion()->getTextProperties()->filter(fn ($v) => $v->getSystemType()->getId() == 31);
                 if ($txtps_version->count() > 0) {
                     $table->addCell(2000)->addText($txtps_version->first()->getTextProperty());
                 } else {
@@ -1196,8 +1196,8 @@ class NamespaceController extends AbstractController
         $section = $phpWord->addSection();
         if ($namespace->getDirectReferencedNamespaces()->count() > 0) { // S'il y a les NS références
             $directNamespacesReferences = $namespace->getDirectReferencedNamespaces();
-            $standardLabelDirectNAmespacesReferences = $directNamespacesReferences->map(fn(OntoNamespace $ns) => $ns->getStandardLabel());
-            $nsCRM = $allNamespacesReferences->filter(fn($v) => $v->getTopLevelNamespace()->getId() == 7);
+            $standardLabelDirectNAmespacesReferences = $directNamespacesReferences->map(fn (OntoNamespace $ns) => $ns->getStandardLabel());
+            $nsCRM = $allNamespacesReferences->filter(fn ($v) => $v->getTopLevelNamespace()->getId() == 7);
 
             // Plusieurs formulations
             // Soit le CIDOC CRM est l'unique référence
@@ -1222,13 +1222,13 @@ class NamespaceController extends AbstractController
             $section->addListItem('all properties declared in '.$namespace->getStandardLabel());
             $section->addTextBreak();
             // Les NS ref CRM
-            foreach ($namespace->getAllReferencedNamespaces()->filter(fn($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
+            foreach ($namespace->getAllReferencedNamespaces()->filter(fn ($v) => $v->getTopLevelNamespace()->getId() == 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns->getTextProperties()
                     ->filter(function ($v) {
                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                     })
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31);
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31);
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
@@ -1236,13 +1236,13 @@ class NamespaceController extends AbstractController
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
-            foreach ($directNamespacesReferences->filter(fn($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
+            foreach ($directNamespacesReferences->filter(fn ($v) => $v->getTopLevelNamespace()->getId() != 7) as $ns) {
                 $version = '';
                 $ns_txtp_versions = $ns->getTextProperties()
                     ->filter(function ($v) {
                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                     })
-                    ->filter(fn($v) => $v->getSystemType()->getId() == 31);
+                    ->filter(fn ($v) => $v->getSystemType()->getId() == 31);
                 if ($ns_txtp_versions->count() > 0) {
                     $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
@@ -1260,7 +1260,7 @@ class NamespaceController extends AbstractController
         $nsRef->add($namespace);
         $allProperties = $namespace->getProperties()->filter(
             // On retire les propriétés denied
-            fn($v) => is_null($v->getPropertyVersionForDisplay($namespace)->getValidationStatus()) || !is_null($v->getPropertyVersionForDisplay($namespace)->getValidationStatus()) && $v->getPropertyVersionForDisplay($namespace)->getValidationStatus()->getId() != 27);
+            fn ($v) => is_null($v->getPropertyVersionForDisplay($namespace)->getValidationStatus()) || !is_null($v->getPropertyVersionForDisplay($namespace)->getValidationStatus()) && $v->getPropertyVersionForDisplay($namespace)->getValidationStatus()->getId() != 27);
         foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
             foreach ($referencedNamespace->getProperties() as $property) {
                 if (is_null($property->getPropertyVersionForDisplay($referencedNamespace)->getValidationStatus()) || !is_null($property->getPropertyVersionForDisplay($referencedNamespace)->getValidationStatus()) && $property->getPropertyVersionForDisplay($referencedNamespace)->getValidationStatus()->getId() != 27) {// On retire les propriétés denied
@@ -1268,7 +1268,7 @@ class NamespaceController extends AbstractController
                 }
             }
         }
-        $rootProperties = $allProperties->filter(fn($v) => $v->getChildPropertyAssociations()->filter(fn($w) => $namespace == $w->getNamespaceForVersion() and $nsRef->contains($w->getParentPropertyNamespace()))->count() == 0 and $v->getParentPropertyAssociations()->filter(fn($w) => $w->getNamespaceForVersion() == $namespace)->count() > 0);
+        $rootProperties = $allProperties->filter(fn ($v) => $v->getChildPropertyAssociations()->filter(fn ($w) => $namespace == $w->getNamespaceForVersion() and $nsRef->contains($w->getParentPropertyNamespace()))->count() == 0 and $v->getParentPropertyAssociations()->filter(fn ($w) => $w->getNamespaceForVersion() == $namespace)->count() > 0);
 
         // Trier d'abord CRM les autres puis par identifier
         $iterator = $rootProperties->getIterator();
@@ -1294,7 +1294,7 @@ class NamespaceController extends AbstractController
         $table->addCell(2000)->addText('Entity – Domain', ['bold' => true]);
         $table->addCell(2000)->addText('Entity - Range', ['bold' => true]);
         foreach ($rootProperties as $rootProperty) {
-            $propertyVersion = $rootProperty->getPropertyVersions()->filter(fn($v) => $nsRef->contains($v->getNamespaceForVersion()))->first();
+            $propertyVersion = $rootProperty->getPropertyVersions()->filter(fn ($v) => $nsRef->contains($v->getNamespaceForVersion()))->first();
 
             $table->addRow();
             $table->addCell(1000, ['valign' => 'center', 'alignment' => Jc::CENTER])->addText($rootProperty->getIdentifierInNamespace());
@@ -1334,7 +1334,7 @@ class NamespaceController extends AbstractController
 
         // Hierarchy properties utilisés NSref
         foreach ($namespace->getPropertyAssociations()
-                     ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) /* On retire les denied */ as $propertyAssociation) {
+                     ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) /* On retire les denied */ as $propertyAssociation) {
             if ($propertyAssociation->getParentPropertyNamespace() != $namespace && $propertyAssociation->getParentPropertyNamespace()->getId() != 4 and !$propertiesVersionWithNSref->contains($propertyAssociation->getParentProperty())) {
                 if (!$propertiesVersionWithNSref->contains($propertyAssociation->getParentProperty()->getPropertyVersionForDisplay($propertyAssociation->getParentPropertyNamespace()))) {
                     $propertiesVersionWithNSref->add($propertyAssociation->getParentProperty()->getPropertyVersionForDisplay($propertyAssociation->getParentPropertyNamespace()));
@@ -1349,8 +1349,8 @@ class NamespaceController extends AbstractController
 
         // Relations autres
         foreach ($namespace->getEntityAssociations()
-                     ->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)/* On retire les denied */
-            ->filter(fn($v) => !is_null($v->getSourceProperty())) as $propertyAssociation) {
+                     ->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27)/* On retire les denied */
+            ->filter(fn ($v) => !is_null($v->getSourceProperty())) as $propertyAssociation) {
             if ($propertyAssociation->getSourceNamespaceForVersion() != $namespace && $propertyAssociation->getSourceNamespaceForVersion()->getId() != 4 and !$propertiesVersionWithNSref->contains($propertyAssociation->getSourceProperty())) {
                 if (!$propertiesVersionWithNSref->contains($propertyAssociation->getSourceProperty()->getPropertyVersionForDisplay($propertyAssociation->getSourceNamespaceForVersion()))) {
                     $propertiesVersionWithNSref->add($propertyAssociation->getSourceProperty()->getPropertyVersionForDisplay($propertyAssociation->getSourceNamespaceForVersion()));
@@ -1389,7 +1389,7 @@ class NamespaceController extends AbstractController
                 $table->addCell(1000)->addText($propertyVersion->getProperty()->getIdentifierInNamespace());
                 $table->addCell(2000)->addText($propertyVersion->getStandardLabel());
                 $table->addCell(2000)->addText($propertyVersion->getNamespaceForVersion()->getTopLevelNamespace());
-                $txtps_version = $propertyVersion->getNamespaceForVersion()->getTextProperties()->filter(fn($v) => $v->getSystemType()->getId() == 31);
+                $txtps_version = $propertyVersion->getNamespaceForVersion()->getTextProperties()->filter(fn ($v) => $v->getSystemType()->getId() == 31);
                 if ($txtps_version->count() > 0) {
                     $table->addCell(2000)->addText($txtps_version->first()->getTextProperty());
                 } else {
@@ -1415,35 +1415,35 @@ class NamespaceController extends AbstractController
 
         /** @var OntoClassVersion $classVersion */
         // Trier naturellement par identifiant A1 A2 B1 B2...
-        $classesVersion = $namespace->getClassVersions()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
+        $classesVersion = $namespace->getClassVersions()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
         $iterator = $classesVersion->getIterator();
-        $iterator->uasort(fn($a, $b) => strnatcasecmp($a->getClass()->getIdentifierInNamespace(), $b->getClass()->getIdentifierInNamespace()));
+        $iterator->uasort(fn ($a, $b) => strnatcasecmp($a->getClass()->getIdentifierInNamespace(), $b->getClass()->getIdentifierInNamespace()));
         $classesVersion = new ArrayCollection(iterator_to_array($iterator));
 
         foreach ($classesVersion as $classVersion) {
             $section->addTextBreak(2);
             $section->addTitle($classVersion->getClass()->getIdentifierInNamespace().' '.$classVersion->getStandardLabel(), 3);
-            $childAssociations = $classVersion->getClass()->getChildClassAssociations()->filter(fn($v) => $v->getNamespaceForVersion() == $namespace && $v->getParentClassNamespace()->getId() != 4 && (is_null($v->getValidationStatus()) || $v->getValidationStatus()->getId() != 27));
+            $childAssociations = $classVersion->getClass()->getChildClassAssociations()->filter(fn ($v) => $v->getNamespaceForVersion() == $namespace && $v->getParentClassNamespace()->getId() != 4 && (is_null($v->getValidationStatus()) || $v->getValidationStatus()->getId() != 27));
 
             if ($childAssociations->count() > 0) {
                 $section->addTextBreak();
                 $section->addText('Subclass of: ', 'gras');
                 // Trier naturellement par identifiant A1 A2 B1 B2...
                 $iterator = $childAssociations->getIterator();
-                $iterator->uasort(fn($a, $b) => strnatcasecmp($a->getParentClass()->getIdentifierInNamespace(), $b->getParentClass()->getIdentifierInNamespace()));
+                $iterator->uasort(fn ($a, $b) => strnatcasecmp($a->getParentClass()->getIdentifierInNamespace(), $b->getParentClass()->getIdentifierInNamespace()));
                 $childAssociations = new ArrayCollection(iterator_to_array($iterator));
                 foreach ($childAssociations as $association) {
                     $section->addText($association->getParentClass()->getIdentifierInNamespace().' '.$association->getParentClass()->getClassVersionForDisplay($association->getParentClassNamespace())->getStandardLabel(), null, ['indentation' => ['left' => 1100]]);
                 }
             }
 
-            $parentAssociations = $classVersion->getClass()->getParentClassAssociations()->filter(fn($v) => $v->getNamespaceForVersion() == $namespace && $v->getChildClassNamespace()->getId() != 4 && (is_null($v->getValidationStatus()) || $v->getValidationStatus()->getId() != 27));
+            $parentAssociations = $classVersion->getClass()->getParentClassAssociations()->filter(fn ($v) => $v->getNamespaceForVersion() == $namespace && $v->getChildClassNamespace()->getId() != 4 && (is_null($v->getValidationStatus()) || $v->getValidationStatus()->getId() != 27));
             if ($parentAssociations->count() > 0) {
                 $section->addTextBreak();
                 $section->addText('Superclass of:', 'gras');
                 // Trier naturellement par identifiant A1 A2 B1 B2...
                 $iterator = $parentAssociations->getIterator();
-                $iterator->uasort(fn($a, $b) => strnatcasecmp($a->getChildClass()->getIdentifierInNamespace(), $b->getChildClass()->getIdentifierInNamespace()));
+                $iterator->uasort(fn ($a, $b) => strnatcasecmp($a->getChildClass()->getIdentifierInNamespace(), $b->getChildClass()->getIdentifierInNamespace()));
                 $parentAssociations = new ArrayCollection(iterator_to_array($iterator));
 
                 foreach ($parentAssociations as $association) {
@@ -1451,7 +1451,7 @@ class NamespaceController extends AbstractController
                 }
             }
 
-            foreach ($classVersion->getClass()->getTextProperties()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
+            foreach ($classVersion->getClass()->getTextProperties()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
                 // if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == 'en') {
@@ -1486,7 +1486,7 @@ class NamespaceController extends AbstractController
             }
 
             $i = 0;
-            foreach ($classVersion->getClass()->getTextProperties()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
+            foreach ($classVersion->getClass()->getTextProperties()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
                 // if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if ($allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 7) {
@@ -1528,7 +1528,7 @@ class NamespaceController extends AbstractController
 
             $i = 0;
             // $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
-            $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(fn($v) => $v->getId())->toArray());
+            $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(fn ($v) => $v->getId())->toArray());
             foreach ($outgoingProperties as $outgoingProperty) {
                 if ($i == 0) {
                     $section->addTextBreak();
@@ -1557,9 +1557,9 @@ class NamespaceController extends AbstractController
 
         /** @var PropertyVersion $propertyVersion */
         // Trier naturellement par identifiant A1 A2 B1 B2...
-        $propertiesVersion = $namespace->getPropertyVersions()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
+        $propertiesVersion = $namespace->getPropertyVersions()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
         $iterator = $propertiesVersion->getIterator();
-        $iterator->uasort(fn($a, $b) => strnatcasecmp($a->getProperty()->getIdentifierInNamespace(), $b->getProperty()->getIdentifierInNamespace()));
+        $iterator->uasort(fn ($a, $b) => strnatcasecmp($a->getProperty()->getIdentifierInNamespace(), $b->getProperty()->getIdentifierInNamespace()));
         $propertiesVersion = new ArrayCollection(iterator_to_array($iterator));
 
         foreach ($propertiesVersion as $propertyVersion) {
@@ -1576,7 +1576,7 @@ class NamespaceController extends AbstractController
                 $section->addText('Range: ', 'gras');
                 $section->addText($label, null, ['indentation' => ['left' => 1100]]);
             }
-            $associations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
+            $associations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27);
             $parentPropertyVersion = null;
             foreach ($associations as $association) {
                 // if(in_array($association->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
@@ -1615,7 +1615,7 @@ class NamespaceController extends AbstractController
                 }
             }
 
-            foreach ($propertyVersion->getProperty()->getTextProperties()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
+            foreach ($propertyVersion->getProperty()->getTextProperties()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
                 // if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == 'en') {
@@ -1650,7 +1650,7 @@ class NamespaceController extends AbstractController
             }
 
             $i = 0;
-            foreach ($propertyVersion->getProperty()->getTextProperties()->filter(fn($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
+            foreach ($propertyVersion->getProperty()->getTextProperties()->filter(fn ($v) => is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27) as $textProperty) {
                 // if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 7) {

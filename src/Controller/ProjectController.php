@@ -69,7 +69,7 @@ class ProjectController extends AbstractController
         $projects = $projectRepository->findAll();
 
         if ($displayDomains) {
-            $projects = array_filter($projects, fn($project) => in_array('domain', (array) $project->getProjectTypes(), true));
+            $projects = array_filter($projects, fn ($project) => in_array('domain', (array) $project->getProjectTypes(), true));
         }
 
         return $this->render('project/list.html.twig', [
@@ -301,7 +301,7 @@ class ProjectController extends AbstractController
 
                 // Vérifier si le namespace root existe sinon on arrête tout.
                 $namespaceRoot = $project->getManagedNamespaces()
-                    ->filter(fn($v) => $v->getIsTopLevelNamespace())->first();
+                    ->filter(fn ($v) => $v->getIsTopLevelNamespace())->first();
                 if (!$namespaceRoot) {
                     $this->addFlash('error', 'You must create a root namespace for this project before importing namespaces.');
 
@@ -752,7 +752,7 @@ class ProjectController extends AbstractController
                             $domain = $tempClass;
 
                             // Ajouter ClassVersion dans $domain, nous en avons besoin pour le preview
-                            $domain->addClassVersion($domainNamespace->getClassVersions()->filter(fn($cv) => $cv->getClass() === $domain)->first());
+                            $domain->addClassVersion($domainNamespace->getClassVersions()->filter(fn ($cv) => $cv->getClass() === $domain)->first());
                             break;
                         }
                     }
@@ -785,7 +785,7 @@ class ProjectController extends AbstractController
                             $range = $tempClass;
 
                             // Ajouter ClassVersion dans $range, nous en avons besoin pour le preview
-                            $range->addClassVersion($rangeNamespace->getClassVersions()->filter(fn($cv) => $cv->getClass() === $range)->first());
+                            $range->addClassVersion($rangeNamespace->getClassVersions()->filter(fn ($cv) => $cv->getClass() === $range)->first());
                             break;
                         }
                     }
@@ -1481,7 +1481,7 @@ class ProjectController extends AbstractController
         }
 
         $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
-        $rootNamespaces = array_filter($rootNamespaces, fn($v) => $v->getId() != 5);
+        $rootNamespaces = array_filter($rootNamespaces, fn ($v) => $v->getId() != 5);
 
         return $this->render('project/edit.html.twig', [
             'project' => $project,

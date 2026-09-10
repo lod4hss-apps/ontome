@@ -332,7 +332,7 @@ class UserController extends AbstractController
             }
 
             $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
-            $rootNamespaces = array_filter($rootNamespaces, fn($v) => $v->getId() != 5);
+            $rootNamespaces = array_filter($rootNamespaces, fn ($v) => $v->getId() != 5);
 
             return $this->render('user/show.html.twig', [
                 'userProjectAssociations' => $userProjectAssociations,

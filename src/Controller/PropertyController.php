@@ -85,7 +85,7 @@ class PropertyController extends AbstractController
         $allNamespacesId = $namespacesId;
 
         // Enlever ceux déjà utilisés
-        $filteredRootNamespaces = array_filter($allRootNamespaces, fn($v) => !in_array($v->getId(), $rootNamespacesId));
+        $filteredRootNamespaces = array_filter($allRootNamespaces, fn ($v) => !in_array($v->getId(), $rootNamespacesId));
         foreach ($filteredRootNamespaces as $rootNamespace) {
             $defaultNamespace = null;
             foreach ($rootNamespace->getChildVersions() as $childVersion) {
@@ -317,7 +317,7 @@ class PropertyController extends AbstractController
         $namespaceFromUrl = null;
         if (!is_null($namespaceFromUrlId)) {
             $namespaceFromUrlId = intval($namespaceFromUrlId);
-            $pvCollection = $property->getPropertyVersions()->filter(fn(PropertyVersion $propertyVersion) => $propertyVersion->getNamespaceForVersion()->getId() === $namespaceFromUrlId);
+            $pvCollection = $property->getPropertyVersions()->filter(fn (PropertyVersion $propertyVersion) => $propertyVersion->getNamespaceForVersion()->getId() === $namespaceFromUrlId);
             if ($pvCollection->count() == 0) {
                 return $this->redirectToRoute('property_show', [
                     'id' => $property->getId(),
@@ -471,23 +471,23 @@ class PropertyController extends AbstractController
 
         // -- Associations Subproperty of
         $childPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $childPropertyAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations'));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations'));
         $childPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Associations Superproperty of
         $parentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $parentPropertyAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations'));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations'));
         $parentPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Relations
         $entityAssociations = $propertyVersion->getProperty()->getEntityAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $entityAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty()));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty()));
         $entityAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         $ancestors = $propertyRepository->findAncestorsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
@@ -727,23 +727,23 @@ class PropertyController extends AbstractController
 
         // -- Associations Subproperty of
         $childPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $childPropertyAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations'));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations'));
         $childPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Associations Superproperty of
         $parentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $parentPropertyAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations'));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations'));
         $parentPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Relations
         $entityAssociations = $propertyVersion->getProperty()->getEntityAssociations()
-            ->filter(fn($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
+            ->filter(fn ($v) => $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId));
         $iterator = $entityAssociations->getIterator();
-        $iterator->uasort(fn($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty()));
+        $iterator->uasort(fn ($a, $b) => sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty()));
         $entityAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
@@ -814,11 +814,11 @@ class PropertyController extends AbstractController
 
         $newValidationStatus = new SystemType();
 
-        $txtpValides = $propertyVersion->getProperty()->getTextProperties()->filter(fn($t) => $t->getSystemType()->getId() == 1
+        $txtpValides = $propertyVersion->getProperty()->getTextProperties()->filter(fn ($t) => $t->getSystemType()->getId() == 1
             && $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
             && !is_null($t->getValidationStatus())
             && $t->getValidationStatus()->getId() == 26);
-        $lblValides = $propertyVersion->getProperty()->getLabels()->filter(fn($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+        $lblValides = $propertyVersion->getProperty()->getLabels()->filter(fn ($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
             && !is_null($l->getValidationStatus())
             && $l->getValidationStatus()->getId() == 26);
 
@@ -841,15 +841,15 @@ class PropertyController extends AbstractController
 
                 // Validation request && minimum not reached => all related candidate entities (txtp, lbl) must be "validation request"
                 if ($statusId == 28 && !$isMinimumRequirementReached) {
-                    $txtpCandidates = $propertyVersion->getProperty()->getTextProperties()->filter(fn($t) => $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $txtpCandidates = $propertyVersion->getProperty()->getTextProperties()->filter(fn ($t) => $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && is_null($t->getValidationStatus()));
-                    $lblCandidates = $propertyVersion->getProperty()->getLabels()->filter(fn($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $lblCandidates = $propertyVersion->getProperty()->getLabels()->filter(fn ($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && is_null($l->getValidationStatus()));
-                    $childPropertyAssociationCandidates = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $childPropertyAssociationCandidates = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && is_null($c->getValidationStatus()));
-                    $sourceEntityAssociationCandidates = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $sourceEntityAssociationCandidates = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && is_null($c->getValidationStatus()));
-                    $targetEntityAssociationCandidates = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $targetEntityAssociationCandidates = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && is_null($c->getValidationStatus()));
 
                     $allEntitiesCandidates = [
@@ -873,10 +873,10 @@ class PropertyController extends AbstractController
                 // On met une propriété en Denied: Ses textproperties et labels doivent être en "Validation request".
                 // Les relations à cette classe seront dévalidés dans l'if suivant
                 if ($statusId == 27) {
-                    $validatedTextProperties = $propertyVersion->getProperty()->getTextProperties()->filter(fn($t) => $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedTextProperties = $propertyVersion->getProperty()->getTextProperties()->filter(fn ($t) => $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($t->getValidationStatus())
                         && $t->getValidationStatus()->getId() == 26);
-                    $validatedLabels = $propertyVersion->getProperty()->getLabels()->filter(fn($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedLabels = $propertyVersion->getProperty()->getLabels()->filter(fn ($l) => $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($l->getValidationStatus())
                         && $l->getValidationStatus()->getId() == 26);
 
@@ -899,16 +899,16 @@ class PropertyController extends AbstractController
 
                 // Dé-validation d'une propriété: on dévalide les relations à cette classe dans le même namespace
                 if (in_array($statusId, [27, 28, 37])) {
-                    $validatedChildPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedChildPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($c->getValidationStatus())
                         && $c->getValidationStatus()->getId() == 26);
-                    $validatedParentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedParentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($c->getValidationStatus())
                         && $c->getValidationStatus()->getId() == 26);
-                    $validatedSourceEntityAssociations = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedSourceEntityAssociations = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($c->getValidationStatus())
                         && $c->getValidationStatus()->getId() == 26);
-                    $validatedTargetEntityAssociations = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(fn($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
+                    $validatedTargetEntityAssociations = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(fn ($c) => $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                         && !is_null($c->getValidationStatus())
                         && $c->getValidationStatus()->getId() == 26);
 
