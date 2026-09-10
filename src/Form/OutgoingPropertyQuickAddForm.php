@@ -1,20 +1,14 @@
 <?php
 
 namespace App\Form;
+
 use App\Entity\Property;
-use App\Entity\OntoClass;
-use App\Entity\OntoNamespace;
 use App\Entity\User;
-use App\Form\DataTransformer\OntoClassToNumberTransformer;
 use App\Form\DataTransformer\UserToNumberTransformer;
-use App\Repository\ClassRepository;
-use App\Repository\NamespaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -22,7 +16,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class OutgoingPropertyQuickAddForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -40,37 +33,36 @@ class OutgoingPropertyQuickAddForm extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The OutgoingPropertyQuickAddForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The OutgoingPropertyQuickAddForm cannot be used without an authenticated user!');
         }
 
-        $choices = array();
-        foreach ($options['classesVersion'] as $cv){
-            if($cv['standardLabel'] != $cv['identifierInNamespace'])
-                $choices[$cv['rootNamespacePrefix'].":".$cv['standardLabel']." – ".$cv['identifierInNamespace']] = $cv['id'];
-            else
-                $choices[$cv['rootNamespacePrefix'].":".$cv['standardLabel']] = $cv['id'];
+        $choices = [];
+        foreach ($options['classesVersion'] as $cv) {
+            if ($cv['standardLabel'] != $cv['identifierInNamespace']) {
+                $choices[$cv['rootNamespacePrefix'].':'.$cv['standardLabel'].' – '.$cv['identifierInNamespace']] = $cv['id'];
+            } else {
+                $choices[$cv['rootNamespacePrefix'].':'.$cv['standardLabel']] = $cv['id'];
+            }
         }
 
         $builder
-            ->add('identifierInNamespace', TextType::class, array(
-            ))
-            ->add('labels', CollectionType::class, array(
+            ->add('identifierInNamespace', TextType::class, [
+            ])
+            ->add('labels', CollectionType::class, [
                 'label' => 'Enter a label and select a language',
                 'entry_type' => LabelType::class,
-                'entry_options' => array('label' => false, 'canInverseLabel' => true),
+                'entry_options' => ['label' => false, 'canInverseLabel' => true],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ))
-            ->add('rangeVersion', ChoiceType::class, array(
+            ])
+            ->add('rangeVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'           => $choices
-            ))
-            ->add('domainMinQuantifierVersion',ChoiceType::class, array(
+                'choices' => $choices,
+            ])
+            ->add('domainMinQuantifierVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'  => array(
+                'choices' => [
                     'Min' => null,
                     '0' => 0,
                     '1' => 1,
@@ -79,12 +71,12 @@ class OutgoingPropertyQuickAddForm extends AbstractType
                     '3' => 3,
                     '4' => 4,
                     '5' => 5,
-                ),
+                ],
                 'preferred_choices' => [null, 0, 1, -1],
-            ))
-            ->add('domainMaxQuantifierVersion',ChoiceType::class, array(
+            ])
+            ->add('domainMaxQuantifierVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'  => array(
+                'choices' => [
                     'Max' => null,
                     '1' => 1,
                     'n' => -1,
@@ -92,12 +84,12 @@ class OutgoingPropertyQuickAddForm extends AbstractType
                     '3' => 3,
                     '4' => 4,
                     '5' => 5,
-                ),
+                ],
                 'preferred_choices' => [null, 1, -1],
-            ))
-            ->add('rangeMinQuantifierVersion',ChoiceType::class, array(
+            ])
+            ->add('rangeMinQuantifierVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'  => array(
+                'choices' => [
                     'Min' => null,
                     '0' => 0,
                     '1' => 1,
@@ -106,12 +98,12 @@ class OutgoingPropertyQuickAddForm extends AbstractType
                     '3' => 3,
                     '4' => 4,
                     '5' => 5,
-                ),
+                ],
                 'preferred_choices' => [null, 0, 1, -1],
-            ))
-            ->add('rangeMaxQuantifierVersion',ChoiceType::class, array(
+            ])
+            ->add('rangeMaxQuantifierVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'  => array(
+                'choices' => [
                     'Max' => null,
                     '1' => 1,
                     'n' => -1,
@@ -119,36 +111,35 @@ class OutgoingPropertyQuickAddForm extends AbstractType
                     '3' => 3,
                     '4' => 4,
                     '5' => 5,
-                ),
+                ],
                 'preferred_choices' => [null, 1, -1],
-            ))
-            ->add('textProperties', CollectionType::class, array(
+            ])
+            ->add('textProperties', CollectionType::class, [
                 'entry_type' => TextPropertyType::class,
-                'entry_options' => array('label' => false),
+                'entry_options' => ['label' => false],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ));
+            ]);
 
-        if($options['is_external']){
-            $builder->add('identifierInUri', TextType::class, array(
+        if ($options['is_external']) {
+            $builder->add('identifierInUri', TextType::class, [
                 'label' => 'Set an identifier for URI',
                 'data' => $options['identifier_in_uri_prefilled'],
-                'attr' => array('data-uri-param' => $options['uri_param'], 'data-default-value' => $options['identifier_in_uri_prefilled'])
-            ));
+                'attr' => ['data-uri-param' => $options['uri_param'], 'data-default-value' => $options['identifier_in_uri_prefilled']],
+            ]);
         }
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => Property::class,
-            "allow_extra_fields" => true,
+            'allow_extra_fields' => true,
             'classesVersion' => null,
             'uri_param' => 0,
             'identifier_in_uri_prefilled' => '',
-            'is_external' => false
+            'is_external' => false,
         ]);
     }
 }

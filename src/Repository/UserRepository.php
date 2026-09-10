@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 26/04/2017
- * Time: 11:38
+ * Time: 11:38.
  */
 
 namespace App\Repository;
-
 
 use App\Entity\Project;
 use App\Entity\User;
@@ -22,7 +22,6 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param Project $project
      * @return array
      */
     public function findAllNotInProject(Project $project)
@@ -37,13 +36,12 @@ class UserRepository extends ServiceEntityRepository
                 WHERE usr.pk_user NOT IN (SELECT fk_user FROM che.associate_user_to_project WHERE fk_project = :project);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Project $project
      * @return array
      */
     public function findUsersInProject(Project $project)
@@ -61,9 +59,8 @@ class UserRepository extends ServiceEntityRepository
                 WHERE aup.fk_project = :project;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
-
 }

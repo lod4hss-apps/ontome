@@ -6,7 +6,6 @@ use App\Entity\Property;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,7 +13,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class PropertyEditUriIdentifierForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -29,9 +27,9 @@ class PropertyEditUriIdentifierForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('identifierInURI', TextType::class, array(
-                'label' => 'Identifier in URI'
-            ))
+            ->add('identifierInURI', TextType::class, [
+                'label' => 'Identifier in URI',
+            ])
         ;
     }
 
@@ -39,7 +37,7 @@ class PropertyEditUriIdentifierForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Property::class,
-            "allow_extra_fields" => true
+            'allow_extra_fields' => true,
         ]);
     }
 }

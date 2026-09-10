@@ -34,88 +34,35 @@ class TextPropertyForm extends AbstractType
         $userID = $this->tokenStorage->getToken()->getUser()->getId();
         $user = $this->em->getRepository(User::class)->find($userID);
         if (!$user) {
-            throw new \LogicException(
-                'The TextPropertyForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The TextPropertyForm cannot be used without an authenticated user!');
         }
 
         $labelTextProperty = $options['labelTextProperty'];
 
-        //if the systemType of the textProperty is 31 (owl:versionInfo), we only need an input text field with of 10 characters long
+        // if the systemType of the textProperty is 31 (owl:versionInfo), we only need an input text field with of 10 characters long
         if (isset($options['systemType']) and $options['systemType'] === 31) {
             $builder
-                ->add('textProperty', TextType::class, array(
-                    'attr' => array(
+                ->add('textProperty', TextType::class, [
+                    'attr' => [
                         'size' => '10',
-                        'maxlength' => '10'
-                    ),
-                    'label' => $labelTextProperty
-                ))
-                ->add('languageIsoCode', HiddenType::class, array(
-                    'data' => 'en'
-                ));
+                        'maxlength' => '10',
+                    ],
+                    'label' => $labelTextProperty,
+                ])
+                ->add('languageIsoCode', HiddenType::class, [
+                    'data' => 'en',
+                ]);
         }
         // Les contributors n'ont pas besoin de l'editeur enrichi
         elseif (isset($options['systemType']) and $options['systemType'] === 2) {
             $builder
-                ->add('textProperty', TextareaType::class, array(
-                    'label' => $labelTextProperty
-                ))
-                ->add('languageIsoCode', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('textProperty', TextareaType::class, [
+                    'label' => $labelTextProperty,
+                ])
+                ->add('languageIsoCode', ChoiceType::class, [
+                    'choices' => [
                         'English' => 'en',
                         'French' => 'fr',
-                        'German' => 'de',
-                        'Greek' => 'el',
-                        'Spanish' => 'es',
-                        'Italian' => 'it',
-                        'Portuguese' => 'pt',
-                        'Russian' => 'ru',
-                        'Chinese' => 'zh'
-                    ),
-                    'label' => 'Language'
-                ));
-        }
-        elseif(isset($options['systemType']) and in_array($options['systemType'],[33,34,35]) and in_array($options['objectType'], ['class', 'class-version', 'property', 'property-version'])) {
-            $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
-                        'Internal note' => 33,
-                        'Context note' => 34,
-                        'Bibliographical note' => 35
-                    ),
-                    'label' => 'Type of note'
-                ))
-                ->add('textProperty', TextareaType::class, array(
-                    'attr' => array('class' => 'tinymce'),
-                    'label' => $labelTextProperty
-                ))
-                ->add('languageIsoCode', ChoiceType::class, array(
-                    'choices'  => array(
-                        'English' => 'en',
-                        'French' => 'fr',
-                        'German' => 'de',
-                        'Greek' => 'el',
-                        'Spanish' => 'es',
-                        'Italian' => 'it',
-                        'Portuguese' => 'pt',
-                        'Russian' => 'ru',
-                        'Chinese' => 'zh'
-                    ),
-                    'label' => 'Language'
-                ));
-        }
-        else {
-            $builder
-                ->add('textProperty', TextareaType::class, array(
-                    'attr' => array('class' => 'tinymce'),
-                    'label' => $labelTextProperty
-                ))
-                ->add('languageIsoCode', ChoiceType::class, array(
-                    'choices'  => array(
-                        'English' => 'en',
-                        'French' => 'fr',
-                        //'Canadian French' => 'fr-CA',
                         'German' => 'de',
                         'Greek' => 'el',
                         'Spanish' => 'es',
@@ -123,12 +70,61 @@ class TextPropertyForm extends AbstractType
                         'Portuguese' => 'pt',
                         'Russian' => 'ru',
                         'Chinese' => 'zh',
-                    ),
-                    'label' => 'Language'
-                ));
+                    ],
+                    'label' => 'Language',
+                ]);
+        } elseif (isset($options['systemType']) and in_array($options['systemType'], [33, 34, 35]) and in_array($options['objectType'], ['class', 'class-version', 'property', 'property-version'])) {
+            $builder
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
+                        'Internal note' => 33,
+                        'Context note' => 34,
+                        'Bibliographical note' => 35,
+                    ],
+                    'label' => 'Type of note',
+                ])
+                ->add('textProperty', TextareaType::class, [
+                    'attr' => ['class' => 'tinymce'],
+                    'label' => $labelTextProperty,
+                ])
+                ->add('languageIsoCode', ChoiceType::class, [
+                    'choices' => [
+                        'English' => 'en',
+                        'French' => 'fr',
+                        'German' => 'de',
+                        'Greek' => 'el',
+                        'Spanish' => 'es',
+                        'Italian' => 'it',
+                        'Portuguese' => 'pt',
+                        'Russian' => 'ru',
+                        'Chinese' => 'zh',
+                    ],
+                    'label' => 'Language',
+                ]);
+        } else {
+            $builder
+                ->add('textProperty', TextareaType::class, [
+                    'attr' => ['class' => 'tinymce'],
+                    'label' => $labelTextProperty,
+                ])
+                ->add('languageIsoCode', ChoiceType::class, [
+                    'choices' => [
+                        'English' => 'en',
+                        'French' => 'fr',
+                        // 'Canadian French' => 'fr-CA',
+                        'German' => 'de',
+                        'Greek' => 'el',
+                        'Spanish' => 'es',
+                        'Italian' => 'it',
+                        'Portuguese' => 'pt',
+                        'Russian' => 'ru',
+                        'Chinese' => 'zh',
+                    ],
+                    'label' => 'Language',
+                ]);
         }
 
-        if($builder->has('systemType')){
+        if ($builder->has('systemType')) {
             $builder->get('systemType')
                 ->addModelTransformer($this->st_transformer);
         }
@@ -140,18 +136,16 @@ class TextPropertyForm extends AbstractType
             ->addModelTransformer($this->transformer);
         $builder->get('modifier')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => TextProperty::class,
-            "allow_extra_fields" => true,
+            'allow_extra_fields' => true,
             'labelTextProperty' => false,
             'systemType' => 0,
-            'objectType' => 'class'
-        ));
+            'objectType' => 'class',
+        ]);
     }
-
 }

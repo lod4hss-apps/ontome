@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: pc-alexandre-pro
  * Date: 18/02/2019
- * Time: 16:03
+ * Time: 16:03.
  */
 
 namespace App\Validator\Constraints;

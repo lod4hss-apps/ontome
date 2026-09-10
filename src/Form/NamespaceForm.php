@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Form;
+
 use App\Entity\OntoNamespace;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,49 +33,46 @@ class NamespaceForm extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The NamespaceForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The NamespaceForm cannot be used without an authenticated user!');
         }
 
-        if($options['is_root_namespace']){
-        $builder
-            ->add('isExternalNamespace', CheckboxType::class, [
-                'required' => true,
-                'label' => 'External namespace',
-                'attr' => ['autocomplete' => 'off']
-            ])
-            ->add('rootNamespacePrefix', TextType::class, array(
-                'label' => 'Root namespace prefix',
-                'attr' => ['autocomplete' => 'off']
-            ))
-            ->add('uriGenerator', TextType::class, array(
-                'label' => 'OntoME URI generator',
-                'mapped' => false,
-                'attr' => ['autocomplete' => 'off']
-            ))
-            ->add('namespaceURI', UrlType::class, array(
-                'label' => 'Base URI',
-                'required' => true,
-                'default_protocol' => 'http',
-                'attr' => ['autocomplete' => 'off']
-            ))
-            ->add('creator', HiddenType::class)
-            ->add('modifier', HiddenType::class);;
-        }
-        else{
+        if ($options['is_root_namespace']) {
             $builder
-                ->add('uriGenerator', TextType::class, array(
+                ->add('isExternalNamespace', CheckboxType::class, [
+                    'required' => true,
+                    'label' => 'External namespace',
+                    'attr' => ['autocomplete' => 'off'],
+                ])
+                ->add('rootNamespacePrefix', TextType::class, [
+                    'label' => 'Root namespace prefix',
+                    'attr' => ['autocomplete' => 'off'],
+                ])
+                ->add('uriGenerator', TextType::class, [
                     'label' => 'OntoME URI generator',
                     'mapped' => false,
-                    'attr' => ['autocomplete' => 'off']
-                ))
-                ->add('namespaceURI', UrlType::class, array(
+                    'attr' => ['autocomplete' => 'off'],
+                ])
+                ->add('namespaceURI', UrlType::class, [
+                    'label' => 'Base URI',
+                    'required' => true,
+                    'default_protocol' => 'http',
+                    'attr' => ['autocomplete' => 'off'],
+                ])
+                ->add('creator', HiddenType::class)
+                ->add('modifier', HiddenType::class);
+        } else {
+            $builder
+                ->add('uriGenerator', TextType::class, [
+                    'label' => 'OntoME URI generator',
+                    'mapped' => false,
+                    'attr' => ['autocomplete' => 'off'],
+                ])
+                ->add('namespaceURI', UrlType::class, [
                     'label' => 'Base URI',
                     'required' => false,
                     'default_protocol' => 'http',
-                    'attr' => ['autocomplete' => 'off']
-                ))
+                    'attr' => ['autocomplete' => 'off'],
+                ])
                 ->add('creator', HiddenType::class)
                 ->add('modifier', HiddenType::class);
         }
@@ -82,15 +80,13 @@ class NamespaceForm extends AbstractType
             ->addModelTransformer($this->transformer);
         $builder->get('modifier')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => OntoNamespace::class,
-            'is_root_namespace' => true
-        ));
+            'is_root_namespace' => true,
+        ]);
     }
-
 }

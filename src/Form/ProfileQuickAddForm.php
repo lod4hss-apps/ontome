@@ -13,7 +13,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class ProfileQuickAddForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -27,32 +26,30 @@ class ProfileQuickAddForm extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-
-
         $builder
-            ->add('labels', CollectionType::class, array(
+            ->add('labels', CollectionType::class, [
                 'label' => 'Enter a label and select a language',
                 'entry_type' => LabelType::class,
-                'entry_options' => array('label' => false),
+                'entry_options' => ['label' => false],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ))
-            ->add('textProperties', CollectionType::class, array(
+            ])
+            ->add('textProperties', CollectionType::class, [
                 'label' => 'Enter a description and select a language',
                 'entry_type' => TextPropertyType::class,
-                'entry_options' => array('label' => false),
+                'entry_options' => ['label' => false],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ));
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => Profile::class,
-            "allow_extra_fields" => true
+            'allow_extra_fields' => true,
         ]);
     }
 }

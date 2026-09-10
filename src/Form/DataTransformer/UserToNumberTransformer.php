@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 06/02/2018
- * Time: 10:59
+ * Time: 10:59.
  */
 
 namespace App\Form\DataTransformer;
@@ -25,7 +26,8 @@ class UserToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms an object (user) to a string (number).
      *
-     * @param  User|null $user
+     * @param User|null $user
+     *
      * @return string
      */
     public function transform($user)
@@ -40,9 +42,11 @@ class UserToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms a string (number) to an object (user).
      *
-     * @param  string $userNumber
+     * @param string $userNumber
+     *
      * @return User|null
-     * @throws TransformationFailedException if object (user) is not found.
+     *
+     * @throws TransformationFailedException if object (user) is not found
      */
     public function reverseTransform($userNumber)
     {
@@ -61,13 +65,9 @@ class UserToNumberTransformer implements DataTransformerInterface
             // causes a validation error
             // this message is not shown to the user
             // see the invalid_message option
-            throw new TransformationFailedException(sprintf(
-                'An issue with number "%s" does not exist!',
-                $userNumber
-            ));
+            throw new TransformationFailedException(sprintf('An issue with number "%s" does not exist!', $userNumber));
         }
 
         return $user;
     }
-
 }

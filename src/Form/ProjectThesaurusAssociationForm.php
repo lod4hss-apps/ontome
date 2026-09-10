@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 07/11/2022
- * Time: 15:30
+ * Time: 15:30.
  */
 
 namespace App\Form;
-
 
 use App\Entity\ProjectThesaurusAssociation;
 use App\Form\DataTransformer\UserToNumberTransformer;
@@ -31,34 +31,29 @@ class ProjectThesaurusAssociationForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         try {
-
             $userID = $this->tokenStorage->getToken()->getUser()->getId();
             $user = $this->em->getRepository(User::class)->find($userID);
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
         }
 
         $builder
-            ->add('thesaurusURL', TextType::class, array(
+            ->add('thesaurusURL', TextType::class, [
                 'label' => 'Thesaurus URL',
-                'data' => 'https://ontomeopentheso.mom.fr/ontomeopentheso/?idt=th8'
-            ))
+                'data' => 'https://ontomeopentheso.mom.fr/ontomeopentheso/?idt=th8',
+            ])
             ->add('creator', HiddenType::class)
             ->add('modifier', HiddenType::class);
         $builder->get('creator')
             ->addModelTransformer($this->transformer);
         $builder->get('modifier')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => ProjectThesaurusAssociation::class,
-        ));
+        ]);
     }
-
 }

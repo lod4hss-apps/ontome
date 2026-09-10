@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 12/07/2017
- * Time: 12:01
+ * Time: 12:01.
  */
 
 namespace App\Repository;
@@ -14,10 +15,8 @@ use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\PropertyVersion;
-use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\QueryBuilder;
 
 class PropertyRepository extends ServiceEntityRepository
 {
@@ -25,7 +24,7 @@ class PropertyRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Property::class);
     }
-    
+
     /**
      * @return Property[]
      */
@@ -42,13 +41,13 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array $namespacesId
      * @return Property[]
      */
-    public function findPropertiesByNamespacesIdQueryBuilder(array $namespacesId){
+    public function findPropertiesByNamespacesIdQueryBuilder(array $namespacesId)
+    {
         $qb = $this->createQueryBuilder('property')
-            ->join('property.propertyVersions','pv')
-            ->join('pv.namespaceForVersion','nfv')
+            ->join('property.propertyVersions', 'pv')
+            ->join('pv.namespaceForVersion', 'nfv')
             ->where('nfv.id IN (:namespacesId)')
             ->setParameter('namespacesId', $namespacesId);
 
@@ -56,10 +55,10 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array $namespacesId
      * @return Property[]
      */
-    public function findPropertiesByNamespacesId(array $namespacesId){
+    public function findPropertiesByNamespacesId(array $namespacesId)
+    {
         $qb = $this->findPropertiesByNamespacesIdQueryBuilder($namespacesId);
 
         $properties = $qb->getQuery()->execute();
@@ -68,21 +67,19 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param PropertyVersion $propertyVersion
-     * @param array $namespacesId
      * @return void
-     * Remplace les fonctions obsolètes findAncestorsById et findFilteredAncestorsById
+     *              Remplace les fonctions obsolètes findAncestorsById et findFilteredAncestorsById
      */
     public function findAncestorsByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId)
     {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "WITH t_namespaces AS(
-                    SELECT pk_namespace FROM che.namespace WHERE pk_namespace IN (".$in.")),
+        $sql = 'WITH t_namespaces AS(
+                    SELECT pk_namespace FROM che.namespace WHERE pk_namespace IN ('.$in.")),
                 t_ascendants_properties AS
                 (
                 SELECT pk_parent,
@@ -152,24 +149,21 @@ class PropertyRepository extends ServiceEntityRepository
                      t_ascendants_properties.fk_namespace_for_version;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge($namespacesId, array($propertyVersion->getProperty()->getId())));
+        $stmt->execute(array_merge($namespacesId, [$propertyVersion->getProperty()->getId()]));
 
         return $stmt->fetchAll();
     }
 
-
-
     /**
-     * @param PropertyVersion $propertyVersion
-     * @param array $namespacesId
      * @return array Remplace les fonctions obsolètes findDescendantsById et findFilteredDescendantsById
-     * Remplace les fonctions obsolètes findDescendantsById et findFilteredDescendantsById
+     *               Remplace les fonctions obsolètes findDescendantsById et findFilteredDescendantsById
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findDescendantsByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId)
     {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $conn = $this->getEntityManager()
             ->getConnection();
@@ -198,7 +192,7 @@ class PropertyRepository extends ServiceEntityRepository
                        (SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS \"rootNamespaceLabel\",
                        nsp.pk_namespace AS \"propertyNamespaceId\",
                        nsp.standard_label AS \"propertyNamespaceLabel\"
-                    FROM che.descendant_property_hierarchy(?, ARRAY[".$in."]::integer[]) t_descendants_properties,
+                    FROM che.descendant_property_hierarchy(?, ARRAY[".$in.']::integer[]) t_descendants_properties,
                          che.property p JOIN che.property_version pv ON p.pk_property = pv.fk_property,
                          che.namespace nsp,
                          che.class domain_class JOIN che.class_version domain_cv ON domain_class.pk_class = domain_cv.fk_class,
@@ -207,27 +201,26 @@ class PropertyRepository extends ServiceEntityRepository
                     AND   nsp.pk_namespace = pv.fk_namespace_for_version
                     AND pv.has_domain = domain_class.pk_class
                     AND pv.has_range = range_class.pk_class
-                    AND pv.fk_namespace_for_version IN (".$in.")
-                    AND domain_cv.fk_namespace_for_version IN (".$in.")
-                    AND range_cv.fk_namespace_for_version IN (".$in.");";
+                    AND pv.fk_namespace_for_version IN ('.$in.')
+                    AND domain_cv.fk_namespace_for_version IN ('.$in.')
+                    AND range_cv.fk_namespace_for_version IN ('.$in.');';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($propertyVersion->getProperty()->getId()), $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$propertyVersion->getProperty()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
-
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return Property[]
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findFilteredOutgoingPropertiesById et findOutgoingPropertiesById
+     *                                      Remplace les fonctions obsolètes findFilteredOutgoingPropertiesById et findOutgoingPropertiesById
      */
-    public function findOutgoingPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findOutgoingPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT  identifier_property AS property,
                         identifier_range AS range,
@@ -251,9 +244,9 @@ class PropertyRepository extends ServiceEntityRepository
                 FROM    che.v_properties_with_domain_range v
                 LEFT JOIN   che.associates_referenced_namespace asrefns ON v.fk_namespace_for_version = asrefns.fk_namespace
                 WHERE   v.pk_domain = ?
-                AND     fk_domain_namespace IN (".$in.")
-                AND     fk_range_namespace IN (".$in.")
-                AND     fk_namespace_for_version IN (".$in.")
+                AND     fk_domain_namespace IN (".$in.')
+                AND     fk_range_namespace IN ('.$in.')
+                AND     fk_namespace_for_version IN ('.$in.')
                 GROUP BY    v.identifier_property, 
                             v.identifier_range, 
                             v.fk_range_namespace, 
@@ -265,30 +258,30 @@ class PropertyRepository extends ServiceEntityRepository
 							v.identifier_in_namespace
                 ORDER BY 
                     CASE
-                        WHEN v.fk_namespace_for_version = ".$classVersion->getNamespaceForVersion()->getId()." THEN 1
+                        WHEN v.fk_namespace_for_version = '.$classVersion->getNamespaceForVersion()->getId().' THEN 1
                         ELSE 2 END ASC,
                         che.get_root_namespace_prefix(che.get_root_namespace(fk_namespace_for_version)) ASC,
 						LENGTH(v.identifier_in_namespace) ASC, v.identifier_in_namespace ASC;
                 ;
-                ";
+                ';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return Property[]
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findFilteredOutgoingInheritedPropertiesById et findOutgoingInheritedPropertiesById
+     *                                      Remplace les fonctions obsolètes findFilteredOutgoingInheritedPropertiesById et findOutgoingInheritedPropertiesById
      */
-    public function findOutgoingInheritedPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findOutgoingInheritedPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT concat(present_class_identifier, ' ', present_class_label) AS domain,
                   pk_domain_class AS \"parentClassId\", 
@@ -308,30 +301,30 @@ class PropertyRepository extends ServiceEntityRepository
                   che.get_root_namespace_prefix(che.get_root_namespace(fk_namespace_for_version)) AS \"propertyRootNamespacePrefix\",
                   replace(ancestors, '|', '→') AS ancestors,
                   (SELECT label FROM che.get_namespace_labels(fk_namespace_for_version) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS namespace
-                FROM che.class_outgoing_inherited_properties(?, ARRAY[".$in."]::integer[]) v
+                FROM che.class_outgoing_inherited_properties(?, ARRAY[".$in.']::integer[]) v
                 LEFT JOIN che.associates_referenced_namespace asrefns ON v.fk_namespace_for_version = asrefns.fk_namespace
-                WHERE fk_namespace_for_version IN (".$in.")
-                AND v.fk_range_namespace_for_version IN (".$in.")
-                AND v.fk_domain_namespace_for_version IN (".$in.")
-                GROUP BY v.present_class_identifier, v.present_class_label, v.pk_domain_class, v.domain_identifier_in_namespace, v.domain_standard_label, v.standard_label, v.range_standard_label, v.ancestors, v.identifier_in_namespace, v.pk_property, v.fk_namespace_for_version, v.pk_range_class, v.range_identifier_in_namespace, v.fk_domain_namespace_for_version, v.fk_range_namespace_for_version;";
+                WHERE fk_namespace_for_version IN ('.$in.')
+                AND v.fk_range_namespace_for_version IN ('.$in.')
+                AND v.fk_domain_namespace_for_version IN ('.$in.')
+                GROUP BY v.present_class_identifier, v.present_class_label, v.pk_domain_class, v.domain_identifier_in_namespace, v.domain_standard_label, v.standard_label, v.range_standard_label, v.ancestors, v.identifier_in_namespace, v.pk_property, v.fk_namespace_for_version, v.pk_range_class, v.range_identifier_in_namespace, v.fk_domain_namespace_for_version, v.fk_range_namespace_for_version;';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return Property[]
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findFilteredIngoingPropertiesById et findIngoingPropertiesById
+     *                                      Remplace les fonctions obsolètes findFilteredIngoingPropertiesById et findIngoingPropertiesById
      */
-    public function findIngoingPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findIngoingPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT pk_domain AS \"domainId\",
                   identifier_domain AS domain,
@@ -357,34 +350,34 @@ class PropertyRepository extends ServiceEntityRepository
                 FROM che.v_properties_with_domain_range v
                 LEFT JOIN che.associates_referenced_namespace asrefns ON v.fk_namespace_for_version = asrefns.fk_namespace
                 WHERE pk_range = ?
-                AND fk_range_namespace IN (".$in.")
-                AND fk_domain_namespace IN (".$in.")
-                AND fk_namespace_for_version IN (".$in.")
+                AND fk_range_namespace IN (".$in.')
+                AND fk_domain_namespace IN ('.$in.')
+                AND fk_namespace_for_version IN ('.$in.')
                 GROUP BY v.pk_domain, v.identifier_property, v.identifier_range, v.fk_range_namespace, v.pk_property, v.pk_range, v.fk_namespace_for_version, v.identifier_domain, v.fk_domain_namespace, v.identifier_in_namespace
                 ORDER BY 
                     CASE
-                        WHEN v.fk_namespace_for_version = ".$classVersion->getNamespaceForVersion()->getId()." THEN 1
+                        WHEN v.fk_namespace_for_version = '.$classVersion->getNamespaceForVersion()->getId().' THEN 1
                         ELSE 2 END ASC,
                         che.get_root_namespace_prefix(che.get_root_namespace(fk_namespace_for_version)) ASC,
-						LENGTH(v.identifier_in_namespace) ASC, v.identifier_in_namespace ASC;";
+						LENGTH(v.identifier_in_namespace) ASC, v.identifier_in_namespace ASC;';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return Property[]
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findFilteredIngoingInheritedPropertiesById et findIngoingInheritedPropertiesById
+     *                                      Remplace les fonctions obsolètes findFilteredIngoingInheritedPropertiesById et findIngoingInheritedPropertiesById
      */
-    public function findIngoingInheritedPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findIngoingInheritedPropertiesByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT pk_domain_class AS \"domainId\",
                   concat(domain_identifier_in_namespace, ' ', domain_standard_label) AS domain,
@@ -402,31 +395,31 @@ class PropertyRepository extends ServiceEntityRepository
                     FROM che.get_all_references_namespaces_for_namespace(v.fk_namespace_for_version)
                   ) AS \"allSelectedNamespacesId\",
                   (SELECT label FROM che.get_namespace_labels(nsp.pk_namespace) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS namespace
-                FROM che.class_ingoing_inherited_properties(?, ARRAY[".$in."]::integer[]) v,
+                FROM che.class_ingoing_inherited_properties(?, ARRAY[".$in.']::integer[]) v,
                   che.property_version pv,
                   che.namespace nsp 
                 WHERE pv.fk_property = pk_property
                 AND nsp.pk_namespace = pv.fk_namespace_for_version
-                AND pv.fk_namespace_for_version IN (".$in.")
-                AND v.fk_range_namespace_for_version IN (".$in.")
-                AND v.fk_domain_namespace_for_version IN (".$in.");";
+                AND pv.fk_namespace_for_version IN ('.$in.')
+                AND v.fk_range_namespace_for_version IN ('.$in.')
+                AND v.fk_domain_namespace_for_version IN ('.$in.');';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param PropertyVersion $propertyVersion
      * @param array $namespacesId
-     * Remplace la fonction obsolète findDomainRangeById
+     *                            Remplace la fonction obsolète findDomainRangeById
      */
-    public function findDomainAndRangeByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId){
+    public function findDomainAndRangeByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId)
+    {
         $conn = $this->getEntityManager()->getConnection();
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT pv.has_domain AS \"domainId\",
                 c_domain.identifier_in_namespace || ' ' || cv_domain.standard_label AS \"domainIdentifier\",
@@ -442,10 +435,10 @@ class PropertyRepository extends ServiceEntityRepository
                 LEFT JOIN che.class c_range ON pv.has_range = c_range.pk_class 
                 LEFT JOIN che.class_version cv_range ON pv.has_range = cv_range.fk_class AND cv_range.fk_namespace_for_version = pv.fk_range_namespace
                 WHERE pr.pk_property = ?
-                AND pv.fk_namespace_for_version IN (".$in.");";
+                AND pv.fk_namespace_for_version IN (".$in.');';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($propertyVersion->getProperty()->getId()), $namespacesId));
+        $stmt->execute(array_merge([$propertyVersion->getProperty()->getId()], $namespacesId));
 
         return $stmt->fetch();
     }
@@ -458,7 +451,7 @@ class PropertyRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_properties_with_css_color(155) tree";
+        $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_properties_with_css_color(155) tree';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute();
@@ -483,7 +476,6 @@ class PropertyRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param Project $project
      * @return array
      */
     public function findPropertiesByProjectId(Project $project)
@@ -491,22 +483,22 @@ class PropertyRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_property_profile_project WHERE pk_project = :project ) result;";
+        $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_property_profile_project WHERE pk_project = :project ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Profile $profile
      * @return array
      */
-    public function findPropertiesByProfileId(Profile $profile){
+    public function findPropertiesByProfileId(Profile $profile)
+    {
         return $this->createQueryBuilder('property')
-            ->join('property.propertyVersions','pv')
-            ->join('pv.namespaceForVersion','nspc')
+            ->join('property.propertyVersions', 'pv')
+            ->join('pv.namespaceForVersion', 'nspc')
             ->join('property.profiles', 'profile')
             ->where('profile.id = :profile')
             ->addSelect('profile')
@@ -514,18 +506,17 @@ class PropertyRepository extends ServiceEntityRepository
             ->addSelect('nspc')
             ->leftJoin('nspc.referencedVersion', 'referencedVersion')
             ->addSelect('referencedVersion')
-            ->orderBy('property.id','DESC')
+            ->orderBy('property.id', 'DESC')
             ->setParameter('profile', $profile->getId())
             ->getQuery()
             ->execute();
     }
 
     /**
-     * @param OntoClass $class
-     * @param Profile $profile
      * @return array
      */
-    public function findOutgoingPropertiesByClassAndProfileId(OntoClass $class, Profile $profile){
+    public function findOutgoingPropertiesByClassAndProfileId(OntoClass $class, Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -570,17 +561,16 @@ class PropertyRepository extends ServiceEntityRepository
                 ";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('class' => $class->getId(), 'profile' => $profile->getId()));
+        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClass $class
-     * @param Profile $profile
      * @return array
      */
-    public function findIncomingPropertiesByClassAndProfileId(OntoClass $class, Profile $profile){
+    public function findIncomingPropertiesByClassAndProfileId(OntoClass $class, Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -625,33 +615,32 @@ class PropertyRepository extends ServiceEntityRepository
                 ";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('class' => $class->getId(), 'profile' => $profile->getId()));
+        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClass $class
-     * @param Profile $profile
      * @return array
      */
-    public function findOutgoingInheritedPropertiesByClassAndProfileId(OntoClass $class, Profile $profile){
+    public function findOutgoingInheritedPropertiesByClassAndProfileId(OntoClass $class, Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
         $in = '4';
 
-        $namespacesId = array();
-        foreach($profile->getNamespaces() as $namespace){
+        $namespacesId = [];
+        foreach ($profile->getNamespaces() as $namespace) {
             $namespacesId[] = $namespace->getId();
-            foreach($namespace->getAllReferencedNamespaces() as $referencedNamespace){
-                if(!in_array($referencedNamespace->getId(), $namespacesId)){
+            foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
+                if (!in_array($referencedNamespace->getId(), $namespacesId)) {
                     $namespacesId[] = $referencedNamespace->getId();
                 }
             }
         }
-        foreach($namespacesId as $prfNs){
-            $in.=','.$prfNs;
+        foreach ($namespacesId as $prfNs) {
+            $in .= ','.$prfNs;
         }
 
         $sql = "SELECT DISTINCT
@@ -714,30 +703,30 @@ class PropertyRepository extends ServiceEntityRepository
                 WHERE aspro.fk_profile = :profile AND aspro.fk_system_type = 5 AND aspro.fk_inheriting_domain_class = :class;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('class' => $class->getId(), 'profile' => $profile->getId()));
+        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClass $class
      * @return array
      */
-    public function findIncomingInheritedPropertiesByClassAndProfileId(OntoClass $class, Profile $profile){
+    public function findIncomingInheritedPropertiesByClassAndProfileId(OntoClass $class, Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
         $in = '4';
-        $namespacesId = array();
-        foreach($profile->getNamespaces() as $namespace){
+        $namespacesId = [];
+        foreach ($profile->getNamespaces() as $namespace) {
             $namespacesId[] = $namespace->getId();
-            foreach($namespace->getAllReferencedNamespaces() as $referencedNamespace){
-                if(!in_array($referencedNamespace->getId(), $namespacesId)){
+            foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
+                if (!in_array($referencedNamespace->getId(), $namespacesId)) {
                     $namespacesId[] = $referencedNamespace->getId();
                 }
             }
         }
-        $in.=','.implode(",", $namespacesId);
+        $in .= ','.implode(',', $namespacesId);
 
         $sql = "SELECT DISTINCT
                 ciip.present_class_identifier,
@@ -805,25 +794,23 @@ class PropertyRepository extends ServiceEntityRepository
                 WHERE aspro.fk_profile = :profile AND aspro.fk_system_type = 5 AND aspro.fk_inheriting_range_class = :class;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('class' => $class->getId(), 'profile' => $profile->getId()));
+        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param PropertyVersion $propertyVersion
-     * @param array $namespacesId
      * @return array
-     * Remplace les fonctions obsolètes findRelationsById et findFilteredRelationsById
+     *               Remplace les fonctions obsolètes findRelationsById et findFilteredRelationsById
      */
-    public function findRelationsByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId){
-        return array();
+    public function findRelationsByPropertyVersionAndNamespacesId(PropertyVersion $propertyVersion, array $namespacesId)
+    {
+        return [];
     }
 
     /**
      * @param $lang string the language iso code
-     * @param $availableInProfile
-     * @param $selectedByProject
+     *
      * @return array
      */
     public function findPropertiesWithProfileApi($lang, $availableInProfile, $selectedByProject)
@@ -831,14 +818,14 @@ class PropertyRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_properties_list(:lang, :availableInProfile, :selectedByProject) ) result;";
+        $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_properties_list(:lang, :availableInProfile, :selectedByProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
             'availableInProfile' => $availableInProfile,
-            'selectedByProject' => $selectedByProject
-        ));
+            'selectedByProject' => $selectedByProject,
+        ]);
 
         return $stmt->fetchAll();
     }

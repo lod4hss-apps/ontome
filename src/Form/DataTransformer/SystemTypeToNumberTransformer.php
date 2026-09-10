@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 06/02/2018
- * Time: 10:59
+ * Time: 10:59.
  */
 
 namespace App\Form\DataTransformer;
@@ -25,7 +26,6 @@ class SystemTypeToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms an object (systemtype) to a string (number).
      *
-     * @param  SystemType|null $class
      * @return string
      */
     public function transform($systemType)
@@ -40,9 +40,11 @@ class SystemTypeToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms a string (number) to an object (systemtype).
      *
-     * @param  string $systemTypeNumber
+     * @param string $systemTypeNumber
+     *
      * @return SystemType|null
-     * @throws TransformationFailedException if object (systemtype) is not found.
+     *
+     * @throws TransformationFailedException if object (systemtype) is not found
      */
     public function reverseTransform($systemTypeNumber)
     {
@@ -61,13 +63,9 @@ class SystemTypeToNumberTransformer implements DataTransformerInterface
             // causes a validation error
             // this message is not shown to the user
             // see the invalid_message option
-            throw new TransformationFailedException(sprintf(
-                'An issue with number "%s" does not exist!',
-                $systemTypeNumber
-            ));
+            throw new TransformationFailedException(sprintf('An issue with number "%s" does not exist!', $systemTypeNumber));
         }
 
         return $systemType;
     }
-
 }

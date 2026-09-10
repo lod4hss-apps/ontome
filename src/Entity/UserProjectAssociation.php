@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 04/04/2018
- * Time: 22:07
+ * Time: 22:07.
  */
 
 namespace App\Entity;
@@ -13,9 +14,12 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Class UserProjectAssociation
+ * Class UserProjectAssociation.
+ *
  * @ORM\Entity
+ *
  * @ORM\Table(schema="che", name="associate_user_to_project")
+ *
  * @UniqueEntity(
  *     fields={"user", "project"},
  *     message="This user class is already associated with this project"
@@ -25,25 +29,30 @@ class UserProjectAssociation
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="pk_associate_user_to_project")
      */
     private $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="User", inversedBy="userProjectAssociations")
+     *
      * @ORM\JoinColumn(name="fk_user", referencedColumnName="pk_user", nullable=false)
      */
     private $user;
 
     /**
      * @ORM\ManyToOne(targetEntity="Project")
+     *
      * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project", nullable=false)
      */
     private $project;
 
     /**
      * @ORM\Column(type="integer", name="has_permissions_in_project")
+     *
      * @Assert\Choice({1, 2, 3})
      */
     private $permission;
@@ -60,6 +69,7 @@ class UserProjectAssociation
 
     /**
      * @ORM\OneToMany(targetEntity="EntityUserProjectAssociation", mappedBy="userProjectAssociation")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $entityUserProjectAssociations;
@@ -71,12 +81,14 @@ class UserProjectAssociation
 
     /**
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
      */
     private $creator;
 
     /**
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
      */
     private $modifier;
@@ -91,41 +103,26 @@ class UserProjectAssociation
      */
     private $modificationTime;
 
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @param mixed $id
-     */
     public function setId($id)
     {
         $this->id = $id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getUser()
     {
         return $this->user;
     }
 
-    /**
-     * @return mixed
-     */
     public function getProject()
     {
         return $this->project;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPermission()
     {
         return $this->permission;
@@ -139,17 +136,11 @@ class UserProjectAssociation
         return $this->startDate;
     }
 
-    /**
-     * @return mixed
-     */
     public function getEndDate()
     {
         return $this->endDate;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNotes()
     {
         return $this->notes;
@@ -195,9 +186,6 @@ class UserProjectAssociation
         return 'User/project association n°'.$this->id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getEntityUserProjectAssociations()
     {
         return $this->entityUserProjectAssociations;
@@ -220,32 +208,23 @@ class UserProjectAssociation
     }
 
     /**
-     * @param integer $permission
+     * @param int $permission
      */
     public function setPermission($permission)
     {
         $this->permission = $permission;
     }
 
-    /**
-     * @param mixed $startDate
-     */
     public function setStartDate($startDate)
     {
         $this->startDate = $startDate;
     }
 
-    /**
-     * @param mixed $endDate
-     */
     public function setEndDate($endDate)
     {
         $this->endDate = $endDate;
     }
 
-    /**
-     * @param mixed $notes
-     */
     public function setNotes($notes)
     {
         $this->notes = $notes;
@@ -283,14 +262,8 @@ class UserProjectAssociation
         $this->modificationTime = $modificationTime;
     }
 
-    /**
-     * @param mixed $entityUserProjectAssociations
-     */
     public function setEntityUserProjectAssociations($entityUserProjectAssociations)
     {
         $this->entityUserProjectAssociations = $entityUserProjectAssociations;
     }
-
-
-
 }

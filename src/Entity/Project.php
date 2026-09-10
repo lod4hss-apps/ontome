@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 19/07/2017
- * Time: 16:19
+ * Time: 16:19.
  */
 
 namespace App\Entity;
@@ -13,15 +14,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Class Project
+ * Class Project.
+ *
  * @ORM\Entity(repositoryClass="App\Repository\ProjectRepository")
+ *
  * @ORM\Table(schema="che", name="project")
  */
 class Project
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="pk_project")
      */
     private $id;
@@ -48,6 +53,7 @@ class Project
 
     /**
      * @ORM\ManyToOne(targetEntity="Project", inversedBy="childProjects")
+     *
      * @ORM\JoinColumn(name="fk_is_subproject_of", referencedColumnName="pk_project", nullable=true)
      */
     private $parentProject;
@@ -64,14 +70,18 @@ class Project
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
      */
     private $creator;
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
      */
     private $modifier;
@@ -88,6 +98,7 @@ class Project
 
     /**
      * @ORM\ManyToMany(targetEntity="Profile",  inversedBy="Project", fetch="EXTRA_LAZY")
+     *
      * @ORM\JoinTable(schema="che", name="associates_project",
      *      joinColumns={@ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")}
@@ -97,6 +108,7 @@ class Project
 
     /**
      * @ORM\ManyToMany(targetEntity="OntoNamespace",  inversedBy="projects", fetch="EXTRA_LAZY")
+     *
      * @ORM\JoinTable(schema="che", name="associates_project",
      *      joinColumns={@ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")}
@@ -106,16 +118,22 @@ class Project
 
     /**
      * @Assert\Valid()
+     *
      * @Assert\NotNull()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="project", cascade={"persist"})
+     *
      * @ORM\OrderBy({"languageIsoCode" = "ASC"})
      */
     private $textProperties;
 
     /**
      * @Assert\Valid()
+     *
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\Label", mappedBy="project", cascade={"persist"})
+     *
      * @ORM\OrderBy({"languageIsoCode" = "ASC"})
      */
     private $labels;
@@ -127,6 +145,7 @@ class Project
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="UserProjectAssociation", mappedBy="project")
      */
     private $userProjectAssociations;
@@ -143,10 +162,11 @@ class Project
 
     /**
      * @Assert\Url(message="Please enter a valid URI")
+     *
      * @ORM\Column(type="text", nullable=true, unique=true)
      */
     private $uriProject;
-  
+
     /**
      * @ORM\Column(type="json", nullable=true)
      */
@@ -173,50 +193,31 @@ class Project
         $this->containers = new ArrayCollection();
     }
 
-
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getStartDate()
     {
         return $this->startDate;
     }
 
-    /**
-     * @return mixed
-     */
     public function getEndDate()
     {
         return $this->endDate;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNotes()
     {
         return $this->notes;
     }
 
-    /**
-     * @return mixed
-     */
     public function getStandardLabel()
     {
         return $this->standardLabel;
     }
 
-    /**
-     * @return mixed
-     */
     public function getParentProject()
     {
         return $this->parentProject;
@@ -246,25 +247,16 @@ class Project
         return $this->creator;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModifier()
     {
         return $this->modifier;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreationTime()
     {
         return $this->creationTime;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModificationTime()
     {
         return $this->modificationTime;
@@ -335,19 +327,18 @@ class Project
     }
 
     /**
-     * @return integer
+     * @return int
      */
-    public function getPermissionForUser(User $user = null)
+    public function getPermissionForUser(?User $user = null)
     {
-        foreach($this->getUserProjectAssociations() as $userProjectAssociation){
-            if($userProjectAssociation->getUser() === $user){
-                return  $userProjectAssociation->getPermission();
+        foreach ($this->getUserProjectAssociations() as $userProjectAssociation) {
+            if ($userProjectAssociation->getUser() === $user) {
+                return $userProjectAssociation->getPermission();
             }
         }
+
         return null;
     }
-
-
 
     /**
      * @return string a human readable identification of the object
@@ -357,65 +348,41 @@ class Project
         return $this->standardLabel;
     }
 
-    /**
-     * @param mixed $startDate
-     */
     public function setStartDate($startDate)
     {
         $this->startDate = $startDate;
     }
 
-    /**
-     * @param mixed $endDate
-     */
     public function setEndDate($endDate)
     {
         $this->endDate = $endDate;
     }
 
-    /**
-     * @param mixed $labels
-     */
     public function setLabels($labels)
     {
         $this->labels = $labels;
     }
 
-    /**
-     * @param mixed $textProperties
-     */
     public function setTextProperties($textProperties)
     {
         $this->textProperties = $textProperties;
     }
 
-    /**
-     * @param mixed $creator
-     */
     public function setCreator($creator)
     {
         $this->creator = $creator;
     }
 
-    /**
-     * @param mixed $modifier
-     */
     public function setModifier($modifier)
     {
         $this->modifier = $modifier;
     }
 
-    /**
-     * @param mixed $creationTime
-     */
     public function setCreationTime($creationTime)
     {
         $this->creationTime = $creationTime;
     }
 
-    /**
-     * @param mixed $modificationTime
-     */
     public function setModificationTime($modificationTime)
     {
         $this->modificationTime = $modificationTime;
@@ -449,10 +416,7 @@ class Project
         return $this->project_types ?: [];
     }
 
-    /**
-     * @param array|null $projectTypes
-     */
-    public function setProjectTypes(array $projectTypes = null)
+    public function setProjectTypes(?array $projectTypes = null)
     {
         $this->project_types = $projectTypes ?: [];
     }
@@ -460,20 +424,15 @@ class Project
     public function __toString()
     {
         $s = $this->getStandardLabel();
+
         return (string) $s;
     }
 
-    /**
-     * @return mixed
-     */
     public function getUriProject()
     {
         return $this->uriProject;
     }
 
-    /**
-     * @param mixed $uriProject
-     */
     public function setUriProject($uriProject)
     {
         $this->uriProject = $uriProject;

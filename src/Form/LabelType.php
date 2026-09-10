@@ -8,7 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -33,25 +32,23 @@ class LabelType extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The LabelType cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The LabelType cannot be used without an authenticated user!');
         }
 
         $builder
-            ->add('label', TextType::class, array('label' => false
-            ));
-        if($options['canInverseLabel']){
+            ->add('label', TextType::class, ['label' => false,
+            ]);
+        if ($options['canInverseLabel']) {
             $builder
-                ->add('inverseLabel', TextType::class, array(
-                ));
+                ->add('inverseLabel', TextType::class, [
+                ]);
         }
         $builder
-            ->add('languageIsoCode', ChoiceType::class, array(
-                'choices'  => array(
+            ->add('languageIsoCode', ChoiceType::class, [
+                'choices' => [
                     'English' => 'en',
                     'French' => 'fr',
-                    //'Canadian French' => 'fr-CA',
+                    // 'Canadian French' => 'fr-CA',
                     'German' => 'de',
                     'Greek' => 'el',
                     'Spanish' => 'es',
@@ -59,27 +56,25 @@ class LabelType extends AbstractType
                     'Portuguese' => 'pt',
                     'Russian' => 'ru',
                     'Chinese' => 'zh',
-                ),
-                'label' => 'Language'
-            ))
-            ->add('isStandardLabelForLanguage', HiddenType::class, array(
+                ],
+                'label' => 'Language',
+            ])
+            ->add('isStandardLabelForLanguage', HiddenType::class, [
                 'data' => true,
-            ))
+            ])
             ->add('creator', HiddenType::class)
             ->add('modifier', HiddenType::class);
         $builder->get('creator')
             ->addModelTransformer($this->transformer);
         $builder->get('modifier')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => Label::class,
-            'canInverseLabel' => false
-        ));
+            'canInverseLabel' => false,
+        ]);
     }
-
 }

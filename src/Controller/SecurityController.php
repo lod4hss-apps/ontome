@@ -1,18 +1,18 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 19/04/2017
- * Time: 10:14
+ * Time: 10:14.
  */
 
 namespace App\Controller;
 
-
 use App\Form\LoginForm;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
@@ -28,15 +28,15 @@ class SecurityController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        $form = $this->createForm(LoginForm::class,[
-            '_username' => $lastUsername
+        $form = $this->createForm(LoginForm::class, [
+            '_username' => $lastUsername,
         ]);
 
         return $this->render('security/login.html.twig',
-            array(
+            [
                 'form' => $form->createView(),
-                'error'         => $error,
-        ));
+                'error' => $error,
+            ]);
     }
 
     /**
@@ -46,5 +46,4 @@ class SecurityController extends AbstractController
     {
         throw new \Exception('this should not be reached!');
     }
-
 }

@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 19/04/2017
- * Time: 11:22
+ * Time: 11:22.
  */
 
 namespace App\Security;
-
 
 use App\Entity\User;
 use App\Form\LoginForm;
@@ -44,7 +44,6 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function __construct(FormFactoryInterface $formFactory, EntityManager $em, RouterInterface $router)
     {
-
         $this->formFactory = $formFactory;
         $this->em = $em;
         $this->router = $router;
@@ -63,8 +62,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             && explode('#', basename((string) $request->request->get('_target_path')))[0] !== ''
             && null === $session->get('trueReferer')
             && null === $session->get('_security.main.target_path')
-        )
-        {
+        ) {
             $session->set('trueReferer', $request->get('_target_path'));
         }
 
@@ -102,25 +100,20 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         $session = $request->getSession();
         $targetPath = null;
 
-        if(!is_null($session->get('_security.main.target_path')))
-        {
+        if (!is_null($session->get('_security.main.target_path'))) {
             $targetPath = $session->get('_security.main.target_path');
         }
 
-        if(is_null($targetPath) && !is_null($session->get('trueReferer')))
-        {
-            if(explode("#", basename($session->get('trueReferer')))[0] != 'login')
-            {
+        if (is_null($targetPath) && !is_null($session->get('trueReferer'))) {
+            if (explode('#', basename($session->get('trueReferer')))[0] != 'login') {
                 $targetPath = $session->get('trueReferer');
             }
         }
 
-        if(is_null($targetPath) && !is_null($request->get('_target_path'))
-            && explode("#", basename($request->get('_target_path')))[0] != ''
-            && is_null($targetPath))
-        {
-            if(explode("#", basename($request->get('_target_path')))[0] != 'login')
-            {
+        if (is_null($targetPath) && !is_null($request->get('_target_path'))
+            && explode('#', basename($request->get('_target_path')))[0] != ''
+            && is_null($targetPath)) {
+            if (explode('#', basename($request->get('_target_path')))[0] != 'login') {
                 $targetPath = $request->get('_target_path');
             }
         }

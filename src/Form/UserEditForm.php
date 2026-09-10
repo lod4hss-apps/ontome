@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 26/04/2018
- * Time: 16:10
+ * Time: 16:10.
  */
 
 namespace App\Form;
@@ -25,13 +26,11 @@ class UserEditForm extends AbstractType
             ->add('lastName')
             ->add('email', EmailType::class)
             ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class
+                'type' => PasswordType::class,
             ])
             ->add('institution')
             ->add('status')
             ->add('hasValidatedPolicy');
-
-        ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -40,5 +39,4 @@ class UserEditForm extends AbstractType
             'data_class' => User::class,
         ]);
     }
-
 }

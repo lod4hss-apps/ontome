@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 21/04/2017
- * Time: 11:52
+ * Time: 11:52.
  */
 
 namespace App\Form\TypeExtension;
-
 
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -33,5 +33,4 @@ class HelpFormExtension extends AbstractTypeExtension
     {
         $resolver->setDefault('help', null);
     }
-
 }

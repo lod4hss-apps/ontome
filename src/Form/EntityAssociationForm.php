@@ -2,24 +2,19 @@
 
 namespace App\Form;
 
-use App\Entity\Property;
-use App\Entity\User;
 use App\Entity\EntityAssociation;
-use App\Repository\ClassRepository;
-use App\Repository\PropertyRepository;
+use App\Entity\User;
+use App\Form\DataTransformer\SystemTypeToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use App\Form\DataTransformer\SystemTypeToNumberTransformer;
 
 class EntityAssociationForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -37,59 +32,55 @@ class EntityAssociationForm extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The EntityAssociationForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The EntityAssociationForm cannot be used without an authenticated user!');
         }
 
-        $choices = array();
-        foreach ($options['entitiesVersion'] as $ev){
-            if($ev['standardLabel'] != $ev['identifierInNamespace'])
-                $choices[$ev['rootNamespacePrefix'].":".$ev['standardLabel']." – ".$ev['identifierInNamespace']] = $ev['id'];
-            else
-                $choices[$ev['rootNamespacePrefix'].":".$ev['standardLabel']] = $ev['id'];
+        $choices = [];
+        foreach ($options['entitiesVersion'] as $ev) {
+            if ($ev['standardLabel'] != $ev['identifierInNamespace']) {
+                $choices[$ev['rootNamespacePrefix'].':'.$ev['standardLabel'].' – '.$ev['identifierInNamespace']] = $ev['id'];
+            } else {
+                $choices[$ev['rootNamespacePrefix'].':'.$ev['standardLabel']] = $ev['id'];
+            }
         }
 
         $builder
-            ->add('textProperties', CollectionType::class, array(
+            ->add('textProperties', CollectionType::class, [
                 'entry_type' => TextPropertyType::class,
-                'entry_options' => array('label' => false),
+                'entry_options' => ['label' => false],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-                ));
+            ]);
 
-        if($options['object'] == 'class')
-        {
+        if ($options['object'] == 'class') {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentClass' => 4,
-                        'owl:disjointWith' => 19
-                    ),
-                    'label' => 'Relation'))
+                        'owl:disjointWith' => 19,
+                    ],
+                    'label' => 'Relation'])
                 ->add('targetClassVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Target class",
-                        'choices'           => $choices
-                    ));
-        }
-        elseif($options['object'] == 'property')
-        {
+                        'label' => 'Target class',
+                        'choices' => $choices,
+                    ]);
+        } elseif ($options['object'] == 'property') {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentProperty' => 18,
-                        'owl:inverseOf' => 20
-                    ),
-                    'label' => 'Relation'))
+                        'owl:inverseOf' => 20,
+                    ],
+                    'label' => 'Relation'])
                 ->add('targetPropertyVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Target property",
-                        'choices'           => $choices
-                    ));
+                        'label' => 'Target property',
+                        'choices' => $choices,
+                    ]);
         }
 
         $builder->get('systemType')
@@ -100,9 +91,9 @@ class EntityAssociationForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => EntityAssociation::class,
-            "allow_extra_fields" => true,
+            'allow_extra_fields' => true,
             'object' => 'class',
-            "entitiesVersion" => null
+            'entitiesVersion' => null,
         ]);
     }
 }

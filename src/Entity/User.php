@@ -1,24 +1,26 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 18/04/2017
- * Time: 17:12
+ * Time: 17:12.
  */
 
 namespace App\Entity;
 
-
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ *
  * @ORM\Table(schema="che", name="admin_user")
+ *
  * @UniqueEntity(fields={"email"}, message="This e-mail is already in use.")
  * @UniqueEntity(fields={"login"}, message="This login is already in use.")
  */
@@ -26,7 +28,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer",  name="pk_user")
      */
     private $id;
@@ -40,6 +44,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @Assert\NotBlank()
+     *
      * @Assert\Email()
      *
      * @ORM\Column(type="string", unique=true)
@@ -47,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $email;
 
     /**
-     * The encoded password
+     * The encoded password.
      *
      * @ORM\Column(type="string", nullable=true)
      */
@@ -55,7 +60,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * A non-persisted field that's used to create the encoded password.
+     *
      * @Assert\NotBlank(groups={"Registration","ResetPassword"})
+     *
      * @Assert\Length(
      *      min = 12,
      *      minMessage = "Your password must be at least {{ limit }} characters long",
@@ -92,6 +99,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @Assert\NotEqualTo(false, message="You must accept our term of service")
+     *
      * @ORM\Column(type="boolean", nullable=false)
      */
     private $hasValidatedPolicy;
@@ -118,12 +126,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="UserProjectAssociation", mappedBy="user")
      */
     private $userProjectAssociations;
 
     /**
      * @ORM\ManyToOne(targetEntity="Project", inversedBy="UserProjectAssociation")
+     *
      * @ORM\JoinColumn(name="fk_current_active_project", referencedColumnName="pk_project", nullable=false)
      */
     private $currentActiveProject;
@@ -141,17 +151,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->userProjectAssociations = new ArrayCollection();
     }
 
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getLogin()
     {
         return $this->login;
@@ -179,17 +183,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $roles;
     }
 
-    /**
-     * @return mixed
-     */
     public function getToken()
     {
         return $this->token;
     }
 
-    /**
-     * @return mixed
-     */
     public function getTokenDate()
     {
         return $this->tokenDate;
@@ -218,57 +216,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->plainPassword = null;
     }
 
-    /**
-     * @param mixed $login
-     */
     public function setLogin($login)
     {
         $this->login = $login;
     }
 
-    /**
-     * @return mixed
-     */
     public function getFirstName()
     {
         return $this->firstName;
     }
 
-    /**
-     * @param mixed $firstName
-     */
     public function setFirstName($firstName)
     {
         $this->firstName = $firstName;
     }
 
-    /**
-     * @return mixed
-     */
     public function getLastName()
     {
         return $this->lastName;
     }
 
-    /**
-     * @param mixed $lastName
-     */
     public function setLastName($lastName)
     {
         $this->lastName = $lastName;
     }
 
-    /**
-     * @return mixed
-     */
     public function getInstitution()
     {
         return $this->institution;
     }
 
-    /**
-     * @param mixed $institution
-     */
     public function setInstitution($institution)
     {
         $this->institution = $institution;
@@ -290,9 +267,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
     }
 
-    /**
-     * @param mixed $password
-     */
     public function setPassword($password)
     {
         $this->password = $password;
@@ -322,33 +296,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return trim($this->getFirstName().' '.$this->getLastName());
     }
 
-    /**
-     * @return mixed
-     */
     public function getStatus()
     {
         return $this->status;
     }
 
-    /**
-     * @param mixed $status
-     */
     public function setStatus($status)
     {
         $this->status = $status;
     }
 
-    /**
-     * @return mixed
-     */
     public function getHasValidatedPolicy()
     {
         return $this->hasValidatedPolicy;
     }
 
-    /**
-     * @param mixed $hasValidatedPolicy
-     */
     public function setHasValidatedPolicy($hasValidatedPolicy)
     {
         $this->hasValidatedPolicy = $hasValidatedPolicy;
@@ -383,43 +345,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getCurrentOngoingNamespace()
     {
-        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(function(OntoNamespace $namespace){
+        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(function (OntoNamespace $namespace) {
             return $namespace->getIsOngoing();
         });
 
-        if($namespaces->first())
+        if ($namespaces->first()) {
             return $namespaces->first();
-        else
-            return null;
+        }
+
+        return null;
     }
 
-    /**
-     * @param mixed $token
-     */
     public function setToken($token)
     {
         $this->token = $token;
     }
 
-    /**
-     * @param mixed $tokenDate
-     */
     public function setTokenDate($tokenDate)
     {
         $this->tokenDate = $tokenDate;
     }
 
-    /**
-     * @param mixed $currentActiveProject
-     */
     public function setCurrentActiveProject($currentActiveProject)
     {
         $this->currentActiveProject = $currentActiveProject;
     }
 
-    /**
-     * @return mixed
-     */
     public function getComments()
     {
         return $this->comments;
@@ -428,12 +379,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __toString()
     {
         $s = $this->getFullName();
-        if(is_null($s)) {
+        if (is_null($s)) {
             $s = 'Anonymous';
         }
+
         return (string) $s;
     }
-
-
-
 }

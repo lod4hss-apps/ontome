@@ -1,14 +1,14 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 03/07/2018
- * Time: 10:56
+ * Time: 10:56.
  */
 
 namespace App\Controller;
 
-use Psr\Log\LoggerInterface;
 use App\Entity\Label;
 use App\Entity\OntoClass;
 use App\Entity\Property;
@@ -20,7 +20,8 @@ use App\Repository\ProfileRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\PropertyVersionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -28,9 +29,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
 
-class LabelController  extends AbstractController
+class LabelController extends AbstractController
 {
     private ManagerRegistry $doctrine;
 
@@ -42,15 +43,16 @@ class LabelController  extends AbstractController
 
     /**
      * @Route("/label/{id}", name="label_show", requirements={"id"="^[0-9]+"})
-     * @param string $id
+     *
      * @return Response the rendered template
      */
     public function showAction(Label $label, LoggerInterface $logger): Response
     {
-        $logger->info('Showing text property: ' . $label->getId());
-        return $this->render('label/show.html.twig', array(
-            'label' => $label
-        ));
+        $logger->info('Showing text property: '.$label->getId());
+
+        return $this->render('label/show.html.twig', [
+            'label' => $label,
+        ]);
     }
 
     /**
@@ -62,53 +64,48 @@ class LabelController  extends AbstractController
         $allEntities = null;
         $em = $this->doctrine->getManager();
 
-        if(!is_null($label->getClass())){
+        if (!is_null($label->getClass())) {
             $object = $label->getClass();
             $redirectToRoute = 'class_edit';
             $redirectToRouteFragment = 'identification';
-        }
-        else if(!is_null($label->getProperty())){
+        } elseif (!is_null($label->getProperty())) {
             $object = $label->getProperty();
             $redirectToRoute = 'property_edit';
             $redirectToRouteFragment = 'identification';
             $canInverseLabel = true;
-        }
-        else if(!is_null($label->getProfile())){
+        } elseif (!is_null($label->getProfile())) {
             $object = $label->getProfile();
             $redirectToRoute = 'profile_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'profile';
             $allEntities = $profileRepository->findAll();
-            $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProfile();});
-        }
-        else if(!is_null($label->getProject())){
+            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getProfile(); });
+        } elseif (!is_null($label->getProject())) {
             $object = $label->getProject();
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'project';
             $allEntities = $projectRepository->findAll();
-            $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getProject();});
-        }
-        else if(!is_null($label->getNamespace())){
+            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getProject(); });
+        } elseif (!is_null($label->getNamespace())) {
             $object = $label->getNamespace();
-            if($label->getNamespace()->getIsOngoing()){
+            if ($label->getNamespace()->getIsOngoing()) {
                 $label->setLabel(str_replace(' ongoing', '', $label->getLabel()));
             }
             $redirectToRoute = 'namespace_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'namespace';
             $allEntities = $namespaceRepository->findAll();
-            $allEntities = array_filter($allEntities, function($v) use ($label){ return $v != $label->getNamespace();});
+            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getNamespace(); });
+        } else {
+            throw $this->createNotFoundException('The related object for the label n° '.$label->getId().' does not exist. Please contact an administrator.');
         }
-        else throw $this->createNotFoundException('The related object for the label n° '.$label->getId().' does not exist. Please contact an administrator.');
 
-        if($object instanceof OntoClass){
+        if ($object instanceof OntoClass) {
             $this->denyAccessUnlessGranted('edit', $object->getClassVersionForDisplay());
-        }
-        elseif($object instanceof Property){
+        } elseif ($object instanceof Property) {
             $this->denyAccessUnlessGranted('edit', $object->getPropertyVersionForDisplay());
-        }
-        else{
+        } else {
             $this->denyAccessUnlessGranted('edit', $object);
         }
 
@@ -118,20 +115,19 @@ class LabelController  extends AbstractController
 
         $form->handleRequest($request);
 
-
-        //Vérification si le label n'a jamais été utilisé ailleurs pour Profile, Project et Namespace
+        // Vérification si le label n'a jamais été utilisé ailleurs pour Profile, Project et Namespace
         $isLabelValid = true;
-        if(!is_null($allEntities)){
+        if (!is_null($allEntities)) {
             $allLabels = new ArrayCollection();
-            foreach ($allEntities as $var_entity){
-                foreach ($var_entity->getLabels() as $var_label){
+            foreach ($allEntities as $var_entity) {
+                foreach ($var_entity->getLabels() as $var_label) {
                     $allLabels->add($var_label->getLabel());
                 }
             }
-            if($form->isSubmitted()){
+            if ($form->isSubmitted()) {
                 $flabel = $form->get('label');
-                if($allLabels->contains($flabel->getData())){
-                    $flabel->addError(new FormError('This label is already used by another ' . $t . ', please enter a different one.'));
+                if ($allLabels->contains($flabel->getData())) {
+                    $flabel->addError(new FormError('This label is already used by another '.$t.', please enter a different one.'));
                     $isLabelValid = false;
                 }
             }
@@ -139,7 +135,7 @@ class LabelController  extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid() && $isLabelValid) {
             $em = $this->doctrine->getManager();
-            if(!is_null($label->getNamespace()) && $label->getNamespace()->getIsOngoing()){
+            if (!is_null($label->getNamespace()) && $label->getNamespace()->getIsOngoing()) {
                 $label->setLabel($label->getLabel().' ongoing');
             }
             $label->setModifier($this->getUser());
@@ -150,14 +146,14 @@ class LabelController  extends AbstractController
 
             return $this->redirectToRoute($redirectToRoute, [
                 'id' => $object->getId(),
-                '_fragment' => $redirectToRouteFragment
+                '_fragment' => $redirectToRouteFragment,
             ]);
         }
 
-        //If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
+        // If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
         if (!is_null($label->getValidationStatus()) && ($label->getValidationStatus()->getId() === 26 || $label->getValidationStatus()->getId() === 28)) {
             return $this->render('label/show.html.twig', [
-                'label' => $label
+                'label' => $label,
             ]);
         }
 
@@ -165,7 +161,7 @@ class LabelController  extends AbstractController
             'labelForm' => $form->createView(),
             'associatedObject' => $object,
             'label' => $label,
-            'canInverseLabel' => $canInverseLabel
+            'canInverseLabel' => $canInverseLabel,
         ]);
     }
 
@@ -179,7 +175,7 @@ class LabelController  extends AbstractController
         $label = new Label();
         $canInverseLabel = false;
 
-        if($object === 'class') {
+        if ($object === 'class') {
             // Récupérer la version ongoing de la classe identifiée par objectId
             $associatedEntity = $classVersionRepository->findOngoingVersion($objectId);
 
@@ -192,8 +188,7 @@ class LabelController  extends AbstractController
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'class_edit';
             $redirectToRouteFragment = 'identification';
-        }
-        else if($object === 'property') {
+        } elseif ($object === 'property') {
             // Récupérer la version ongoing de la propriété identifiée par objectId
             $associatedEntity = $propertyVersionRepository->findOngoingVersion($objectId);
 
@@ -207,8 +202,7 @@ class LabelController  extends AbstractController
             $redirectToRoute = 'property_edit';
             $redirectToRouteFragment = 'identification';
             $canInverseLabel = true;
-        }
-        else if($object === 'profile') {
+        } elseif ($object === 'profile') {
             $associatedEntity = $profileRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
@@ -217,8 +211,7 @@ class LabelController  extends AbstractController
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'profile_edit';
             $redirectToRouteFragment = 'identification';
-        }
-        else if($object === 'project') {
+        } elseif ($object === 'project') {
             $associatedEntity = $projectRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
@@ -227,8 +220,7 @@ class LabelController  extends AbstractController
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'identification';
-        }
-        else if($object === 'namespace') {
+        } elseif ($object === 'namespace') {
             $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
@@ -237,13 +229,14 @@ class LabelController  extends AbstractController
             $associatedObject = $associatedEntity;
             $redirectToRoute = 'namespace_edit';
             $redirectToRouteFragment = 'identification';
+        } else {
+            throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
         }
-        else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 
         $this->denyAccessUnlessGranted('edit', $associatedObject);
 
-        //ongoingNamespace associated to the label for any kind of object, except Project or Profile
-        if($object !== 'project' && $object !== 'profile'  && $object !== 'namespace') {
+        // ongoingNamespace associated to the label for any kind of object, except Project or Profile
+        if ($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
             $label->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
         }
 
@@ -252,7 +245,6 @@ class LabelController  extends AbstractController
         $label->setCreationTime(new \DateTime('now'));
         $label->setModificationTime(new \DateTime('now'));
 
-
         $form = $this->createForm(LabelForm::class, $label, ['canInverseLabel' => $canInverseLabel]);
 
         // only handles data on POST
@@ -260,8 +252,8 @@ class LabelController  extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $label = $form->getData();
 
-            //ongoingNamespace associated to the label for any kind of object, except Project or Profile
-            if($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
+            // ongoingNamespace associated to the label for any kind of object, except Project or Profile
+            if ($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
                 $label->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
             }
 
@@ -277,55 +269,46 @@ class LabelController  extends AbstractController
 
             return $this->redirectToRoute($redirectToRoute, [
                 'id' => $objectId,
-                '_fragment' => $redirectToRouteFragment
+                '_fragment' => $redirectToRouteFragment,
             ]);
-
         }
 
         return $this->render('label/new.html.twig', [
             'label' => $label,
             'labelForm' => $form->createView(),
-            'canInverseLabel' => $canInverseLabel
+            'canInverseLabel' => $canInverseLabel,
         ]);
     }
 
     /**
      * @Route("/label/{id}/edit-validity/{validationStatus}", name="label_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     * @param Label $label
-     * @param SystemType $validationStatus
+     *
      * @throws \Exception in case of unsuccessful association
-     * @return RedirectResponse
      */
     public function editValidationStatusAction(Label $label, SystemType $validationStatus): RedirectResponse
     {
         $object = null;
-        if(!is_null($label->getClass())){
+        if (!is_null($label->getClass())) {
             $object = $label->getClass();
-        }
-        else if(!is_null($label->getProperty())){
+        } elseif (!is_null($label->getProperty())) {
             $object = $label->getProperty();
-        }
-        else if(!is_null($label->getProject())){
+        } elseif (!is_null($label->getProject())) {
             $object = $label->getProject();
-        }
-        else if(!is_null($label->getProfile())){
+        } elseif (!is_null($label->getProfile())) {
             $object = $label->getProfile();
-        }
-        else if(!is_null($label->getNamespace())){
+        } elseif (!is_null($label->getNamespace())) {
             $object = $label->getNamespace();
+        } else {
+            throw $this->createNotFoundException('The related object for the text property  n° '.$label->getId().' does not exist. Please contact an administrator.');
         }
-        else throw $this->createNotFoundException('The related object for the text property  n° '.$label->getId().' does not exist. Please contact an administrator.');
 
-        if(!is_null($label->getClass())){
+        if (!is_null($label->getClass())) {
             $this->denyAccessUnlessGranted('validate', $object->getClassVersionForDisplay());
-        }
-        else if(!is_null($label->getProperty())){
+        } elseif (!is_null($label->getProperty())) {
             $this->denyAccessUnlessGranted('validate', $object->getPropertyVersionForDisplay());
-        }
-        else if(!is_null($label->getNamespace())){
+        } elseif (!is_null($label->getNamespace())) {
             $this->denyAccessUnlessGranted('validate', $object);
-        }
-        else{
+        } else {
             throw new AccessDeniedHttpException('The validation of this resource is forbidden.');
         }
 
@@ -333,67 +316,68 @@ class LabelController  extends AbstractController
 
         $newValidationStatus = new SystemType();
 
-        try{
+        try {
             $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
-                ->findOneBy(array('id' => $validationStatus->getId()));
+                ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
         }
 
         if (!is_null($newValidationStatus)) {
             $statusId = intval($newValidationStatus->getId());
-            if (in_array($statusId, [26,27,28,37], true)) {
+            if (in_array($statusId, [26, 27, 28, 37], true)) {
                 $label->setValidationStatus($newValidationStatus);
                 $label->setModifier($this->getUser());
                 $label->setModificationTime(new \DateTime('now'));
 
                 $em->persist($label);
 
-                //if the status is not validated, then unvalidate the related class or property if necessary
+                // if the status is not validated, then unvalidate the related class or property if necessary
                 if ($statusId != 26) {
-                    if (!is_null($label->getClass())){
+                    if (!is_null($label->getClass())) {
                         $cv = $object->getClassVersionForDisplay();
                         if (!is_null($cv->getValidationStatus())) {
                             if ($cv->getValidationStatus()->getId() != 27) {
                                 $underRevisionStatus = $em->getRepository(SystemType::class)
-                                    ->findOneBy(array('id' => 37));
+                                    ->findOneBy(['id' => 37]);
                                 $cv->setValidationStatus($underRevisionStatus);
                             }
+                        } else {
+                            $cv->setValidationStatus(null);
                         }
-                        else $cv->setValidationStatus(null);
                         $em->persist($cv);
-                    }
-                    else if (!is_null($label->getProperty())){
+                    } elseif (!is_null($label->getProperty())) {
                         $pv = $object->getPropertyVersionForDisplay();
                         if (!is_null($pv->getValidationStatus())) {
                             if ($pv->getValidationStatus()->getId() != 27) {
                                 $underRevisionStatus = $em->getRepository(SystemType::class)
-                                    ->findOneBy(array('id' => 37));
+                                    ->findOneBy(['id' => 37]);
                                 $pv->setValidationStatus($underRevisionStatus);
                             }
+                        } else {
+                            $pv->setValidationStatus(null);
                         }
-                        else $pv->setValidationStatus(null);
                         $em->persist($pv);
                     }
                 }
 
                 $em->flush();
 
-                if ($statusId == 27){
+                if ($statusId == 27) {
                     return $this->redirectToRoute('label_edit', [
-                        'id' => $label->getId()
+                        'id' => $label->getId(),
                     ]);
                 }
-                else return $this->redirectToRoute('label_show', [
-                    'id' => $label->getId()
-                ]);
 
+                return $this->redirectToRoute('label_show', [
+                    'id' => $label->getId(),
+                ]);
             }
         }
 
         return $this->redirectToRoute('label_show', [
-            'id' => $label->getId()
+            'id' => $label->getId(),
         ]);
     }
 }

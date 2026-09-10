@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
@@ -15,18 +16,18 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class OntoNamespaceVoter extends Voter
 {
-    const EDIT = 'edit';
-    const FULLEDIT = 'full_edit';
-    const EDITMANAGER = 'edit_manager';
-    const ADDASSOCIATIONS = 'add_associations';
-    const DELETEASSOCIATIONS = 'delete_associations';
-    const VALIDATE = 'validate';
-    const PUBLISH = 'publish';
+    public const EDIT = 'edit';
+    public const FULLEDIT = 'full_edit';
+    public const EDITMANAGER = 'edit_manager';
+    public const ADDASSOCIATIONS = 'add_associations';
+    public const DELETEASSOCIATIONS = 'delete_associations';
+    public const VALIDATE = 'validate';
+    public const PUBLISH = 'publish';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT, self::FULLEDIT, self::ADDASSOCIATIONS, self::DELETEASSOCIATIONS, self::VALIDATE, self::PUBLISH))) {
+        if (!in_array($attribute, [self::EDIT, self::FULLEDIT, self::ADDASSOCIATIONS, self::DELETEASSOCIATIONS, self::VALIDATE, self::PUBLISH])) {
             return false;
         }
 
@@ -71,81 +72,75 @@ class OntoNamespaceVoter extends Voter
     }
 
     /**
-     * @param OntoNamespace $namespace
-     * @param User $user
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canFullEdit(OntoNamespace $namespace, User $user)
     {
-        if($namespace->getIsTopLevelNamespace()) {
-            if($namespace->getHasPublication()) {
+        if ($namespace->getIsTopLevelNamespace()) {
+            if ($namespace->getHasPublication()) {
                 return false;
             }
-        }
-        else if(!$namespace->getIsOngoing()) {
+        } elseif (!$namespace->getIsOngoing()) {
             return false;
         }
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoNamespace $namespace
-     * @param User $user
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEdit(OntoNamespace $namespace, User $user)
     {
-        if($user->getCurrentActiveProject() !== $namespace->getProjectForTopLevelNamespace()) {
+        if ($user->getCurrentActiveProject() !== $namespace->getProjectForTopLevelNamespace()) {
             return false;
         }
 
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoNamespace $namespace
-     * @param User $user
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation) and $user is a project manager
      */
     private function canEditManager(OntoNamespace $namespace, User $user)
     {
-        if($user->getCurrentActiveProject() !== $namespace->getProjectForTopLevelNamespace()) {
+        if ($user->getCurrentActiveProject() !== $namespace->getProjectForTopLevelNamespace()) {
             return false;
         }
 
-        if(!$namespace->getIsOngoing()) {
+        if (!$namespace->getIsOngoing()) {
             return false;
         }
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoNamespace $namespace
-     * @param User $user
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canPublish(OntoNamespace $namespace, User $user)
     {
-        if(!$namespace->getIsOngoing()) {
+        if (!$namespace->getIsOngoing()) {
             return false;
         }
         foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() == 1){
+            if ($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() == 1) {
                 $atLeastOneClassValidated = false;
                 $atLeastOnePropertyValidated = false;
                 $atLeastOneRelationValidated = false;
@@ -187,30 +182,30 @@ class OntoNamespaceVoter extends Voter
                 return $atLeastOneClassValidated or $atLeastOnePropertyValidated or $atLeastOneRelationValidated;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoNamespace $namespace
-     * @param User $user
      * @return bool TRUE if $user is a manager and if the namespace is ongoing
      */
     private function canValidate(OntoNamespace $namespace, User $user)
     {
-        if(!$namespace->getIsOngoing()) {
+        if (!$namespace->getIsOngoing()) {
             return false;
         }
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $namespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
      * @param OntoNamespace $namespace Entity namespace (ex ClassVersion.namespace). This is not the active project namespace.
-     * @param User $user
+     *
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation) and $user is a project manager
      */
     private function canAddAssociations(OntoNamespace $namespace, User $user)
@@ -219,34 +214,34 @@ class OntoNamespaceVoter extends Voter
         // Condition 2 : le namespace du projet actif est ongoing
         // Condition 3 : l'utilisateur peut gérer ce namespace ongoing
 
-        //Récupérer le namespace actif du projet actif
+        // Récupérer le namespace actif du projet actif
         // Ongoing > Le plus récent > Le premier.
         $activeNamespace = $user->getCurrentActiveProject()->getManagedNamespaces()[0];
-        foreach($user->getCurrentActiveProject()->getManagedNamespaces() as $managedNamespace){
-            if($managedNamespace->getIsOngoing()){
-                $activeNamespace=$managedNamespace;
-            }
-            elseif(!$activeNamespace->getIsOngoing() &&
-                $activeNamespace->getPublishedAt()<$managedNamespace->getPublishedAt()){
-                $activeNamespace=$managedNamespace;
+        foreach ($user->getCurrentActiveProject()->getManagedNamespaces() as $managedNamespace) {
+            if ($managedNamespace->getIsOngoing()) {
+                $activeNamespace = $managedNamespace;
+            } elseif (!$activeNamespace->getIsOngoing()
+                && $activeNamespace->getPublishedAt() < $managedNamespace->getPublishedAt()) {
+                $activeNamespace = $managedNamespace;
             }
         }
-        if(is_null($activeNamespace)){
+        if (is_null($activeNamespace)) {
             return false;
         }
 
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $activeNamespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
-                if(($activeNamespace->getIsOngoing() && $namespace === $activeNamespace)){
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $activeNamespace->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
+                if ($activeNamespace->getIsOngoing() && $namespace === $activeNamespace) {
                     return true;
                 }
-                foreach ($activeNamespace->getAllReferencedNamespaces() as $referencedNamespace){
-                    if($namespace === $referencedNamespace){
+                foreach ($activeNamespace->getAllReferencedNamespaces() as $referencedNamespace) {
+                    if ($namespace === $referencedNamespace) {
                         return true;
                     }
                 }
             }
         }
+
         return false;
     }
 }

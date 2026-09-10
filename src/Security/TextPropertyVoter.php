@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: pc-alexandre-pro
  * Date: 26/11/2019
- * Time: 10:40
+ * Time: 10:40.
  */
 
 namespace App\Security;
@@ -15,13 +16,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class TextPropertyVoter extends Voter
 {
-    const EDIT = 'edit';
-    const VALIDATE = 'validate';
+    public const EDIT = 'edit';
+    public const VALIDATE = 'validate';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT, self::VALIDATE))) {
+        if (!in_array($attribute, [self::EDIT, self::VALIDATE])) {
             return false;
         }
 
@@ -56,81 +57,75 @@ class TextPropertyVoter extends Voter
     }
 
     /**
-     * @param TextProperty $textProperty
-     * @param User $user
      * @return bool TRUE if User has authorization to edit textproperty
      */
     private function canEdit(TextProperty $textProperty, User $user)
     {
         // Ne pas autoriser l'utilisateur à editer même ongoing, s'il n'a pas activé le projet d'appartenance
-        if(!is_null($textProperty->getNamespace()) and $user->getCurrentActiveProject() !== $textProperty->getNamespace()->getProjectForTopLevelNamespace()){
+        if (!is_null($textProperty->getNamespace()) and $user->getCurrentActiveProject() !== $textProperty->getNamespace()->getProjectForTopLevelNamespace()) {
             return false;
         }
-        if(!is_null($textProperty->getNamespaceForVersion()) and $user->getCurrentActiveProject() !== $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+        if (!is_null($textProperty->getNamespaceForVersion()) and $user->getCurrentActiveProject() !== $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
             return false;
         }
 
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // Is it a textproperty for what ? Class/Property/... or for Profile or for Project ?
-            if(!is_null($textProperty->getNamespaceForVersion()) and $textProperty->getNamespaceForVersion()->getIsOngoing()){
-                //Txtp associated with Class/Property/SubclassOf/SubPropertyOf/EntityAssociation
-                if($userProjectAssociation->getProject() === $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 3){
+            if (!is_null($textProperty->getNamespaceForVersion()) and $textProperty->getNamespaceForVersion()->getIsOngoing()) {
+                // Txtp associated with Class/Property/SubclassOf/SubPropertyOf/EntityAssociation
+                if ($userProjectAssociation->getProject() === $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 3) {
                     return true;
                 }
-            }
-            elseif(!is_null($textProperty->getNamespace())) {
-                //Txtp associated with Namespace
-                if($userProjectAssociation->getProject() === $textProperty->getNamespace()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 3){
+            } elseif (!is_null($textProperty->getNamespace())) {
+                // Txtp associated with Namespace
+                if ($userProjectAssociation->getProject() === $textProperty->getNamespace()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 3) {
                     return true;
                 }
-            }
-            elseif(!is_null($textProperty->getProject())) {
-                //Txtp associated with Project
-                if($userProjectAssociation->getProject() === $textProperty->getProject() && $userProjectAssociation->getPermission() <= 3){
+            } elseif (!is_null($textProperty->getProject())) {
+                // Txtp associated with Project
+                if ($userProjectAssociation->getProject() === $textProperty->getProject() && $userProjectAssociation->getPermission() <= 3) {
                     return true;
                 }
-            }
-            elseif(!is_null($textProperty->getProfile())) {
-                //Txtp associated with Profile
-                if($userProjectAssociation->getProject() === $textProperty->getProfile()->getProjectOfBelonging() && $userProjectAssociation->getPermission() <= 3){
+            } elseif (!is_null($textProperty->getProfile())) {
+                // Txtp associated with Profile
+                if ($userProjectAssociation->getProject() === $textProperty->getProfile()->getProjectOfBelonging() && $userProjectAssociation->getPermission() <= 3) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
     /**
-     * @param TextProperty $textProperty
-     * @param User $user
      * @return bool TRUE if User has authorization to validate textproperty
      */
     private function canValidate(TextProperty $textProperty, User $user)
     {
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // Is it a textproperty for what ? Class/Property/... or for Profile or for Project ?
-            if(!is_null($textProperty->getNamespaceForVersion()) and $textProperty->getNamespaceForVersion()->getIsOngoing()){
+            if (!is_null($textProperty->getNamespaceForVersion()) and $textProperty->getNamespaceForVersion()->getIsOngoing()) {
                 // Ne pas autoriser l'utilisateur à valider même ongoing, s'il n'a pas activé le projet d'appartenance
-                if(!$textProperty->getNamespaceForVersion()->getIsOngoing() ||
-                    $user->getCurrentActiveProject() !== $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+                if (!$textProperty->getNamespaceForVersion()->getIsOngoing()
+                    || $user->getCurrentActiveProject() !== $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
                     return false;
                 }
-                //Txtp associated with Class/Property/SubclassOf/SubPropertyOf/EntityAssociation
-                if($userProjectAssociation->getProject() === $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+                // Txtp associated with Class/Property/SubclassOf/SubPropertyOf/EntityAssociation
+                if ($userProjectAssociation->getProject() === $textProperty->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                     return true;
                 }
-            }
-            elseif(!is_null($textProperty->getNamespace())){
+            } elseif (!is_null($textProperty->getNamespace())) {
                 // Ne pas autoriser l'utilisateur à valider même ongoing, s'il n'a pas activé le projet d'appartenance
-                if($user->getCurrentActiveProject() !== $textProperty->getNamespace()->getProjectForTopLevelNamespace()){
+                if ($user->getCurrentActiveProject() !== $textProperty->getNamespace()->getProjectForTopLevelNamespace()) {
                     return false;
                 }
-                //Txtp associated with Namespace
-                if($userProjectAssociation->getProject() === $textProperty->getNamespace()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2){
+                // Txtp associated with Namespace
+                if ($userProjectAssociation->getProject() === $textProperty->getNamespace()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 }

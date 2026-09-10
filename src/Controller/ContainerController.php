@@ -2,18 +2,18 @@
 
 namespace App\Controller;
 
-use App\Entity\Label;
 use App\Entity\Container;
+use App\Entity\Label;
 use App\Repository\ContainerRepository;
 use App\Repository\NamespaceRepository;
 use App\Repository\ProjectRepository;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
 
 class ContainerController extends AbstractController
 {
@@ -27,7 +27,7 @@ class ContainerController extends AbstractController
 
     /**
      * @Route("/container/{id}/fetch", name="container", methods={"GET"})
-     * @param Request $request
+     *
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
     public function getContainer(Request $request, ContainerRepository $containerRepository): JsonResponse
@@ -37,7 +37,7 @@ class ContainerController extends AbstractController
         $container = $containerRepository->find($id);
 
         if (!$container) {
-            throw new NotFoundHttpException("Container not found");
+            throw new NotFoundHttpException('Container not found');
         }
 
         $label = $container->getLabel()->getLabel();
@@ -51,14 +51,14 @@ class ContainerController extends AbstractController
             foreach ($referencedNamespaces as $referencedNamespace) {
                 $referencedNamespacesData[] = [
                     'id' => $referencedNamespace->getId(),
-                    'standardLabel' => $referencedNamespace->getStandardLabel()
+                    'standardLabel' => $referencedNamespace->getStandardLabel(),
                 ];
             }
 
             $namespacesData[] = [
                 'id' => $namespace->getId(),
                 'standardLabel' => $namespace->getStandardLabel(),
-                'referencedNamespaces' => $referencedNamespacesData
+                'referencedNamespaces' => $referencedNamespacesData,
             ];
         }
 
@@ -67,7 +67,7 @@ class ContainerController extends AbstractController
         foreach ($pathbuilders as $pathbuilder) {
             $pathbuildersData[] = [
                 'id' => $pathbuilder->getId(),
-                'label' => $pathbuilder->getLabel()->getLabel()
+                'label' => $pathbuilder->getLabel()->getLabel(),
             ];
         }
 
@@ -76,14 +76,15 @@ class ContainerController extends AbstractController
             'label' => $label,
             'namespaces' => $namespacesData,
             'pathbuilders' => $pathbuildersData,
-            'isOngoing' => $container->getIsOngoing()
+            'isOngoing' => $container->getIsOngoing(),
         ];
+
         return new JsonResponse($containerData);
     }
 
     /**
      * @Route("/container/{id}/root-namespaces-not-associated/fetch", name="container_root_namespaces_not_associated", methods={"GET"})
-     * @param Request $request
+     *
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
     public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
@@ -93,7 +94,7 @@ class ContainerController extends AbstractController
         $container = $containerRepository->find($id);
 
         if (!$container) {
-            throw new NotFoundHttpException("Container not found");
+            throw new NotFoundHttpException('Container not found');
         }
 
         // Ensemble de namespaces déjà associés au container => on récupère leur id root
@@ -133,7 +134,7 @@ class ContainerController extends AbstractController
 
     /**
      * @Route("/container/create", name="container_create", methods={"POST"})
-     * @param Request $request
+     *
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
     public function createContainer(Request $request, ProjectRepository $projectRepository): JsonResponse
@@ -166,18 +167,17 @@ class ContainerController extends AbstractController
 
         return new JsonResponse([
             'status' => 'Success',
-            'message' => 'Container created successfully'
+            'message' => 'Container created successfully',
         ]);
     }
 
     /**
      * @Route("/association_container_namespace/create", name="association_container_namespace_create", methods={"POST"})
-     * @param Request $request
+     *
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
     public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-
         $containerId = $request->get('container_id');
         $namespaceId = $request->get('namespace_id');
 
@@ -201,13 +201,13 @@ class ContainerController extends AbstractController
 
         return new JsonResponse([
             'status' => 'Success',
-            'message' => 'Association created successfully'
+            'message' => 'Association created successfully',
         ]);
     }
 
     /**
      * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete", methods={"DELETE"})
-     * @param Request $request
+     *
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
     public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
@@ -230,7 +230,7 @@ class ContainerController extends AbstractController
 
         return new JsonResponse([
             'status' => 'Success',
-            'message' => 'Association deleted successfully'
+            'message' => 'Association deleted successfully',
         ]);
     }
 }

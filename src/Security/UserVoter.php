@@ -1,26 +1,26 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: pc-alexandre-pro
  * Date: 26/11/2019
- * Time: 10:40
+ * Time: 10:40.
  */
 
 namespace App\Security;
 
-use App\Entity\EntityUserProjectAssociation;
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class UserVoter extends Voter
 {
-    const EDIT = 'edit';
+    public const EDIT = 'edit';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT))) {
+        if (!in_array($attribute, [self::EDIT])) {
             return false;
         }
 
@@ -53,14 +53,14 @@ class UserVoter extends Voter
     }
 
     /**
-     * @param User $user
      * @return bool TRUE if $user is the same
      */
     private function canEdit(User $user_, User $user)
     {
-        if($user_ == $user){
+        if ($user_ == $user) {
             return true;
         }
+
         return false;
     }
 }

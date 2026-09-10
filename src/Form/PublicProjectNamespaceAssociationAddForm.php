@@ -1,9 +1,10 @@
 <?php
 
 namespace App\Form;
+
+use App\Entity\OntoNamespace;
 use App\Entity\ProjectAssociation;
 use App\Entity\User;
-use App\Entity\OntoNamespace;
 use App\Form\DataTransformer\UserToNumberTransformer;
 use App\Repository\NamespaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,20 +34,18 @@ class PublicProjectNamespaceAssociationAddForm extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The LabelForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The LabelForm cannot be used without an authenticated user!');
         }
 
         $builder
             ->add('namespace', EntityType::class,
-                array(
-                    'class'=>OntoNamespace::class,
-                    "label" => "Namespace",
-                    "query_builder" => function(NamespaceRepository $repo) {
+                [
+                    'class' => OntoNamespace::class,
+                    'label' => 'Namespace',
+                    'query_builder' => function (NamespaceRepository $repo) {
                         return $repo->findAvailableNamespacesForPublicProjectAssociation();
-                    }
-                )
+                    },
+                ]
             )
             ->add('creator', HiddenType::class)
             ->add('modifier', HiddenType::class);
@@ -58,9 +57,8 @@ class PublicProjectNamespaceAssociationAddForm extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => ProjectAssociation::class,
-        ));
+        ]);
     }
-
 }

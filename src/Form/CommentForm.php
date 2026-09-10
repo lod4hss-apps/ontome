@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 22/10/2018
- * Time: 10:30
+ * Time: 10:30.
  */
 
 namespace App\Form;
-
 
 use App\Entity\Comment;
 use App\Form\DataTransformer\UserToNumberTransformer;
@@ -31,33 +31,28 @@ class CommentForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         try {
-
             $userID = $this->tokenStorage->getToken()->getUser()->getId();
             $user = $this->em->getRepository(User::class)->find($userID);
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $message = $e->getMessage();
         }
 
         $builder
-            ->add('comment', TextareaType::class, array(
-                //'attr' => array('class' => 'tinymce')
-            ))
+            ->add('comment', TextareaType::class, [
+                // 'attr' => array('class' => 'tinymce')
+            ])
             ->add('creator', HiddenType::class)
             ->add('modifier', HiddenType::class);
         $builder->get('creator')
             ->addModelTransformer($this->transformer);
         $builder->get('modifier')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'data_class' => Comment::class,
-        ));
+        ]);
     }
-
 }

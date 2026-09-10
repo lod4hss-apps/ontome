@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel Ferhod
  * Date: 10/10/2020
- * Time: 09:19
+ * Time: 09:19.
  */
 
 namespace App\Form;
@@ -34,10 +35,10 @@ class NamespacePublicationForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('label', TextType::class, array(
+            ->add('label', TextType::class, [
                 'label' => 'Label',
-                'mapped' => false
-            ))
+                'mapped' => false,
+            ])
             ->add('creator', HiddenType::class)
             ->add('modifier', HiddenType::class);
         $builder->get('creator')
@@ -52,5 +53,4 @@ class NamespacePublicationForm extends AbstractType
             'data_class' => OntoNamespace::class,
         ]);
     }
-
 }

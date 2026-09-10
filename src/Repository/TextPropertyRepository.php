@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 26/04/2017
- * Time: 11:38
+ * Time: 11:38.
  */
 
 namespace App\Repository;
@@ -21,7 +22,9 @@ class TextPropertyRepository extends ServiceEntityRepository
 
     /**
      * @param string $query
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findByFullTextSearch($query)
@@ -186,23 +189,26 @@ class TextPropertyRepository extends ServiceEntityRepository
                   AND to_tsvector('english', txtp.text_property) @@ plainto_tsquery('english', :query);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('query' => $query));
+        $stmt->execute(['query' => $query]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param string $query
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findWhatSearch($query){
+    public function findWhatSearch($query)
+    {
         // Fonction retournant le résultat de plainto_tsquery pour informer l'utilisateur les termes recherchées
         $conn = $this->getEntityManager()
             ->getConnection();
         $sql = "SELECT CAST(plainto_tsquery('english', :query) AS text);";
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('query' => $query));
+        $stmt->execute(['query' => $query]);
 
         return $stmt->fetchAll();
     }

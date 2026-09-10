@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 26/04/2018
- * Time: 16:10
+ * Time: 16:10.
  */
 
 namespace App\Form;
@@ -25,7 +26,7 @@ class UserSelfEditForm extends AbstractType
             ->add('lastName')
             ->add('email', EmailType::class)
             ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class
+                'type' => PasswordType::class,
             ])
             ->add('institution')
         ;
@@ -37,5 +38,4 @@ class UserSelfEditForm extends AbstractType
             'data_class' => User::class,
         ]);
     }
-
 }

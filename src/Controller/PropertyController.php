@@ -1,18 +1,14 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 12/06/2017
- * Time: 17:11
+ * Time: 17:11.
  */
 
 namespace App\Controller;
 
-use Doctrine\Persistence\ManagerRegistry;
-use App\Repository\NamespaceRepository;
-use App\Repository\PropertyRepository;
-use App\Repository\ClassRepository;
-use App\Repository\ClassVersionRepository;
 use App\Entity\Label;
 use App\Entity\OntoClass;
 use App\Entity\OntoNamespace;
@@ -25,16 +21,20 @@ use App\Form\OutgoingPropertyQuickAddForm;
 use App\Form\PropertyEditForm;
 use App\Form\PropertyEditIdentifierForm;
 use App\Form\PropertyEditUriIdentifierForm;
+use App\Repository\ClassRepository;
+use App\Repository\ClassVersionRepository;
+use App\Repository\NamespaceRepository;
+use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-
+use Symfony\Component\Routing\Annotation\Route;
 
 class PropertyController extends AbstractController
 {
@@ -52,26 +52,27 @@ class PropertyController extends AbstractController
     public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): Response
     {
         // FILTRAGE : Récupérer les namespaces
-        if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
             $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
-        }
-        else{ // Utilisateur connecté et utilisant un autre projet
+        } else { // Utilisateur connecté et utilisant un autre projet
             $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // Compléter avec les références parents (directs/indirects)
         $refsNsId = [];
-        foreach($namespacesId as $nsId){
+        foreach ($namespacesId as $nsId) {
             $ns = $namespaceRepository->find($nsId);
-            foreach ($ns->getAllReferencedNamespaces() as $refNs){
-                if(!in_array($refNs->getId(), $refsNsId)){$refsNsId[] = $refNs->getId();}
+            foreach ($ns->getAllReferencedNamespaces() as $refNs) {
+                if (!in_array($refNs->getId(), $refsNsId)) {
+                    $refsNsId[] = $refNs->getId();
+                }
             }
         }
         $namespacesId = array_merge($namespacesId, $refsNsId);
 
         // Récupérer l'ensemble des namespaces root déjà utilisé pour le filtrage
         $rootNamespacesId = [];
-        foreach ($namespacesId as $namespaceId){
+        foreach ($namespacesId as $namespaceId) {
             $rootNamespacesId[] = $namespaceRepository->find($namespaceId)->getTopLevelNamespace()->getId();
         }
 
@@ -79,19 +80,18 @@ class PropertyController extends AbstractController
         // N'afficher que les classes/propriétés de la version choisie par l'utilisateur sinon dernière publiée d'un espace de noms ou,
         // si l'espace n'a pas de version publiée, la version ongoing.
         // 1- Récuperer tous les roots
-        $allRootNamespaces = $namespaceRepository->findBy(array("isTopLevelNamespace" => true));
+        $allRootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
         // 2- Récupérer la bonne version (choisie par l'utilisateur sinon dernière publiée sinon ongoing)
         $allNamespacesId = $namespacesId;
 
         // Enlever ceux déjà utilisés
-        $filteredRootNamespaces = array_filter($allRootNamespaces, function($v) use ($rootNamespacesId) {return !in_array($v->getId(), $rootNamespacesId);});
-        foreach ($filteredRootNamespaces as $rootNamespace){
+        $filteredRootNamespaces = array_filter($allRootNamespaces, function ($v) use ($rootNamespacesId) {return !in_array($v->getId(), $rootNamespacesId); });
+        foreach ($filteredRootNamespaces as $rootNamespace) {
             $defaultNamespace = null;
-            foreach ($rootNamespace->getChildVersions() as $childVersion){
-                if($childVersion->getIsOngoing() and !$rootNamespace->getHasPublication()){
+            foreach ($rootNamespace->getChildVersions() as $childVersion) {
+                if ($childVersion->getIsOngoing() and !$rootNamespace->getHasPublication()) {
                     $defaultNamespace = $childVersion;
-                }
-                elseif(is_null($defaultNamespace) || $defaultNamespace->getPublishedAt() < $childVersion->getPublishedAt()){
+                } elseif (is_null($defaultNamespace) || $defaultNamespace->getPublishedAt() < $childVersion->getPublishedAt()) {
                     $defaultNamespace = $childVersion;
                 }
             }
@@ -99,32 +99,34 @@ class PropertyController extends AbstractController
         }
 
         // Récupérer toutes les propriétés
-        $allProperties= $propertyRepository->findAll(); //->findPropertiesByNamespacesId($allNamespacesId);
+        $allProperties = $propertyRepository->findAll(); // ->findPropertiesByNamespacesId($allNamespacesId);
 
         return $this->render('property/list.html.twig', [
             'properties' => $allProperties,
             'allNamespacesId' => $allNamespacesId,
-            'namespacesId' => $namespacesId
+            'namespacesId' => $namespacesId,
         ]);
     }
 
     /**
      * @Route("property/{type}/new/{class}", name="property_new", requirements={"type"="^(ingoing|outgoing){1}$", "class"="^[0-9]+$"})
      */
-    public function newAction(string $type,Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
+    public function newAction(string $type, Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         $property = new Property();
 
-        //get the right version of the class
+        // get the right version of the class
         $classVersion = $class->getClassVersionForDisplay();
 
         $this->denyAccessUnlessGranted('add_associations', $this->getUser()->getCurrentOngoingNamespace());
 
-        if($type !== 'ingoing' && $type !== 'outgoing') throw $this->createNotFoundException('The requested property type "'.$type.'" does not exist!');
+        if ($type !== 'ingoing' && $type !== 'outgoing') {
+            throw $this->createNotFoundException('The requested property type "'.$type.'" does not exist!');
+        }
 
         $em = $this->doctrine->getManager();
-        $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
-        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = scope note
+        $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); // systemType 1 = scope note
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 1 = scope note
 
         $propertyVersion = new PropertyVersion();
         $propertyVersion->setProperty($property);
@@ -155,16 +157,15 @@ class PropertyController extends AbstractController
         $label->setModificationTime(new \DateTime('now'));
 
         $property->addLabel($label);
-        if($type == 'outgoing') {
+        if ($type == 'outgoing') {
             $propertyVersion->setDomain($class);
-        }
-        elseif ($type == 'ingoing') {
+        } elseif ($type == 'ingoing') {
             $propertyVersion->setRange($class);
         }
 
         $property->addPropertyVersion($propertyVersion);
 
-        //$property->setIsManualIdentifier(is_null($classVersion->getNamespaceForVersion()->getTopLevelNamespace()->getPropertyPrefix()));
+        // $property->setIsManualIdentifier(is_null($classVersion->getNamespaceForVersion()->getTopLevelNamespace()->getPropertyPrefix()));
         $property->setIsManualIdentifier(is_null($this->getUser()->getCurrentOngoingNamespace()->getTopLevelNamespace()->getPropertyPrefix()));
         $property->setCreator($this->getUser());
         $property->setModifier($this->getUser());
@@ -176,8 +177,8 @@ class PropertyController extends AbstractController
         $namespacesId[] = $namespaceForPropertyVersion->getId();
 
         // Sans oublier les namespaces références si indisponible
-        foreach($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace){
-            if(!in_array($referencedNamespace->getId(), $namespacesId)){
+        foreach ($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace) {
+            if (!in_array($referencedNamespace->getId(), $namespacesId)) {
                 $namespacesId[] = $referencedNamespace->getId();
             }
         }
@@ -187,24 +188,24 @@ class PropertyController extends AbstractController
         $namespace = $propertyVersion->getNamespaceForVersion();
         $uriParam = $namespace->getTopLevelNamespace()->getUriParameter();
         $identifierInUriPrefilled = '';
-        if(!is_null($namespace->getTopLevelNamespace()->getPropertyPrefix())){
-            $identifierInUriPrefilled = $namespace->getTopLevelNamespace()->getPropertyPrefix().($namespace->getTopLevelNamespace()->getCurrentPropertyNumber()+1);
+        if (!is_null($namespace->getTopLevelNamespace()->getPropertyPrefix())) {
+            $identifierInUriPrefilled = $namespace->getTopLevelNamespace()->getPropertyPrefix().($namespace->getTopLevelNamespace()->getCurrentPropertyNumber() + 1);
         }
-        switch ($uriParam){
+        switch ($uriParam) {
             case 0:
                 // Rien à faire
                 break;
             case 1:
-                if(!is_null($namespace->getTopLevelNamespace()->getPropertyPrefix())) {
-                    $identifierInUriPrefilled = $identifierInUriPrefilled . '_';
+                if (!is_null($namespace->getTopLevelNamespace()->getPropertyPrefix())) {
+                    $identifierInUriPrefilled = $identifierInUriPrefilled.'_';
                 }
                 break;
             default:
                 $identifierInUriPrefilled = ''; // Pour les cas 2 et 3
         }
 
-        if(!$propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()){
-            if(empty($identifierInUriPrefilled)){
+        if (!$propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()) {
+            if (empty($identifierInUriPrefilled)) {
                 // Si vide (à cause gestionnaire automatique désactivée)
                 $identifierInUriPrefilled = 'identifierInUriPrefilled';
             }
@@ -212,41 +213,39 @@ class PropertyController extends AbstractController
         }
 
         $form = null;
-        if($type == 'outgoing') {
-            $form = $this->createForm(OutgoingPropertyQuickAddForm::class, $property, array(
-                "classesVersion" => $arrayClassesVersion,
+        if ($type == 'outgoing') {
+            $form = $this->createForm(OutgoingPropertyQuickAddForm::class, $property, [
+                'classesVersion' => $arrayClassesVersion,
                 'identifier_in_uri_prefilled' => $identifierInUriPrefilled,
                 'uri_param' => $uriParam,
-                'is_external' => $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()
-            ));
-        }
-        elseif ($type == 'ingoing') {
-            $form = $this->createForm(IngoingPropertyQuickAddForm::class, $property, array(
-                "classesVersion" => $arrayClassesVersion,
+                'is_external' => $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace(),
+            ]);
+        } elseif ($type == 'ingoing') {
+            $form = $this->createForm(IngoingPropertyQuickAddForm::class, $property, [
+                'classesVersion' => $arrayClassesVersion,
                 'identifier_in_uri_prefilled' => $identifierInUriPrefilled,
                 'uri_param' => $uriParam,
-                'is_external' => $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()
-            ));
+                'is_external' => $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace(),
+            ]);
         }
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $property = $form->getData();
-            if($type == 'outgoing') {
+            if ($type == 'outgoing') {
                 $propertyVersion->setDomain($class);
                 $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setDomainNamespace($domainNamespace);
-                $range = $classRepository->find($form->get("rangeVersion")->getData());
+                $range = $classRepository->find($form->get('rangeVersion')->getData());
                 $propertyVersion->setRange($range);
                 $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setRangeNamespace($rangeNamespace);
-            }
-            elseif ($type == 'ingoing') {
+            } elseif ($type == 'ingoing') {
                 $propertyVersion->setRange($class);
                 $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($class, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setRangeNamespace($rangeNamespace);
-                $domain = $classRepository->find($form->get("domainVersion")->getData());
+                $domain = $classRepository->find($form->get('domainVersion')->getData());
                 $propertyVersion->setDomain($domain);
                 $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
                 $propertyVersion->setDomainNamespace($domainNamespace);
@@ -254,53 +253,51 @@ class PropertyController extends AbstractController
 
             // Dans le cas où l'utilisateur a desactivé la gestion automatique des identifiers dans son NS interne
             // il faut remplir correctement l'identifier in uri qui est vide après formulaire
-            if(!$namespace->getTopLevelNamespace()->getIsExternalNamespace() && $property->getIdentifierInURI() === 'identifierInUriPrefilled'){
+            if (!$namespace->getTopLevelNamespace()->getIsExternalNamespace() && $property->getIdentifierInURI() === 'identifierInUriPrefilled') {
                 $property->setIdentifierInURI($property->getIdentifierInNamespace());
             }
 
-            $propertyVersion->setDomainMinQuantifier($form->get("domainMinQuantifierVersion")->getData());
-            $propertyVersion->setDomainMaxQuantifier($form->get("domainMaxQuantifierVersion")->getData());
-            $propertyVersion->setRangeMinQuantifier($form->get("rangeMinQuantifierVersion")->getData());
-            $propertyVersion->setRangeMaxQuantifier($form->get("rangeMaxQuantifierVersion")->getData());
+            $propertyVersion->setDomainMinQuantifier($form->get('domainMinQuantifierVersion')->getData());
+            $propertyVersion->setDomainMaxQuantifier($form->get('domainMaxQuantifierVersion')->getData());
+            $propertyVersion->setRangeMinQuantifier($form->get('rangeMinQuantifierVersion')->getData());
+            $propertyVersion->setRangeMaxQuantifier($form->get('rangeMaxQuantifierVersion')->getData());
 
             $property->setCreator($this->getUser());
             $property->setModifier($this->getUser());
             $property->setCreationTime(new \DateTime('now'));
             $property->setModificationTime(new \DateTime('now'));
 
-            if($property->getTextProperties()->containsKey(1)){
+            if ($property->getTextProperties()->containsKey(1)) {
                 $property->getTextProperties()[1]->setCreationTime(new \DateTime('now'));
                 $property->getTextProperties()[1]->setModificationTime(new \DateTime('now'));
                 $property->getTextProperties()[1]->setSystemType($systemTypeExample);
-                //$property->getTextProperties()[1]->addNamespace($this->getUser()->getCurrentOngoingNamespace());TODO: delete this line after successful test of the SolutionD branch
+                // $property->getTextProperties()[1]->addNamespace($this->getUser()->getCurrentOngoingNamespace());TODO: delete this line after successful test of the SolutionD branch
                 $property->getTextProperties()[1]->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
                 $property->getTextProperties()[1]->setProperty($property);
             }
-
 
             $em = $this->doctrine->getManager();
             $em->persist($property);
             $em->flush();
 
             return $this->redirectToRoute('property_show', [
-                'id' => $property->getId()
+                'id' => $property->getId(),
             ]);
-
         }
 
         $em = $this->doctrine->getManager();
 
         $template = null;
-        if($type == 'outgoing') {
+        if ($type == 'outgoing') {
             $template = 'property/newOutgoing.html.twig';
-        }
-        elseif ($type == 'ingoing') {
+        } elseif ($type == 'ingoing') {
             $template = 'property/newIngoing.html.twig';
         }
+
         return $this->render($template, [
             'property' => $property,
             'type' => $type,
-            'propertyForm' => $form->createView()
+            'propertyForm' => $form->createView(),
         ]);
     }
 
@@ -309,40 +306,40 @@ class PropertyController extends AbstractController
      * @Route("/ontology/p{id}", name="property_uri_show", requirements={"id"="^([0-9]+)|(propertyID){1}$"})
      * @Route("/ontology/p{id}i", name="property_uri_inverse_show", requirements={"id"="^([0-9]+)|(propertyID){1}$"})
      * @Route("/property/{id}/namespace/{namespaceFromUrlId}", name="property_show_with_version", requirements={"id"="^([0-9]+)|(propertyID){1}$", "namespaceFromUrlId"="^([0-9]+)|(namespaceID){1}$"})
-     * @param Property $property
+     *
      * @param int|null $namespaceFromUrlId
+     *
      * @return Response the rendered template
      */
-    public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId=null, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
+    public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId = null, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository)
     {
-        //Vérifier si le namespace -si renseigné- est bien associé à la propriété
+        // Vérifier si le namespace -si renseigné- est bien associé à la propriété
         $namespaceFromUrl = null;
-        if(!is_null($namespaceFromUrlId)) {
+        if (!is_null($namespaceFromUrlId)) {
             $namespaceFromUrlId = intval($namespaceFromUrlId);
             $pvCollection = $property->getPropertyVersions()->filter(function (PropertyVersion $propertyVersion) use ($namespaceFromUrlId) {
                 return $propertyVersion->getNamespaceForVersion()->getId() === $namespaceFromUrlId;
             });
-            if($pvCollection->count() == 0){
+            if ($pvCollection->count() == 0) {
                 return $this->redirectToRoute('property_show', [
-                    'id' => $property->getId()
+                    'id' => $property->getId(),
                 ]);
             }
-            else{
-                $namespaceFromUrl = $pvCollection->first()->getNamespaceForVersion();
-            }
+
+            $namespaceFromUrl = $pvCollection->first()->getNamespaceForVersion();
         }
         // Récupérer la version de la propriété demandée
         $propertyVersion = $property->getPropertyVersionForDisplay($namespaceFromUrl);
 
         // On doit avoir une version de la propriété sinon on lance une exception.
-        if(is_null($propertyVersion)){
+        if (is_null($propertyVersion)) {
             throw $this->createNotFoundException('The property n°'.$property->getId().' has no version. Please contact an administrator.');
         }
 
-        //Si le namespace n'est pas specifié dans l'url mais dans My Current Namespace, rediriger
+        // Si le namespace n'est pas specifié dans l'url mais dans My Current Namespace, rediriger
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
 
-        if(is_null($namespaceFromUrlId)) {
+        if (is_null($namespaceFromUrlId)) {
             if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
                 $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
             } else { // Utilisateur connecté et utilisant un autre projet
@@ -353,13 +350,14 @@ class PropertyController extends AbstractController
                 if ($propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getId() === $namespaceFromUser->getTopLevelNamespace()->getId() and $property->getPropertyVersionForDisplay($namespaceFromUser)->getNamespaceForVersion() === $namespaceFromUser) {
                     return $this->redirectToRoute('property_show_with_version', [
                         'id' => $property->getId(),
-                        'namespaceFromUrlId' => $property->getPropertyVersionForDisplay($namespaceFromUser)->getNamespaceForVersion()->getId()
+                        'namespaceFromUrlId' => $property->getPropertyVersionForDisplay($namespaceFromUser)->getNamespaceForVersion()->getId(),
                     ]);
                 }
             }
+
             return $this->redirectToRoute('property_show_with_version', [
                 'id' => $property->getId(),
-                'namespaceFromUrlId' => $propertyVersion->getNamespaceForVersion()->getId()
+                'namespaceFromUrlId' => $propertyVersion->getNamespaceForVersion()->getId(),
             ]);
         }
 
@@ -367,39 +365,38 @@ class PropertyController extends AbstractController
         // $rootNamespacesFromPropertyVersion : Ensemble des versions racines (pour contrôle en dessous)
         $nsId = $propertyVersion->getNamespaceForVersion()->getId();
         $namespacesIdFromPropertyVersion[] = $nsId;
-        $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
+        $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(['id' => $nsId])->getTopLevelNamespace();
 
-        foreach($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace){
+        foreach ($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace) {
             $nsId = $referencedNamespace->getId();
             $namespacesIdFromPropertyVersion[] = $nsId;
-            $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(array('id' => $nsId))->getTopLevelNamespace();
+            $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(['id' => $nsId])->getTopLevelNamespace();
         }
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
-        if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
             $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
-        }
-        else{ // Utilisateur connecté et utilisant un autre projet
+        } else { // Utilisateur connecté et utilisant un autre projet
             $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
         // sauf ceux automatiquement activés par l'entité
         $namespacesIdFromUser = array_diff($namespacesIdFromUser, $namespacesIdFromPropertyVersion);
 
         // Créer un array de ns à ajouter (ne pas rajouter ceux dont le root est déjà utilisé
-        $nsIdFromUser = array();
-        foreach ($namespacesIdFromUser as $namespaceIdFromUser){
+        $nsIdFromUser = [];
+        foreach ($namespacesIdFromUser as $namespaceIdFromUser) {
             $isCompatible = true;
-            $nsUser = $namespaceRepository->findOneBy(array('id' => $namespaceIdFromUser));
+            $nsUser = $namespaceRepository->findOneBy(['id' => $namespaceIdFromUser]);
             $nsRootUser = $nsUser->getTopLevelNamespace();
-            if(in_array($nsRootUser, $rootNamespacesFromClassVersion) and !in_array($nsUser->getId(), $namespacesIdFromPropertyVersion)){
+            if (in_array($nsRootUser, $rootNamespacesFromClassVersion) and !in_array($nsUser->getId(), $namespacesIdFromPropertyVersion)) {
                 $isCompatible = false;
             }
-            foreach ($nsUser->getAllReferencedNamespaces() as $referencedNamespace){
-                if(in_array($referencedNamespace->getTopLevelNamespace(), $rootNamespacesFromClassVersion) and !in_array($referencedNamespace->getId(), $namespacesIdFromPropertyVersion)){
+            foreach ($nsUser->getAllReferencedNamespaces() as $referencedNamespace) {
+                if (in_array($referencedNamespace->getTopLevelNamespace(), $rootNamespacesFromClassVersion) and !in_array($referencedNamespace->getId(), $namespacesIdFromPropertyVersion)) {
                     $isCompatible = false;
                 }
             }
-            if($isCompatible){
+            if ($isCompatible) {
                 $nsIdFromUser[] = $namespaceIdFromUser;
             }
         }
@@ -407,110 +404,102 @@ class PropertyController extends AbstractController
         // $namespacesId : Tous les namespaces trouvés ci-dessus
         $namespacesId = array_merge($namespacesIdFromPropertyVersion, $nsIdFromUser);
 
-        //Tri
+        // Tri
         // En tête, les relations appartenant à la même version que cette propriété
         // Puis par identifiant / label
         // Ensuite, les autres versions
         // Puis par Préfixe, identifiant / label
-        function sortRelationsByProperties($a, $b, OntoNamespace $version, $type, $property=null){
-            if($type == 'childPropertyAssociations'){
+        function sortRelationsByProperties($a, $b, OntoNamespace $version, $type, $property = null)
+        {
+            if ($type == 'childPropertyAssociations') {
                 $propertyA = $a->getParentProperty();
                 $propertyB = $b->getParentProperty();
                 $propertyNamespaceA = $a->getParentPropertyNamespace();
                 $propertyNamespaceB = $b->getParentPropertyNamespace();
             }
-            if($type == 'parentPropertyAssociations'){
+            if ($type == 'parentPropertyAssociations') {
                 $propertyA = $a->getChildProperty();
                 $propertyB = $b->getChildProperty();
                 $propertyNamespaceA = $a->getChildPropertyNamespace();
                 $propertyNamespaceB = $b->getChildPropertyNamespace();
             }
-            if($type == 'entityAssociations'){
-                if($a->getSystemType()->getId() > $b->getSystemType()->getId()){
+            if ($type == 'entityAssociations') {
+                if ($a->getSystemType()->getId() > $b->getSystemType()->getId()) {
                     return 1;
-                }
-                elseif($a->getSystemType()->getId() < $b->getSystemType()->getId()){
+                } elseif ($a->getSystemType()->getId() < $b->getSystemType()->getId()) {
                     return -1;
                 }
-                else{
-                    if($property == $a->getSourceProperty()){
-                        $propertyA = $a->getTargetProperty();
-                        $propertyNamespaceA = $a->getTargetNamespaceForVersion();
-                    }
-                    else{
-                        $propertyA = $a->getSourceProperty();
-                        $propertyNamespaceA = $a->getSourceNamespaceForVersion();
-                    }
 
-                    if($property == $b->getSourceProperty()){
-                        $propertyB = $b->getTargetProperty();
-                        $propertyNamespaceB = $b->getTargetNamespaceForVersion();
-                    }
-                    else{
-                        $propertyB = $b->getSourceProperty();
-                        $propertyNamespaceB =$b->getSourceNamespaceForVersion();
-                    }
+                if ($property == $a->getSourceProperty()) {
+                    $propertyA = $a->getTargetProperty();
+                    $propertyNamespaceA = $a->getTargetNamespaceForVersion();
+                } else {
+                    $propertyA = $a->getSourceProperty();
+                    $propertyNamespaceA = $a->getSourceNamespaceForVersion();
+                }
+
+                if ($property == $b->getSourceProperty()) {
+                    $propertyB = $b->getTargetProperty();
+                    $propertyNamespaceB = $b->getTargetNamespaceForVersion();
+                } else {
+                    $propertyB = $b->getSourceProperty();
+                    $propertyNamespaceB = $b->getSourceNamespaceForVersion();
                 }
             }
 
-            if($propertyNamespaceA === $version && $propertyNamespaceB !== $version){
+            if ($propertyNamespaceA === $version && $propertyNamespaceB !== $version) {
                 return -1;
-            }
-            elseif($propertyNamespaceB === $version && $propertyNamespaceA !== $version){
+            } elseif ($propertyNamespaceB === $version && $propertyNamespaceA !== $version) {
                 return 1;
             }
-            else{
-                $prefixA = $propertyNamespaceA->getTopLevelNamespace()->getRootNamespacePrefix();
-                $prefixB = $propertyNamespaceB->getTopLevelNamespace()->getRootNamespacePrefix();
-                $identifierInNamespaceA =  $propertyA->getIdentifierInNamespace();
-                $identifierInNamespaceB =  $propertyB->getIdentifierInNamespace();
 
-                if($prefixA == $prefixB){
-                    if(strlen($identifierInNamespaceA) == strlen($identifierInNamespaceB)){
-                        return strcmp($identifierInNamespaceA, $identifierInNamespaceB);
-                    }
-                    elseif(strlen($identifierInNamespaceA) > strlen($identifierInNamespaceB)){
-                        return 1;
-                    }
-                    elseif(strlen($identifierInNamespaceA) < strlen($identifierInNamespaceB)){
-                        return -1;
-                    }
+            $prefixA = $propertyNamespaceA->getTopLevelNamespace()->getRootNamespacePrefix();
+            $prefixB = $propertyNamespaceB->getTopLevelNamespace()->getRootNamespacePrefix();
+            $identifierInNamespaceA = $propertyA->getIdentifierInNamespace();
+            $identifierInNamespaceB = $propertyB->getIdentifierInNamespace();
+
+            if ($prefixA == $prefixB) {
+                if (strlen($identifierInNamespaceA) == strlen($identifierInNamespaceB)) {
+                    return strcmp($identifierInNamespaceA, $identifierInNamespaceB);
+                } elseif (strlen($identifierInNamespaceA) > strlen($identifierInNamespaceB)) {
+                    return 1;
+                } elseif (strlen($identifierInNamespaceA) < strlen($identifierInNamespaceB)) {
+                    return -1;
                 }
-                else{
-                    return strcmp($prefixA, $prefixB);
-                }
+            } else {
+                return strcmp($prefixA, $prefixB);
             }
         }
 
         // -- Associations Subproperty of
         $childPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $childPropertyAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations');
         });
         $childPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Associations Superproperty of
         $parentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $parentPropertyAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations');
         });
         $parentPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Relations
         $entityAssociations = $propertyVersion->getProperty()->getEntityAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $entityAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty());
         });
         $entityAssociations = new ArrayCollection(iterator_to_array($iterator));
@@ -520,9 +509,9 @@ class PropertyController extends AbstractController
         $domainRange = $propertyRepository->findDomainAndRangeByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
         $relations = $propertyRepository->findRelationsByPropertyVersionAndNamespacesId($propertyVersion, $namespacesId);
 
-        $logger->info('Showing property: ' . $property->getIdentifierInNamespace());
+        $logger->info('Showing property: '.$property->getIdentifierInNamespace());
 
-        return $this->render('property/show.html.twig', array(
+        return $this->render('property/show.html.twig', [
             'propertyVersion' => $propertyVersion,
             'ancestors' => $ancestors,
             'descendants' => $descendants,
@@ -533,15 +522,15 @@ class PropertyController extends AbstractController
             'entityAssociations' => $entityAssociations,
             'namespacesId' => $namespacesId,
             'namespacesIdFromPropertyVersion' => $namespacesIdFromPropertyVersion,
-            'namespacesIdFromUser' => $namespacesIdFromUser
-        ));
+            'namespacesIdFromUser' => $namespacesIdFromUser,
+        ]);
     }
 
     /**
      * @Route("/property/{id}/edit", name="property_edit", requirements={"id"="^[0-9]+$"})
-     * @param Property $property
-     * @param Request $request
+     *
      * @return Response the rendered template
+     *
      * @throws \Exception
      */
     public function editAction(Property $property, Request $request, LoggerInterface $logger, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
@@ -550,7 +539,7 @@ class PropertyController extends AbstractController
         $propertyVersion = $property->getPropertyVersionForDisplay();
 
         // On doit avoir une version de la propriété sinon on lance une exception.
-        if(is_null($propertyVersion)){
+        if (is_null($propertyVersion)) {
             throw $this->createNotFoundException('The property n°'.$property->getId().' has no version. Please contact an administrator.');
         }
 
@@ -561,27 +550,25 @@ class PropertyController extends AbstractController
         $namespacesIdFromPropertyVersion[] = $propertyVersion->getNamespaceForVersion()->getId();
         $rootNamespacesId[] = $propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getId();
 
-        foreach($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace){
-            if(!in_array($referencedNamespace->getTopLevelNamespace()->getId(), $rootNamespacesId)){
+        foreach ($propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespace) {
+            if (!in_array($referencedNamespace->getTopLevelNamespace()->getId(), $rootNamespacesId)) {
                 $namespacesIdFromPropertyVersion[] = $referencedNamespace->getId();
                 $rootNamespacesId[] = $referencedNamespace->getTopLevelNamespace()->getId();
             }
         }
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
-        if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
             $namespacesIdFromUserBeforeVerification = $namespaceRepository->findPublicProjectNamespacesId();
-
-        }
-        else{ // Utilisateur connecté et utilisant un autre projet
+        } else { // Utilisateur connecté et utilisant un autre projet
             $namespacesIdFromUserBeforeVerification = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // On élimine les versions des root déjà utilisés
         $namespacesIdFromUser = [];
-        foreach($namespacesIdFromUserBeforeVerification as $namespaceId){
+        foreach ($namespacesIdFromUserBeforeVerification as $namespaceId) {
             $namespace = $namespaceRepository->find($namespaceId);
-            if(!in_array($namespace->getTopLevelNamespace()->getId(), $rootNamespacesId)){
+            if (!in_array($namespace->getTopLevelNamespace()->getId(), $rootNamespacesId)) {
                 $namespacesIdFromUser[] = $namespaceId;
                 $rootNamespacesId[] = $namespace->getTopLevelNamespace()->getId();
             }
@@ -605,32 +592,30 @@ class PropertyController extends AbstractController
         $propertyVersion->setCreationTime(new \DateTime('now'));
         $propertyVersion->setModificationTime(new \DateTime('now'));
 
-        if(!is_null($propertyVersion->getDomain())){
+        if (!is_null($propertyVersion->getDomain())) {
             $defaultDomain = $propertyVersion->getDomain()->getId();
-        }
-        else{
+        } else {
             $defaultDomain = null;
         }
 
-        if(!is_null($propertyVersion->getRange())){
+        if (!is_null($propertyVersion->getRange())) {
             $defaultRange = $propertyVersion->getRange()->getId();
-        }
-        else{
+        } else {
             $defaultRange = null;
         }
 
-        $form = $this->createForm(PropertyEditForm::class, $propertyVersion, array(
+        $form = $this->createForm(PropertyEditForm::class, $propertyVersion, [
             'classesVersion' => $arrayClassesVersion,
             'defaultDomain' => $defaultDomain,
-            'defaultRange' => $defaultRange));
+            'defaultRange' => $defaultRange]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $domain = $classRepository->find($form->get("domainVersion")->getData());
+            $domain = $classRepository->find($form->get('domainVersion')->getData());
             $propertyVersion->setDomain($domain);
             $domainNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($domain, $namespacesId)->getNamespaceForVersion();
             $propertyVersion->setDomainNamespace($domainNamespace);
-            $range = $classRepository->find($form->get("rangeVersion")->getData());
+            $range = $classRepository->find($form->get('rangeVersion')->getData());
             $propertyVersion->setRange($range);
             $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
             $propertyVersion->setRangeNamespace($rangeNamespace);
@@ -639,9 +624,10 @@ class PropertyController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Property updated!');
+
             return $this->redirectToRoute('property_edit', [
                 'id' => $property->getId(),
-                '_fragment' => 'identification'
+                '_fragment' => 'identification',
             ]);
         }
 
@@ -651,10 +637,9 @@ class PropertyController extends AbstractController
         $formIdentifier->handleRequest($request);
         if ($formIdentifier->isSubmitted() && $formIdentifier->isValid()) {
             $property->setIdentifierInNamespace($propertyTemp->getIdentifierInNamespace());
-            if(!$propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()){
+            if (!$propertyVersion->getNamespaceForVersion()->getTopLevelNamespace()->getIsExternalNamespace()) {
                 $property->setIdentifierInURI($propertyTemp->getIdentifierInNamespace());
-            }
-            else{
+            } else {
                 $property->updateIdentifierInUri();
             }
             $em = $this->doctrine->getManager();
@@ -663,9 +648,10 @@ class PropertyController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Property updated!');
+
             return $this->redirectToRoute('property_edit', [
                 'id' => $property->getId(),
-                '_fragment' => 'identification'
+                '_fragment' => 'identification',
             ]);
         }
 
@@ -677,123 +663,116 @@ class PropertyController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Property updated!');
+
             return $this->redirectToRoute('property_edit', [
                 'id' => $property->getId(),
-                '_fragment' => 'identification'
+                '_fragment' => 'identification',
             ]);
         }
 
         $logger->info('Showing property: '.$property->getIdentifierInNamespace());
 
-        //Tri
+        // Tri
         // En tête, les relations appartenant à la même version que cette propriété
         // Puis par identifiant / label
         // Ensuite, les autres versions
         // Puis par Préfixe, identifiant / label
-        function sortRelationsByProperties($a, $b, OntoNamespace $version, $type, $property=null){
-            if($type == 'childPropertyAssociations'){
+        function sortRelationsByProperties($a, $b, OntoNamespace $version, $type, $property = null)
+        {
+            if ($type == 'childPropertyAssociations') {
                 $propertyA = $a->getParentProperty();
                 $propertyB = $b->getParentProperty();
                 $propertyNamespaceA = $a->getParentPropertyNamespace();
                 $propertyNamespaceB = $b->getParentPropertyNamespace();
             }
-            if($type == 'parentPropertyAssociations'){
+            if ($type == 'parentPropertyAssociations') {
                 $propertyA = $a->getChildProperty();
                 $propertyB = $b->getChildProperty();
                 $propertyNamespaceA = $a->getChildPropertyNamespace();
                 $propertyNamespaceB = $b->getChildPropertyNamespace();
             }
-            if($type == 'entityAssociations'){
-                if($a->getSystemType()->getId() > $b->getSystemType()->getId()){
+            if ($type == 'entityAssociations') {
+                if ($a->getSystemType()->getId() > $b->getSystemType()->getId()) {
                     return 1;
-                }
-                elseif($a->getSystemType()->getId() < $b->getSystemType()->getId()){
+                } elseif ($a->getSystemType()->getId() < $b->getSystemType()->getId()) {
                     return -1;
                 }
-                else{
-                    if($property == $a->getSourceProperty()){
-                        $propertyA = $a->getTargetProperty();
-                        $propertyNamespaceA = $a->getTargetNamespaceForVersion();
-                    }
-                    else{
-                        $propertyA = $a->getSourceProperty();
-                        $propertyNamespaceA = $a->getSourceNamespaceForVersion();
-                    }
 
-                    if($property == $b->getSourceProperty()){
-                        $propertyB = $b->getTargetProperty();
-                        $propertyNamespaceB = $b->getTargetNamespaceForVersion();
-                    }
-                    else{
-                        $propertyB = $b->getSourceProperty();
-                        $propertyNamespaceB =$b->getSourceNamespaceForVersion();
-                    }
+                if ($property == $a->getSourceProperty()) {
+                    $propertyA = $a->getTargetProperty();
+                    $propertyNamespaceA = $a->getTargetNamespaceForVersion();
+                } else {
+                    $propertyA = $a->getSourceProperty();
+                    $propertyNamespaceA = $a->getSourceNamespaceForVersion();
+                }
+
+                if ($property == $b->getSourceProperty()) {
+                    $propertyB = $b->getTargetProperty();
+                    $propertyNamespaceB = $b->getTargetNamespaceForVersion();
+                } else {
+                    $propertyB = $b->getSourceProperty();
+                    $propertyNamespaceB = $b->getSourceNamespaceForVersion();
                 }
             }
 
-            if($propertyNamespaceA === $version && $propertyNamespaceB !== $version){
+            if ($propertyNamespaceA === $version && $propertyNamespaceB !== $version) {
                 return -1;
-            }
-            elseif($propertyNamespaceA === $version && $propertyNamespaceB !== $version){
+            } elseif ($propertyNamespaceA === $version && $propertyNamespaceB !== $version) {
                 return 1;
             }
-            else{
-                $prefixA = $propertyNamespaceA->getTopLevelNamespace()->getRootNamespacePrefix();
-                $prefixB = $propertyNamespaceB->getTopLevelNamespace()->getRootNamespacePrefix();
-                $identifierInNamespaceA =  $propertyA->getIdentifierInNamespace();
-                $identifierInNamespaceB =  $propertyB->getIdentifierInNamespace();
 
-                if($prefixA == $prefixB){
-                    if(strlen($identifierInNamespaceA) == strlen($identifierInNamespaceB)){
-                        return strcmp($identifierInNamespaceA, $identifierInNamespaceB);
-                    }
-                    elseif(strlen($identifierInNamespaceA) > strlen($identifierInNamespaceB)){
-                        return 1;
-                    }
-                    elseif(strlen($identifierInNamespaceA) < strlen($identifierInNamespaceB)){
-                        return -1;
-                    }
+            $prefixA = $propertyNamespaceA->getTopLevelNamespace()->getRootNamespacePrefix();
+            $prefixB = $propertyNamespaceB->getTopLevelNamespace()->getRootNamespacePrefix();
+            $identifierInNamespaceA = $propertyA->getIdentifierInNamespace();
+            $identifierInNamespaceB = $propertyB->getIdentifierInNamespace();
+
+            if ($prefixA == $prefixB) {
+                if (strlen($identifierInNamespaceA) == strlen($identifierInNamespaceB)) {
+                    return strcmp($identifierInNamespaceA, $identifierInNamespaceB);
+                } elseif (strlen($identifierInNamespaceA) > strlen($identifierInNamespaceB)) {
+                    return 1;
+                } elseif (strlen($identifierInNamespaceA) < strlen($identifierInNamespaceB)) {
+                    return -1;
                 }
-                else{
-                    return strcmp($prefixA, $prefixB);
-                }
+            } else {
+                return strcmp($prefixA, $prefixB);
             }
         }
 
         // -- Associations Subproperty of
         $childPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $childPropertyAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'childPropertyAssociations');
         });
         $childPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Associations Superproperty of
         $parentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $parentPropertyAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'parentPropertyAssociations');
         });
         $parentPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
 
         // -- Relations
         $entityAssociations = $propertyVersion->getProperty()->getEntityAssociations()
-            ->filter(function($v) use ($propertyVersion, $namespacesId){
+            ->filter(function ($v) use ($propertyVersion, $namespacesId) {
                 return $propertyVersion->getNamespaceForVersion() == $v->getNamespaceForVersion() || in_array($v->getNamespaceForVersion()->getId(), $namespacesId);
             });
         $iterator = $entityAssociations->getIterator();
-        $iterator->uasort(function($a, $b) use ($propertyVersion){
+        $iterator->uasort(function ($a, $b) use ($propertyVersion) {
             return sortRelationsByProperties($a, $b, $propertyVersion->getNamespaceForVersion(), 'entityAssociations', $propertyVersion->getProperty());
         });
         $entityAssociations = new ArrayCollection(iterator_to_array($iterator));
 
-        //If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
+        // If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
         if (!is_null($propertyVersion->getValidationStatus()) && ($propertyVersion->getValidationStatus()->getId() === 26 || $propertyVersion->getValidationStatus()->getId() === 28)) {
             return $this->render('property/show.html.twig', [
                 'propertyVersion' => $propertyVersion,
@@ -804,11 +783,11 @@ class PropertyController extends AbstractController
                 'parentPropertyAssociations' => $parentPropertyAssociations,
                 'childPropertyAssociations' => $childPropertyAssociations,
                 'entityAssociations' => $entityAssociations,
-                'namespacesId' => $namespacesId
+                'namespacesId' => $namespacesId,
             ]);
         }
 
-        return $this->render('property/edit.html.twig', array(
+        return $this->render('property/edit.html.twig', [
             'propertyVersion' => $propertyVersion,
             'ancestors' => $ancestors,
             'descendants' => $descendants,
@@ -822,38 +801,38 @@ class PropertyController extends AbstractController
             'propertyUriIdentifierForm' => $formUriIdentifier->createView(),
             'namespacesId' => $namespacesId,
             'namespacesIdFromPropertyVersion' => $namespacesIdFromPropertyVersion,
-            'namespacesIdFromUser' => $namespacesIdFromUser
-        ));
+            'namespacesIdFromUser' => $namespacesIdFromUser,
+        ]);
     }
 
     /**
      * @Route("/property-version/{id}/edit-validity/{validationStatus}", name="property_version_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     * @param PropertyVersion $propertyVersion
-     * @param SystemType $validationStatus
-     * @param Request $request
-     * @throws \Exception in case of unsuccessful validation
+     *
      * @return RedirectResponse|Response
+     *
+     * @throws \Exception in case of unsuccessful validation
      */
     public function editValidationStatusAction(PropertyVersion $propertyVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
-        if(is_null($propertyVersion)){
+        if (is_null($propertyVersion)) {
             throw $this->createNotFoundException('The property version n°'.$propertyVersion->getId().' does not exist. Please contact an administrator.');
         }
 
-        //Denied access if not an authorized validator
+        // Denied access if not an authorized validator
         $this->denyAccessUnlessGranted('validate', $propertyVersion);
 
-        //Verifier que les références sont cohérents
+        // Verifier que les références sont cohérents
         $allNsFromPropertyVersion = $propertyVersion->getNamespaceForVersion()->getAllReferencedNamespaces();
         $allNsFromPropertyVersion->add($propertyVersion->getNamespaceForVersion());
         $nsDomain = $propertyVersion->getDomainNamespace();
         $nsRange = $propertyVersion->getRangeNamespace();
-        if(!$allNsFromPropertyVersion->contains($nsDomain) || !$allNsFromPropertyVersion->contains($nsRange)){
+        if (!$allNsFromPropertyVersion->contains($nsDomain) || !$allNsFromPropertyVersion->contains($nsRange)) {
             $uriNamespaceMismatches = $this->generateUrl('namespace_show', ['id' => $propertyVersion->getNamespaceForVersion()->getId(), '_fragment' => 'mismatches']);
             $this->addFlash('warning', 'This property can\'t be validated. Check <a href="'.$uriNamespaceMismatches.'">mismatches</a>.');
+
             return $this->redirectToRoute('property_show', [
-                'id' => $propertyVersion->getProperty()->getId()
+                'id' => $propertyVersion->getProperty()->getId(),
             ]);
         }
 
@@ -861,13 +840,13 @@ class PropertyController extends AbstractController
 
         $newValidationStatus = new SystemType();
 
-        $txtpValides = $propertyVersion->getProperty()->getTextProperties()->filter(function($t)use($propertyVersion){
+        $txtpValides = $propertyVersion->getProperty()->getTextProperties()->filter(function ($t) use ($propertyVersion) {
             return $t->getSystemType()->getId() == 1
                 && $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                 && !is_null($t->getValidationStatus())
                 && $t->getValidationStatus()->getId() == 26;
         });
-        $lblValides = $propertyVersion->getProperty()->getLabels()->filter(function($l)use($propertyVersion){
+        $lblValides = $propertyVersion->getProperty()->getLabels()->filter(function ($l) use ($propertyVersion) {
             return $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                 && !is_null($l->getValidationStatus())
                 && $l->getValidationStatus()->getId() == 26;
@@ -875,54 +854,54 @@ class PropertyController extends AbstractController
 
         $isMinimumRequirementReached = $txtpValides->count() > 0 && $lblValides->count() > 0;
 
-        try{
+        try {
             $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
-                ->findOneBy(array('id' => $validationStatus->getId()));
+                ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
         }
 
         if (!is_null($newValidationStatus)) {
             $statusId = intval($newValidationStatus->getId());
-            if (in_array($statusId, [26,27,28,37], true)) {
+            if (in_array($statusId, [26, 27, 28, 37], true)) {
                 $propertyVersion->setValidationStatus($newValidationStatus);
                 $propertyVersion->setModifier($this->getUser());
                 $propertyVersion->setModificationTime(new \DateTime('now'));
 
                 // Validation request && minimum not reached => all related candidate entities (txtp, lbl) must be "validation request"
-                if($statusId == 28 && !$isMinimumRequirementReached){
-                    $txtpCandidates = $propertyVersion->getProperty()->getTextProperties()->filter(function($t)use($propertyVersion){
+                if ($statusId == 28 && !$isMinimumRequirementReached) {
+                    $txtpCandidates = $propertyVersion->getProperty()->getTextProperties()->filter(function ($t) use ($propertyVersion) {
                         return $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && is_null($t->getValidationStatus());
                     });
-                    $lblCandidates = $propertyVersion->getProperty()->getLabels()->filter(function($l)use($propertyVersion){
+                    $lblCandidates = $propertyVersion->getProperty()->getLabels()->filter(function ($l) use ($propertyVersion) {
                         return $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && is_null($l->getValidationStatus());
                     });
-                    $childPropertyAssociationCandidates = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(function($c)use($propertyVersion){
+                    $childPropertyAssociationCandidates = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && is_null($c->getValidationStatus());
                     });
-                    $sourceEntityAssociationCandidates = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(function($c)use($propertyVersion){
+                    $sourceEntityAssociationCandidates = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && is_null($c->getValidationStatus());
                     });
-                    $targetEntityAssociationCandidates = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(function($c)use($propertyVersion){
+                    $targetEntityAssociationCandidates = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && is_null($c->getValidationStatus());
                     });
 
-                    $allEntitiesCandidates = array(
+                    $allEntitiesCandidates = [
                         $txtpCandidates,
                         $lblCandidates,
                         $childPropertyAssociationCandidates,
                         $sourceEntityAssociationCandidates,
-                        $targetEntityAssociationCandidates
-                    );
+                        $targetEntityAssociationCandidates,
+                    ];
 
-                    foreach ($allEntitiesCandidates as $entitiesCandidates){
-                        foreach ($entitiesCandidates as $entitieCandidate){
+                    foreach ($allEntitiesCandidates as $entitiesCandidates) {
+                        foreach ($entitiesCandidates as $entitieCandidate) {
                             $entitieCandidate->setValidationStatus($newValidationStatus);
                             $entitieCandidate->setModifier($this->getUser());
                             $entitieCandidate->setModificationTime(new \DateTime('now'));
@@ -933,27 +912,27 @@ class PropertyController extends AbstractController
 
                 // On met une propriété en Denied: Ses textproperties et labels doivent être en "Validation request".
                 // Les relations à cette classe seront dévalidés dans l'if suivant
-                if($statusId == 27){
-                    $validatedTextProperties = $propertyVersion->getProperty()->getTextProperties()->filter(function($t)use($propertyVersion){
+                if ($statusId == 27) {
+                    $validatedTextProperties = $propertyVersion->getProperty()->getTextProperties()->filter(function ($t) use ($propertyVersion) {
                         return $t->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($t->getValidationStatus())
                             && $t->getValidationStatus()->getId() == 26;
                     });
-                    $validatedLabels = $propertyVersion->getProperty()->getLabels()->filter(function($l)use($propertyVersion){
+                    $validatedLabels = $propertyVersion->getProperty()->getLabels()->filter(function ($l) use ($propertyVersion) {
                         return $l->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($l->getValidationStatus())
                             && $l->getValidationStatus()->getId() == 26;
                     });
 
-                    $allValidatedEntities = array(
+                    $allValidatedEntities = [
                         $validatedTextProperties,
-                        $validatedLabels
-                    );
+                        $validatedLabels,
+                    ];
 
-                    $validationRequestStatus = $em->getRepository(SystemType::class)->findOneBy(array('id' => 28));
+                    $validationRequestStatus = $em->getRepository(SystemType::class)->findOneBy(['id' => 28]);
 
-                    foreach ($allValidatedEntities as $validatedEntities){
-                        foreach ($validatedEntities as $entityValidated){
+                    foreach ($allValidatedEntities as $validatedEntities) {
+                        foreach ($validatedEntities as $entityValidated) {
                             $entityValidated->setValidationStatus($validationRequestStatus);
                             $entityValidated->setModifier($this->getUser());
                             $entityValidated->setModificationTime(new \DateTime('now'));
@@ -963,42 +942,42 @@ class PropertyController extends AbstractController
                 }
 
                 // Dé-validation d'une propriété: on dévalide les relations à cette classe dans le même namespace
-                if(in_array($statusId, [27, 28, 37])){
-                    $validatedChildPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(function($c)use($propertyVersion){
+                if (in_array($statusId, [27, 28, 37])) {
+                    $validatedChildPropertyAssociations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($c->getValidationStatus())
                             && $c->getValidationStatus()->getId() == 26;
                     });
-                    $validatedParentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()->filter(function($c)use($propertyVersion){
+                    $validatedParentPropertyAssociations = $propertyVersion->getProperty()->getParentPropertyAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($c->getValidationStatus())
                             && $c->getValidationStatus()->getId() == 26;
                     });
-                    $validatedSourceEntityAssociations = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(function($c)use($propertyVersion){
+                    $validatedSourceEntityAssociations = $propertyVersion->getProperty()->getSourceEntityAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($c->getValidationStatus())
                             && $c->getValidationStatus()->getId() == 26;
                     });
-                    $validatedTargetEntityAssociations = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(function($c)use($propertyVersion){
+                    $validatedTargetEntityAssociations = $propertyVersion->getProperty()->getTargetEntityAssociations()->filter(function ($c) use ($propertyVersion) {
                         return $c->getNamespaceForVersion() == $propertyVersion->getNamespaceForVersion()
                             && !is_null($c->getValidationStatus())
                             && $c->getValidationStatus()->getId() == 26;
                     });
 
-                    $allValidatedEntities = array(
+                    $allValidatedEntities = [
                         $validatedChildPropertyAssociations,
                         $validatedParentPropertyAssociations,
                         $validatedSourceEntityAssociations,
-                        $validatedTargetEntityAssociations
-                    );
+                        $validatedTargetEntityAssociations,
+                    ];
 
-                    if(!empty($allValidatedEntities)){
+                    if (!empty($allValidatedEntities)) {
                         $this->addFlash('warning', 'The devalidation of this property has led to the devalidation of one or more relations or entities linked to this entity.');
                     }
 
-                    $underRevisionStatus = $em->getRepository(SystemType::class)->findOneBy(array('id' => 37));
-                    foreach ($allValidatedEntities as $validatedEntities){
-                        foreach ($validatedEntities as $entityValidated){
+                    $underRevisionStatus = $em->getRepository(SystemType::class)->findOneBy(['id' => 37]);
+                    foreach ($allValidatedEntities as $validatedEntities) {
+                        foreach ($validatedEntities as $entityValidated) {
                             $entityValidated->setValidationStatus($underRevisionStatus);
                             $entityValidated->setModifier($this->getUser());
                             $entityValidated->setModificationTime(new \DateTime('now'));
@@ -1011,20 +990,20 @@ class PropertyController extends AbstractController
 
                 $em->flush();
 
-                if ($statusId == 27){
+                if ($statusId == 27) {
                     return $this->redirectToRoute('property_edit', [
-                        'id' => $propertyVersion->getProperty()->getId()
+                        'id' => $propertyVersion->getProperty()->getId(),
                     ]);
                 }
-                else return $this->redirectToRoute('property_show', [
-                    'id' => $propertyVersion->getProperty()->getId()
-                ]);
 
+                return $this->redirectToRoute('property_show', [
+                    'id' => $propertyVersion->getProperty()->getId(),
+                ]);
             }
         }
 
         return $this->redirectToRoute('property_show', [
-            'id' => $propertyVersion->getProperty()->getId()
+            'id' => $propertyVersion->getProperty()->getId(),
         ]);
     }
 
@@ -1038,25 +1017,25 @@ class PropertyController extends AbstractController
 
     /**
      * @Route("/properties-tree/json", name="properties_tree_json", methods={"GET"})
+     *
      * @return JsonResponse a Json formatted tree representation of Properties
      */
     public function getTreeJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $properties = $propertyRepository->findPropertiesTree();
 
-        return new JsonResponse($properties[0]['json'],Response::HTTP_OK, array(), true);
+        return new JsonResponse($properties[0]['json'], Response::HTTP_OK, [], true);
     }
 
     /**
      * @Route("/properties-tree-legend/json", name="properties_tree_legend_json", methods={"GET"})
+     *
      * @return JsonResponse a Json formatted legend for the Properties tree
      */
     public function getTreeLegendJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $legend = $propertyRepository->findPropertiesTreeLegend();
 
-
         return new JsonResponse($legend[0]['json']);
     }
-
 }

@@ -1,33 +1,39 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 11/07/2017
- * Time: 11:51
+ * Time: 11:51.
  */
 
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Class SystemType
+ * Class SystemType.
+ *
  * @ORM\Entity
+ *
  * @ORM\Table(schema="che", name="system_type")
  */
 class SystemType
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="pk_system_type")
      */
     private $id;
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\Column(type="text", nullable=false)
      */
     private $usedInTable;
@@ -39,12 +45,14 @@ class SystemType
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="systemType")
      */
     private $textProperties;
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\ProfileAssociation", mappedBy="systemType")
      */
     private $profileAssociations;
@@ -56,14 +64,18 @@ class SystemType
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
      */
     private $creator;
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
      */
     private $modifier;
@@ -84,65 +96,41 @@ class SystemType
         $this->profileAssociations = new ArrayCollection();
     }
 
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getUsedInTable()
     {
         return $this->usedInTable;
     }
 
-    /**
-     * @return mixed
-     */
     public function getStandardLabel()
     {
         return $this->standardLabel;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNotes()
     {
         return $this->notes;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreator()
     {
         return $this->creator;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModifier()
     {
         return $this->modifier;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreationTime()
     {
         return $this->creationTime;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModificationTime()
     {
         return $this->modificationTime;
@@ -163,8 +151,6 @@ class SystemType
     {
         return $this->profileAssociations;
     }
-
-
 
     /**
      * @return string a human readable identification of the object

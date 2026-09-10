@@ -1,25 +1,25 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 23/06/2017
- * Time: 14:57
+ * Time: 14:57.
  */
 
 namespace App\Repository;
-
 
 use App\Entity\OntoNamespace;
 use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\User;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\DBALException;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 
 class NamespaceRepository extends ServiceEntityRepository
 {
@@ -31,7 +31,8 @@ class NamespaceRepository extends ServiceEntityRepository
     /**
      * @return array
      */
-    public function findAllOrderedById(){
+    public function findAllOrderedById()
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -61,48 +62,52 @@ class NamespaceRepository extends ServiceEntityRepository
 
     /**
      * @param Profile $profile the profile to be checked for association
+     *
      * @return array
      */
-    public function findAllNonAssociatedToProfileByProfileId(Profile $profile){
+    public function findAllNonAssociatedToProfileByProfileId(Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT pk_namespace AS id, 
-                       standard_label AS \"standardLabel\" 
+        $sql = 'SELECT pk_namespace AS id, 
+                       standard_label AS "standardLabel" 
                 FROM che.namespace
                 WHERE pk_namespace NOT IN (
                     SELECT fk_top_level_namespace
                     FROM che.namespace
                     WHERE pk_namespace IN(SELECT * FROM che.get_all_references_namespaces_for_profile(:profile))
                     )
-                AND is_top_level_namespace;";
+                AND is_top_level_namespace;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('profile' => $profile->getId()));
+        $stmt->execute(['profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param OntoNamespace $namespace the namespace to be checked for referenced namespace association
+     *
      * @return array
      */
-    public function findAllNonAssociatedToNamespaceByNamespaceId(OntoNamespace $namespace){
+    public function findAllNonAssociatedToNamespaceByNamespaceId(OntoNamespace $namespace)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT pk_namespace AS id, 
-                       standard_label AS \"standardLabel\" 
+        $sql = 'SELECT pk_namespace AS id, 
+                       standard_label AS "standardLabel" 
                 FROM che.namespace
                 WHERE pk_namespace NOT IN (
                     SELECT nsp.fk_top_level_namespace FROM che.associates_referenced_namespace ansp
                     JOIN che.namespace nsp ON ansp.fk_referenced_namespace = nsp.pk_namespace
                     WHERE ansp.fk_namespace = :namespace AND ansp.fk_referenced_namespace IS NOT NULL
                     )
-                AND is_top_level_namespace;";
+                AND is_top_level_namespace;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('namespace' => $namespace->getId()));
+        $stmt->execute(['namespace' => $namespace->getId()]);
 
         return $stmt->fetchAll();
     }
@@ -112,7 +117,7 @@ class NamespaceRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('nsp')
             ->andWhere('nsp.isOngoing = :isOngoing')
             ->setParameter('isOngoing', true)
-            ->join('nsp.projectForTopLevelNamespace','proj')
+            ->join('nsp.projectForTopLevelNamespace', 'proj')
             ->addSelect('proj')
             ->join('proj.userProjectAssociations', 'upa')
             ->addSelect('upa')
@@ -120,9 +125,9 @@ class NamespaceRepository extends ServiceEntityRepository
             ->addSelect('user')
             ->andWhere('user.id = :user')
             ->setParameter('user', $user)
-            ->orderBy('nsp.id','DESC');
-        //->getQuery()
-        //->execute();
+            ->orderBy('nsp.id', 'DESC');
+        // ->getQuery()
+        // ->execute();
     }
 
     // Pour le choix par défaut dans My current namepaces
@@ -135,7 +140,7 @@ class NamespaceRepository extends ServiceEntityRepository
     public function findDefaultNamespaceForProject(Project $project)
     {
         $defaultNamespace = $this->createQueryBuilder('nsp')
-            ->join('nsp.projectForTopLevelNamespace','proj')
+            ->join('nsp.projectForTopLevelNamespace', 'proj')
             ->andWhere('proj.id = :pk_project')
             ->andWhere('nsp.isTopLevelNamespace = false')
             ->orderBy('nsp.isOngoing', 'DESC')
@@ -144,14 +149,14 @@ class NamespaceRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
 
-        if(isset($defaultNamespace[0]))
+        if (isset($defaultNamespace[0])) {
             return $defaultNamespace[0];
-        else
-            return null;
+        }
+
+        return null;
     }
 
     /**
-     * @param User $user
      * @return OntoNamespace[]
      */
     public function findAdditionalNamespacesForUser(User $user)
@@ -172,13 +177,12 @@ class NamespaceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param User $user
      * @return OntoNamespace[]
      */
     public function findAllActiveNamespacesForUser(User $user)
     {
         // Cas Projet public
-        if($user->getCurrentActiveProject()->getId() == 21){
+        if ($user->getCurrentActiveProject()->getId() == 21) {
             $publicProjectNamespaces = $this->createQueryBuilder('nsp')
                 ->join('nsp.projectAssociations', 'npa')
                 ->andWhere('npa.project = :project')
@@ -196,11 +200,11 @@ class NamespaceRepository extends ServiceEntityRepository
 
             return array_merge($publicProjectNamespaces, $publicProjectReferendedNamespaces);
         }
-        else{ // Autre cas
-            $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-            $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
+        // Autre cas
+        $rsm = new ResultSetMappingBuilder($this->getEntityManager());
+        $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
 
-            $sql = "  SELECT ns.* FROM che.namespace ns
+        $sql = '  SELECT ns.* FROM che.namespace ns
                       LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
                       WHERE aseup.fk_system_type = 25
                       AND aseup.fk_associate_user_to_project = (SELECT pk_associate_user_to_project 
@@ -217,23 +221,22 @@ class NamespaceRepository extends ServiceEntityRepository
                                                                   FROM che.associate_user_to_project 
                                                                   WHERE fk_user = :id_user AND fk_project = :id_project)
                       ))
-                      ";
+                      ';
 
-            $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
-            $query->setParameter('id_user', $user->getId());
-            $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
-            return $query->getResult();
-        }
+        $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
+        $query->setParameter('id_user', $user->getId());
+        $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
+
+        return $query->getResult();
     }
 
     /**
-     * @param User $user
      * @return OntoNamespace[]
      */
     public function findActiveNamespacesWithoutReferencesForUser(User $user)
     {
         // Cas Projet public
-        if($user->getCurrentActiveProject()->getId() == 21){
+        if ($user->getCurrentActiveProject()->getId() == 21) {
             $publicProjectNamespaces = $this->createQueryBuilder('nsp')
                 ->join('nsp.projectAssociations', 'npa')
                 ->andWhere('npa.project = :project')
@@ -251,36 +254,37 @@ class NamespaceRepository extends ServiceEntityRepository
 
             return array_merge($publicProjectNamespaces, $publicProjectReferendedNamespaces);
         }
-        else{ // Autre cas
-            $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-            $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
+        // Autre cas
+        $rsm = new ResultSetMappingBuilder($this->getEntityManager());
+        $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
 
-            $sql = "  SELECT ns.* FROM che.namespace ns
+        $sql = '  SELECT ns.* FROM che.namespace ns
                       LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
                       WHERE aseup.fk_system_type = 25
                       AND aseup.fk_associate_user_to_project = (SELECT pk_associate_user_to_project 
                                                                 FROM che.associate_user_to_project 
                                                                 WHERE fk_user = :id_user AND fk_project = :id_project)
-                      ";
+                      ';
 
-            $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
-            $query->setParameter('id_user', $user->getId());
-            $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
-            return $query->getResult();
-        }
+        $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
+        $query->setParameter('id_user', $user->getId());
+        $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
+
+        return $query->getResult();
     }
 
     /**
      * @return array
      */
-    public function findNamespacesGraph(OntoNamespace $namespace){
+    public function findNamespacesGraph(OntoNamespace $namespace)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT get_webvowl_json_for_namespace AS json FROM che.get_webvowl_json_for_namespace(:namespace)";
+        $sql = 'SELECT get_webvowl_json_for_namespace AS json FROM che.get_webvowl_json_for_namespace(:namespace)';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('namespace' => $namespace->getId()));
+        $stmt->execute(['namespace' => $namespace->getId()]);
 
         return $stmt->fetchAll();
     }
@@ -288,16 +292,17 @@ class NamespaceRepository extends ServiceEntityRepository
     /**
      * @return array
      */
-    public function findNamespacesInPublicProject(){
+    public function findNamespacesInPublicProject()
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT  nsp.pk_namespace AS id,
-                        nsp.standard_label AS \"standardLabel\",
-                        aspro.pk_associates_project AS \"associationId\"
+        $sql = 'SELECT  nsp.pk_namespace AS id,
+                        nsp.standard_label AS "standardLabel",
+                        aspro.pk_associates_project AS "associationId"
                 FROM che.namespace nsp
                 JOIN che.associates_project aspro ON nsp.pk_namespace = aspro.fk_namespace
-                WHERE aspro.fk_project = 21 AND aspro.fk_system_type = 17;";
+                WHERE aspro.fk_project = 21 AND aspro.fk_system_type = 17;';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute();
@@ -308,7 +313,8 @@ class NamespaceRepository extends ServiceEntityRepository
     /**
      * @return array un tableau d'espaces de noms associés au projet pour l'owl:imports API
      */
-    public function findApiNamespacesProject(Project $project){
+    public function findApiNamespacesProject(Project $project)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -332,7 +338,7 @@ class NamespaceRepository extends ServiceEntityRepository
                 GROUP BY nsp.pk_namespace, nsp.standard_label, aspro.pk_associates_project";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('id_project' => $project->getId()));
+        $stmt->execute(['id_project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
@@ -340,7 +346,8 @@ class NamespaceRepository extends ServiceEntityRepository
     /**
      * @return array
      */
-    public function findActiveNamespacesInPublicProject(){
+    public function findActiveNamespacesInPublicProject()
+    {
         $publicProjectNamespaces = $this->createQueryBuilder('nsp')
             ->join('nsp.projectAssociations', 'npa')
             ->join('npa.project', 'p')
@@ -358,12 +365,12 @@ class NamespaceRepository extends ServiceEntityRepository
     public function findAvailableNamespacesForPublicProjectAssociation()
     {
         $em = $this->getEntityManager();
-        //$subQueryBuilder = $em->getRepository(ProjectAssociation::class)->createQueryBuilder('exnsp');
+        // $subQueryBuilder = $em->getRepository(ProjectAssociation::class)->createQueryBuilder('exnsp');
         $subQueryBuilder = $this->getEntityManager()->createQueryBuilder();
         $subQuery = $subQueryBuilder
             ->select(['nspt.id'])
             ->from('App:ProjectAssociation', 'exnsp')
-            ->join('exnsp.namespace','nspt')
+            ->join('exnsp.namespace', 'nspt')
             ->where('exnsp.systemType = 17')
             ->andWhere('exnsp.project = 21')
             ->getQuery()
@@ -380,12 +387,12 @@ class NamespaceRepository extends ServiceEntityRepository
                 )
             )
             ->setParameter('subQuery', $subQuery);
-
     }
 
     /**
-     * @param $lang string the language iso code
+     * @param $lang      string the language iso code
      * @param $namespace int the ID of the namespace
+     *
      * @return array
      */
     public function findClassesAndPropertiesByNamespaceIdApi($lang, $namespace)
@@ -393,20 +400,21 @@ class NamespaceRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_export_namespace_owl(:lang, :namespace) as result;";
+        $sql = 'SELECT result::text FROM api.get_export_namespace_owl(:lang, :namespace) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
-            'namespace' => $namespace
-        ));
+            'namespace' => $namespace,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param $lang string the language iso code
+     * @param $lang      string the language iso code
      * @param $namespace int the ID of the namespace
+     *
      * @return array
      */
     public function findClassesAndPropertiesByNamespaceIdApiWisski($lang, $namespace)
@@ -414,20 +422,21 @@ class NamespaceRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_export_namespace_owl_wisski(:lang, :namespace) as result;";
+        $sql = 'SELECT result::text FROM api.get_export_namespace_owl_wisski(:lang, :namespace) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
-            'namespace' => $namespace
-        ));
+            'namespace' => $namespace,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param $lang string the language iso code
+     * @param $lang      string the language iso code
      * @param $namespace int the ID of the namespace
+     *
      * @return array
      */
     public function findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespace, $withInverseProperties = 0, $withSpecificUri = 0)
@@ -435,28 +444,30 @@ class NamespaceRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        //$sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
-        $sql = "SELECT result::text FROM api.get_export_namespace_rdfs(:lang, :namespace, :withInverseProperties, :withSpecificUri) as result;";
+        // $sql = "SELECT result::text FROM api.get_xml_rdfs_classes_and_properties_for_namespace(:lang, :namespace) as result;";
+        $sql = 'SELECT result::text FROM api.get_export_namespace_rdfs(:lang, :namespace, :withInverseProperties, :withSpecificUri) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
             'namespace' => $namespace,
             'withInverseProperties' => $withInverseProperties ? true : 0,
-            'withSpecificUri' => $withSpecificUri ? true : 0
-        ));
+            'withSpecificUri' => $withSpecificUri ? true : 0,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @return array - An array with namespace keys
+     *
      * @throws DBALException
      */
-    public function findPublicProjectNamespacesId(){
+    public function findPublicProjectNamespacesId()
+    {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = "WITH publicNamespacesId AS(
+        $sql = 'WITH publicNamespacesId AS(
 	                SELECT fk_namespace 
                     FROM che.associates_project 
                     WHERE fk_system_type = 17
@@ -471,7 +482,7 @@ class NamespaceRepository extends ServiceEntityRepository
                 SELECT fk_referenced_namespace AS fk_namespace
                 FROM che.associates_referenced_namespace
                 WHERE fk_namespace IN(  SELECT fk_namespace 
-                                        FROM publicNamespacesId);";
+                                        FROM publicNamespacesId);';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute();
@@ -480,14 +491,15 @@ class NamespaceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param User $user
      * @return array - An array with namespace keys
+     *
      * @throws DBALException
      */
-    public function findNamespacesIdByUser(User $user){
+    public function findNamespacesIdByUser(User $user)
+    {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = "WITH selectionNamespacesId AS(
+        $sql = 'WITH selectionNamespacesId AS(
 	                SELECT eupa.fk_namespace
 	                FROM che.admin_user us
 	                LEFT JOIN che.associate_user_to_project upa ON upa.fk_project = us.fk_current_active_project AND upa.fk_user = us.pk_user
@@ -510,19 +522,21 @@ class NamespaceRepository extends ServiceEntityRepository
                 SELECT DISTINCT pk_namespace AS fk_namespace
                 FROM che.namespace, 
                 selectionNamespacesId s
-                WHERE pk_namespace IN (SELECT pk_namespace FROM che.get_all_references_namespaces_for_namespace(s.fk_namespace));";
+                WHERE pk_namespace IN (SELECT pk_namespace FROM che.get_all_references_namespaces_for_namespace(s.fk_namespace));';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('userId' => $user->getId()));
+        $stmt->execute(['userId' => $user->getId()]);
 
         return $stmt->fetchAll(\PDO::FETCH_COLUMN);
     }
 
     /**
      * @param array $namespacesId - An array with namespace keys
+     *
      * @return \Doctrine\ORM\Query
      */
-    private function createQueryBuilderNamespacesByNamespacesId(array $namespacesId){
+    private function createQueryBuilderNamespacesByNamespacesId(array $namespacesId)
+    {
         return $this->createQueryBuilder('namespace')
             ->where('namespace.id IN (:namespacesId)')
             ->setParameter('namespacesId', $namespacesId)
@@ -531,44 +545,47 @@ class NamespaceRepository extends ServiceEntityRepository
 
     /**
      * @param array $namespacesId - An array with namespace keys
+     *
      * @return OntoNamespace[]
      */
-    public function findNamespacesByNamespacesId(array $namespacesId){
+    public function findNamespacesByNamespacesId(array $namespacesId)
+    {
         $namespaces = $this->createQueryBuilderNamespacesByNamespacesId($namespacesId)->execute();
+
         return $namespaces;
     }
 
     /**
-     * @param OntoNamespace $namespace
      * @return int - the new published namespace id
+     *
      * @throws DBALException
      */
-    public function publishNamespace(OntoNamespace $namespace){
+    public function publishNamespace(OntoNamespace $namespace)
+    {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = "SELECT che.publish_namespace(:namespaceId);";
+        $sql = 'SELECT che.publish_namespace(:namespaceId);';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('namespaceId' => $namespace->getId()));
+        $stmt->execute(['namespaceId' => $namespace->getId()]);
 
         return $stmt->fetchColumn();
     }
 
     /**
-     * @param OntoNamespace $namespace
      * @return bool true if the ongoing namespace is different from the latest namespace with same root or if there is no other version
+     *
      * @throws DBALException
      */
-    public function checkNamespaceChange(OntoNamespace $namespace){
+    public function checkNamespaceChange(OntoNamespace $namespace)
+    {
         $change = false;
         $criteria = Criteria::create()
-            ->orderBy(array('id' => Criteria::DESC));
-        if (count($namespace->getTopLevelNamespace()->getChildVersions()) <= 1 ) {
+            ->orderBy(['id' => Criteria::DESC]);
+        if (count($namespace->getTopLevelNamespace()->getChildVersions()) <= 1) {
             $change = true;
-        }
-        else {
+        } else {
             $latestNamespace = $namespace->getTopLevelNamespace()->getChildVersions()->matching($criteria)->first();
-
 
             $conn = $this->getEntityManager()->getConnection();
             $sqlOngoing = "SELECT encode(
@@ -597,7 +614,7 @@ class NamespaceRepository extends ServiceEntityRepository
                                 , 'sha256')
                                , 'hex');";
             $stmt = $conn->prepare($sqlOngoing);
-            $stmt->execute(array('namespaceId' => $namespace->getId()));
+            $stmt->execute(['namespaceId' => $namespace->getId()]);
 
             $hashOngoing = $stmt->fetchColumn();
 
@@ -627,7 +644,7 @@ class NamespaceRepository extends ServiceEntityRepository
                                 , 'sha256')
                                , 'hex');";
             $stmt = $conn->prepare($sqlLatest);
-            $stmt->execute(array('namespaceId' => $latestNamespace->getId()));
+            $stmt->execute(['namespaceId' => $latestNamespace->getId()]);
 
             $hashLatest = $stmt->fetchColumn();
 
@@ -640,12 +657,12 @@ class NamespaceRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param $name
-     * @param $identifierInNamespace
      * @return ArrayCollection
+     *
      * @throws DBALException
      */
-    public function findEntity($name, $identifierInNamespace){
+    public function findEntity($name, $identifierInNamespace)
+    {
         $conn = $this->getEntityManager()->getConnection();
 
         $sql = "SELECT entity.entity_id, entity.entity_type 
@@ -665,7 +682,7 @@ class NamespaceRepository extends ServiceEntityRepository
                 WHERE root_nsp.namespace_uri = 'https://ontome.net/ns/' || :name || '/';";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('identifier' => $identifierInNamespace, 'name' => $name));
+        $stmt->execute(['identifier' => $identifierInNamespace, 'name' => $name]);
 
         return $stmt->fetchAll();
     }

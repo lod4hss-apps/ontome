@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
@@ -15,13 +16,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class ProfileVoter extends Voter
 {
-    const EDIT = 'edit';
-    const DUPLICATE = 'duplicate';
+    public const EDIT = 'edit';
+    public const DUPLICATE = 'duplicate';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT, self::DUPLICATE))) {
+        if (!in_array($attribute, [self::EDIT, self::DUPLICATE])) {
             return false;
         }
 
@@ -56,15 +57,13 @@ class ProfileVoter extends Voter
     }
 
     /**
-     * @param Profile $profile
-     * @param User $user
      * @return bool TRUE if $user is the creator of $profile and the project is still ongoing
      */
     private function canEdit(Profile $profile, User $user)
     {
         $canEdit = false;
         foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if ($userProjectAssociation->getProject()->getOwnedProfiles()->contains($profile) && $userProjectAssociation->getPermission() <= 2 ) { //permission <= means that the user is a project admin or manager
+            if ($userProjectAssociation->getProject()->getOwnedProfiles()->contains($profile) && $userProjectAssociation->getPermission() <= 2) { // permission <= means that the user is a project admin or manager
                 $canEdit = true;
             }
         }
@@ -77,8 +76,6 @@ class ProfileVoter extends Voter
     }
 
     /**
-     * @param Profile $profile
-     * @param User $user
      * @return bool TRUE if $user is the creator of $profile and the profile is published and not deprecated
      */
     private function canDuplicate(Profile $profile, User $user)
@@ -86,13 +83,12 @@ class ProfileVoter extends Voter
         $canDuplicate = false;
 
         foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if ($userProjectAssociation->getProject()->getOwnedProfiles()->contains($profile) && $userProjectAssociation->getPermission() <= 2 ) { //permission <= means that the user is a project admin or manager
+            if ($userProjectAssociation->getProject()->getOwnedProfiles()->contains($profile) && $userProjectAssociation->getPermission() <= 2) { // permission <= means that the user is a project admin or manager
                 $canDuplicate = true;
             }
         }
 
-        if($profile->getIsOngoing() and is_null($profile->getWasClosedAt()) and !is_null($profile->getEndDate()))
-        {
+        if ($profile->getIsOngoing() and is_null($profile->getWasClosedAt()) and !is_null($profile->getEndDate())) {
             $canDuplicate = false;
         }
 

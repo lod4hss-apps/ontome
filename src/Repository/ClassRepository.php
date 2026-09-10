@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 12/06/2017
- * Time: 17:15
+ * Time: 17:15.
  */
 
 namespace App\Repository;
@@ -15,8 +16,8 @@ use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\User;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 
 class ClassRepository extends ServiceEntityRepository
@@ -25,31 +26,31 @@ class ClassRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, OntoClass::class);
     }
-    
+
     /**
      * @return OntoClass[]
      */
     public function findAllOrderedById()
     {
         return $this->createQueryBuilder('class')
-            ->join('class.namespaces','nspc')
+            ->join('class.namespaces', 'nspc')
             ->addSelect('nspc')
             ->leftJoin('nspc.referencedVersion', 'referencedVersion')
             ->addSelect('referencedVersion')
-            ->orderBy('class.id','DESC')
+            ->orderBy('class.id', 'DESC')
             ->getQuery()
             ->execute();
     }
 
     /**
-     * @param array $namespacesId
      * @return \Doctrine\ORM\QueryBuilder
-     * Remplace les fonctions obsolètes findFilteredClassByActiveProjectOrderedById et findFilteredByActiveProjectOrderedById
+     *                                    Remplace les fonctions obsolètes findFilteredClassByActiveProjectOrderedById et findFilteredByActiveProjectOrderedById
      */
-    public function findClassesByNamespacesIdQueryBuilder(array $namespacesId){
+    public function findClassesByNamespacesIdQueryBuilder(array $namespacesId)
+    {
         $qb = $this->createQueryBuilder('class')
-            ->join('class.classVersions','cv')
-            ->join('cv.namespaceForVersion','nfv')
+            ->join('class.classVersions', 'cv')
+            ->join('cv.namespaceForVersion', 'nfv')
             ->where('nfv.id IN (:namespacesId)')
             ->setParameter('namespacesId', $namespacesId);
 
@@ -57,11 +58,11 @@ class ClassRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param array $namespacesId
      * @return OntoClass[]
-     * Remplace les fonctions obsolètes findFilteredClassByActiveProjectOrderedById et findFilteredByActiveProjectOrderedById
+     *                     Remplace les fonctions obsolètes findFilteredClassByActiveProjectOrderedById et findFilteredByActiveProjectOrderedById
      */
-    public function findClassesByNamespacesId(array $namespacesId){
+    public function findClassesByNamespacesId(array $namespacesId)
+    {
         $qb = $this->findClassesByNamespacesIdQueryBuilder($namespacesId);
 
         $classes = $qb->getQuery()->execute();
@@ -70,15 +71,15 @@ class ClassRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findAncestorsById et findFilteredAncestorsById
+     *                                      Remplace les fonctions obsolètes findAncestorsById et findFilteredAncestorsById
      */
-    public function findAncestorsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findAncestorsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
         $sql = "WITH t_ascendants_classes AS(
 	                SELECT pk_parent,
                         parent_identifier,
@@ -109,7 +110,7 @@ class ClassRepository extends ServiceEntityRepository
                 AND t_ascendants_classes.fk_parent_namespace_for_version = nsp.pk_namespace 
                 AND t_ascendants_classes.pk_is_subclass_of = subcl.pk_is_subclass_of 
                 AND subcl.fk_parent_class_namespace = nsp_ascendant.pk_namespace 
-                AND subcl.fk_parent_class_namespace IN (".$in.")
+                AND subcl.fk_parent_class_namespace IN (".$in.')
                 GROUP BY t_ascendants_classes.pk_parent,
                 t_ascendants_classes.parent_identifier,
                 t_ascendants_classes.depth,
@@ -120,25 +121,25 @@ class ClassRepository extends ServiceEntityRepository
 		        t_ascendants_classes.ancestors,
 		        t_ascendants_classes.pk_ancestors,
 		        t_ascendants_classes.pk_version_ancestors
-                ORDER BY depth DESC;";
+                ORDER BY depth DESC;';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findDescendantsById et findFilteredDescendantsById
+     *                                      Remplace les fonctions obsolètes findDescendantsById et findFilteredDescendantsById
      */
-    public function findDescendantsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findDescendantsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = "SELECT pk_child AS id,
                   child_identifier AS identifier,
@@ -151,41 +152,41 @@ class ClassRepository extends ServiceEntityRepository
                   ARRAY_TO_STRING(descendants,'|') AS \"descendants\",
                   ARRAY_TO_STRING(pk_descendants,'|') AS \"pk_descendants\",
                   ARRAY_TO_STRING(pk_version_descendants,'|') AS \"pk_version_descendants\"
-                  FROM che.descendant_class_hierarchy(?, ARRAY[".$in."]::integer[]) cls,
+                  FROM che.descendant_class_hierarchy(?, ARRAY[".$in.']::integer[]) cls,
                   che.namespace nsp
                 WHERE nsp.pk_namespace = cls.fk_namespace_for_version
-                AND nsp.pk_namespace IN (".$in.")
-                AND cls.fk_namespace_for_version IN (".$in.")
+                AND nsp.pk_namespace IN ('.$in.')
+                AND cls.fk_namespace_for_version IN ('.$in.')
                 GROUP BY pk_child, child_identifier, depth, nsp.pk_namespace, che.get_root_namespace(nsp.pk_namespace), fk_namespace_for_version, descendants, pk_descendants, pk_version_descendants
-                ORDER BY depth ASC;";
+                ORDER BY depth ASC;';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, $namespacesId, $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param array $namespacesId
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
-     * Remplace les fonctions obsolètes findRelationsById et findFilteredRelationsById
+     *                                      Remplace les fonctions obsolètes findRelationsById et findFilteredRelationsById
      */
-    public function findRelationsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId){
+    public function findRelationsByClassVersionAndNamespacesId(OntoClassVersion $classVersion, array $namespacesId)
+    {
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
-        $in  = str_repeat('?,', count($namespacesId) - 1) . '?';
+        $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
-        $sql = "SELECT 
+        $sql = 'SELECT 
                 ea.pk_entity_association, 
                 ea.fk_target_class AS fk_related_class,
                 c.identifier_in_namespace,
                 cv.standard_label,
                 st.standard_label AS relation,
                 txtp.pk_text_property,
-                ns.pk_namespace AS \"rootNamespaceId\",
-                ns.standard_label AS \"standardLabelNamespace\"
+                ns.pk_namespace AS "rootNamespaceId",
+                ns.standard_label AS "standardLabelNamespace"
                 FROM che.entity_association ea 
                 JOIN che.system_type st ON ea.fk_system_type = st.pk_system_type 
                 JOIN che.class c ON ea.fk_target_class = c.pk_class
@@ -194,7 +195,7 @@ class ClassRepository extends ServiceEntityRepository
                 LEFT JOIN (SELECT * FROM che.text_property WHERE fk_text_property_type = 15) AS txtp ON txtp.fk_entity_association = ea.pk_entity_association
                 WHERE st.pk_system_type IN (4,19)
                 AND c.pk_class = ?
-                AND ea.fk_namespace_for_version IN (".$in.")
+                AND ea.fk_namespace_for_version IN ('.$in.')
                 UNION
                 SELECT 
                 ea.pk_entity_association,
@@ -203,8 +204,8 @@ class ClassRepository extends ServiceEntityRepository
                 cv.standard_label,
                 st.standard_label AS relation,
                 txtp.pk_text_property,
-                ns.pk_namespace AS \"rootNamespaceId\",
-                ns.standard_label AS \"standardLabelNamespace\" 
+                ns.pk_namespace AS "rootNamespaceId",
+                ns.standard_label AS "standardLabelNamespace" 
                 FROM che.entity_association ea 
                 JOIN che.system_type st ON ea.fk_system_type = st.pk_system_type 
                 JOIN che.class c ON ea.fk_source_class = c.pk_class
@@ -213,24 +214,26 @@ class ClassRepository extends ServiceEntityRepository
                 LEFT JOIN (SELECT * FROM che.text_property WHERE fk_text_property_type = 15) AS txtp ON txtp.fk_entity_association = ea.pk_entity_association
                 WHERE st.pk_system_type IN (4,19)
                 AND c.pk_class = ?
-                AND ea.fk_namespace_for_version IN (".$in.");";
+                AND ea.fk_namespace_for_version IN ('.$in.');';
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge(array($classVersion->getClass()->getId()), $namespacesId, array($classVersion->getClass()->getId()), $namespacesId));
+        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, [$classVersion->getClass()->getId()], $namespacesId));
 
         return $stmt->fetchAll();
     }
 
     /**
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesTree(){
+    public function findClassesTree()
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_classes_with_css_color(214) tree";
+        $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_classes_with_css_color(214) tree';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute();
@@ -239,46 +242,48 @@ class ClassRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param User $user
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findFilteredClassesTree(User $user){
+    public function findFilteredClassesTree(User $user)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_filtered_classes_with_css_color(214,:fk_user,:fk_project) tree";
+        $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_filtered_classes_with_css_color(214,:fk_user,:fk_project) tree';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('fk_user'=>$user->getId(),'fk_project'=>$user->getCurrentActiveProject()->getId()));
+        $stmt->execute(['fk_user' => $user->getId(), 'fk_project' => $user->getCurrentActiveProject()->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param $context
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesTreeLegend($context){
+    public function findClassesTreeLegend($context)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = :context ORDER BY notes) legend;";
+        $sql = 'SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = :context ORDER BY notes) legend;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('context' => $context));
+        $stmt->execute(['context' => $context]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param OntoClass $class
-     * @param OntoNamespace $namespace
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesGraphById(OntoClass $class, OntoNamespace $namespace){
+    public function findClassesGraphById(OntoClass $class, OntoNamespace $namespace)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -295,61 +300,64 @@ class ClassRepository extends ServiceEntityRepository
                 FROM che.get_classes_rows_for_graph(:class, :namespace)) result;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('class' => $class->getId(), 'namespace' => $namespace->getId()));
+        $stmt->execute(['class' => $class->getId(), 'namespace' => $namespace->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Project $project
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesByProjectId(Project $project){
+    public function findClassesByProjectId(Project $project)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_classes_all_profile_project WHERE pk_project = :project ) result;";
+        $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_classes_all_profile_project WHERE pk_project = :project ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Profile $profile
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesByProfileId(Profile $profile){
+    public function findClassesByProfileId(Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT pk_class AS id,
-                        class_standard_label AS \"standardLabel\",
-                        identifier_in_namespace AS \"identifierInNamespace\" ,
-                        namespace AS \"namespace\" ,
-                        profile_association_type AS \"associationType\",
-                        fk_class_namespace_for_version AS \"namespaceForVersion\",
-                        aspro.pk_associates_profile AS \"profileAssociationId\",
-                        COUNT(txtp.*) AS \"nbTxtpCustom\"
+        $sql = 'SELECT DISTINCT pk_class AS id,
+                        class_standard_label AS "standardLabel",
+                        identifier_in_namespace AS "identifierInNamespace" ,
+                        namespace AS "namespace" ,
+                        profile_association_type AS "associationType",
+                        fk_class_namespace_for_version AS "namespaceForVersion",
+                        aspro.pk_associates_profile AS "profileAssociationId",
+                        COUNT(txtp.*) AS "nbTxtpCustom"
                 FROM che.get_all_classes_for_profile(:profile)
                 LEFT JOIN che.associates_profile aspro ON aspro.fk_profile = :profile AND aspro.fk_class = pk_class 
                 LEFT JOIN che.text_property txtp ON txtp.fk_associates_profile = aspro.pk_associates_profile
-                GROUP BY pk_class, class_standard_label, identifier_in_namespace, namespace, profile_association_type, fk_class_namespace_for_version, pk_associates_profile;";
+                GROUP BY pk_class, class_standard_label, identifier_in_namespace, namespace, profile_association_type, fk_class_namespace_for_version, pk_associates_profile;';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('profile' => $profile->getId()));
+        $stmt->execute(['profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Profile $profile
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findClassesForAssociationWithProfileByProfileId(Profile $profile){
+    public function findClassesForAssociationWithProfileByProfileId(Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
@@ -364,22 +372,22 @@ class ClassRepository extends ServiceEntityRepository
                 SELECT pk_class, identifier_in_namespace, class_standard_label, fk_class_namespace_for_version, namespace
                 FROM che.get_all_classes_for_profile(:profile) WHERE profile_association_type = 'Selected';";
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('profile' => $profile->getId()));
+        $stmt->execute(['profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Profile $profile
-     * @param OntoClass $class
      * @return bool|string
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findInferredClassesByProfileAndClassId(Profile $profile, OntoClass $class){
+    public function findInferredClassesByProfileAndClassId(Profile $profile, OntoClass $class)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT cls.pk_class
+        $sql = 'SELECT DISTINCT cls.pk_class
                 FROM che.associates_profile aspro
                 JOIN che.property prop ON aspro.fk_property = prop.pk_property
                 JOIN che.property_version pv ON prop.pk_property = pv.fk_property
@@ -401,46 +409,45 @@ class ClassRepository extends ServiceEntityRepository
                 SELECT DISTINCT cls.pk_class
                 FROM che.associates_profile aspro
                 JOIN che.class cls ON aspro.fk_inheriting_range_class = cls.pk_class
-                WHERE aspro.fk_profile = :profile AND aspro.fk_property IS NOT NULL AND aspro.fk_system_type = 5 AND cls.pk_class = :class;";
+                WHERE aspro.fk_profile = :profile AND aspro.fk_property IS NOT NULL AND aspro.fk_system_type = 5 AND cls.pk_class = :class;';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('profile' => $profile->getId(), 'class' => $class->getId()));
+        $stmt->execute(['profile' => $profile->getId(), 'class' => $class->getId()]);
 
         return $stmt->fetchColumn();
     }
 
     /**
-     * @param Profile $profile
-     * @param OntoClass $domain
-     * @param OntoClass $range
-     * @param Property $property
-     * @param String $searchTerm
+     * @param string $searchTerm
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findDescendantsRangeByProfileAndDomainAndRangeId(Profile $profile, OntoClass $domain, OntoClass $range, Property $property, $searchTerm = null){
+    public function findDescendantsRangeByProfileAndDomainAndRangeId(Profile $profile, OntoClass $domain, OntoClass $range, Property $property, $searchTerm = null)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
         $namespacesId = new ArrayCollection();
-        foreach($profile->getNamespaces() as $namespace){
-            if(!$namespacesId->contains($namespace->getId())){
+        foreach ($profile->getNamespaces() as $namespace) {
+            if (!$namespacesId->contains($namespace->getId())) {
                 $namespacesId->add($namespace->getId());
             }
-            foreach ($namespace->getAllReferencedNamespaces() as $nsRef){
-                if(!$namespacesId->contains($nsRef->getId())){
+            foreach ($namespace->getAllReferencedNamespaces() as $nsRef) {
+                if (!$namespacesId->contains($nsRef->getId())) {
                     $namespacesId->add($nsRef->getId());
                 }
             }
         }
 
         $iLike = '';
-        $queryParams = array(
+        $queryParams = [
             'profile' => $profile->getId(),
             'domain' => $domain->getId(),
             'range' => $range->getId(),
             'property' => $property->getId(),
-        );
-        if(!empty($searchTerm)) {
+        ];
+        if (!empty($searchTerm)) {
             $iLike = ' AND text ILIKE :searchTerm';
             $queryParams['searchTerm'] = '%'.$searchTerm.'%';
         }
@@ -448,7 +455,7 @@ class ClassRepository extends ServiceEntityRepository
                 FROM (
                     SELECT DISTINCT pk_child AS id,
                                     che.get_root_namespace_prefix(che.get_root_namespace(cv.fk_namespace_for_version)) || ':' || child_identifier AS \"text\"
-                    FROM che.descendant_class_hierarchy (:range, ARRAY[".implode(',',$namespacesId->toArray())."]) cls
+                    FROM che.descendant_class_hierarchy (:range, ARRAY[".implode(',', $namespacesId->toArray())."]) cls
                     JOIN che.class_version cv ON cv.fk_class = cls.pk_child AND cv.fk_namespace_for_version IN (SELECT pk_namespace FROM che.get_all_references_namespaces_for_profile(:profile)) 
                     
                     EXCEPT 
@@ -464,9 +471,9 @@ class ClassRepository extends ServiceEntityRepository
                             AND   aspro.fk_inheriting_domain_class = :domain
                     ORDER BY id ASC) 
                 AS result
-                WHERE TRUE".$iLike.";";
+                WHERE TRUE".$iLike.';';
 
-        //echo $sql;die;
+        // echo $sql;die;
 
         $stmt = $conn->prepare($sql);
         $stmt->execute($queryParams);
@@ -475,38 +482,37 @@ class ClassRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param Profile $profile
-     * @param OntoClass $domain
-     * @param OntoClass $range
-     * @param Property $property
-     * @param String $searchTerm
+     * @param string $searchTerm
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
-    public function findDescendantsDomainByProfileAndDomainAndRangeId(Profile $profile, OntoClass $domain, OntoClass $range, Property $property, $searchTerm = null){
+    public function findDescendantsDomainByProfileAndDomainAndRangeId(Profile $profile, OntoClass $domain, OntoClass $range, Property $property, $searchTerm = null)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
         $namespacesId = new ArrayCollection();
-        foreach($profile->getNamespaces() as $namespace){
-            if(!$namespacesId->contains($namespace->getId())){
+        foreach ($profile->getNamespaces() as $namespace) {
+            if (!$namespacesId->contains($namespace->getId())) {
                 $namespacesId->add($namespace->getId());
             }
-            foreach ($namespace->getAllReferencedNamespaces() as $nsRef){
-                if(!$namespacesId->contains($nsRef->getId())){
+            foreach ($namespace->getAllReferencedNamespaces() as $nsRef) {
+                if (!$namespacesId->contains($nsRef->getId())) {
                     $namespacesId->add($nsRef->getId());
                 }
             }
         }
 
         $iLike = '';
-        $queryParams = array(
+        $queryParams = [
             'profile' => $profile->getId(),
             'domain' => $domain->getId(),
             'range' => $range->getId(),
-            'property' => $property->getId()
-        );
-        if(!empty($searchTerm)) {
+            'property' => $property->getId(),
+        ];
+        if (!empty($searchTerm)) {
             $iLike = ' AND text ILIKE :searchTerm';
             $queryParams['searchTerm'] = '%'.$searchTerm.'%';
         }
@@ -515,7 +521,7 @@ class ClassRepository extends ServiceEntityRepository
                 FROM (
                     SELECT DISTINCT pk_child AS id,
                                     che.get_root_namespace_prefix(che.get_root_namespace(cv.fk_namespace_for_version)) || ':' || child_identifier AS \"text\"
-                    FROM che.descendant_class_hierarchy (:domain, ARRAY[".implode(',',$namespacesId->toArray())."]) cls
+                    FROM che.descendant_class_hierarchy (:domain, ARRAY[".implode(',', $namespacesId->toArray())."]) cls
                     JOIN che.class_version cv ON cv.fk_class = cls.pk_child AND cv.fk_namespace_for_version IN (SELECT pk_namespace FROM che.get_all_references_namespaces_for_profile(:profile)) 
                     
                     EXCEPT 
@@ -533,7 +539,7 @@ class ClassRepository extends ServiceEntityRepository
                     ON cls.pk_class = cv.fk_class
                     ORDER BY id ASC) 
                 AS result
-                WHERE TRUE".$iLike.";";
+                WHERE TRUE".$iLike.';';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute($queryParams);
@@ -543,9 +549,9 @@ class ClassRepository extends ServiceEntityRepository
 
     /**
      * @param $lang string the language iso code
-     * @param $availableInProfile
-     * @param $selectedByProject
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findClassesWithProfileApi($lang, $availableInProfile, $selectedByProject)
@@ -553,21 +559,23 @@ class ClassRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_classes_list(:lang, :availableInProfile, :selectedByProject) ) result;";
+        $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_classes_list(:lang, :availableInProfile, :selectedByProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
             'availableInProfile' => $availableInProfile,
-            'selectedByProject' => $selectedByProject
-        ));
+            'selectedByProject' => $selectedByProject,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param $label string the label of the class to find
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findE55ChildClassesFromLabel($label)
@@ -588,16 +596,18 @@ class ClassRepository extends ServiceEntityRepository
                 ) result;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
-            'label' => '%'.$label.'%'
-        ));
+        $stmt->execute([
+            'label' => '%'.$label.'%',
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param $class integer the id of the class to find in the CRM E55 Type class descendants
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findE55ChildClasses($class)
@@ -605,15 +615,15 @@ class ClassRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT pk_child AS id
+        $sql = 'SELECT DISTINCT pk_child AS id
                 FROM che.descendant_class_hierarchy(53) cls, che.namespace nsp
                 WHERE nsp.pk_namespace = cls.fk_namespace_for_version AND pk_child = :class
-                GROUP BY pk_child;";
+                GROUP BY pk_child;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
-            'class' => $class
-        ));
+        $stmt->execute([
+            'class' => $class,
+        ]);
 
         return $stmt->fetchAll();
     }

@@ -15,7 +15,7 @@ class UserResetPasswordForm extends AbstractType
     {
         $builder
             ->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class
+                'type' => PasswordType::class,
             ]);
     }
 
@@ -23,7 +23,7 @@ class UserResetPasswordForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
-            'validation_groups' => ['Default', 'ResetPassword']
+            'validation_groups' => ['Default', 'ResetPassword'],
         ]);
     }
 }

@@ -1,23 +1,24 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 07/11/2022
- * Time: 15:34
+ * Time: 15:34.
  */
 
 namespace App\Controller;
 
-use App\Repository\ProjectRepository;
 use App\Entity\Project;
 use App\Entity\ProjectThesaurusAssociation;
 use App\Form\ProjectThesaurusAssociationForm;
-use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\ProjectRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 class ProjectThesaurusAssociationController extends AbstractController
 {
@@ -33,7 +34,9 @@ class ProjectThesaurusAssociationController extends AbstractController
      * @Route("/project-thesaurus-association/project/{projectId}/json",
      *     name="project_thesaurus_association_show_json",
      *     requirements={"projectId"="^[0-9]+$"}, methods={"GET"})
-     * @param int  $projectId    The id of the object
+     *
+     * @param int $projectId The id of the object
+     *
      * @return JsonResponse a Json formatted ProjectThesaurusAssociation list
      */
     public function getProjectThesaurusAssociationAction(string $projectId, ProjectRepository $projectRepository): JsonResponse
@@ -50,13 +53,14 @@ class ProjectThesaurusAssociationController extends AbstractController
                 'id' => $projectThesaurusAssociation->getId(),
                 'creator' => $projectThesaurusAssociation->getCreator(),
                 'thesaurusURL' => $projectThesaurusAssociation->getThesaurusURL(),
-                'creationTime' => $projectThesaurusAssociation->getCreationTime()->format('M d, Y')
+                'creationTime' => $projectThesaurusAssociation->getCreationTime()->format('M d, Y'),
             ];
         }
 
-        $data =[
-            'projectThesaurusAssociation' => $projectThesaurusAssociations
+        $data = [
+            'projectThesaurusAssociation' => $projectThesaurusAssociations,
         ];
+
         return new JsonResponse($data);
     }
 
@@ -75,7 +79,7 @@ class ProjectThesaurusAssociationController extends AbstractController
 
         $projectThesaurusAssociation->setProject($project);
 
-        //only managers and administrators can add a thesaurus to their project
+        // only managers and administrators can add a thesaurus to their project
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
         $projectThesaurusAssociation->setCreator($this->getUser());
@@ -104,7 +108,7 @@ class ProjectThesaurusAssociationController extends AbstractController
 
             $html = $this->renderView('projectThesaurusAssociation/new.html.twig', [
                 'projectThesaurusAssociation' => $projectThesaurusAssociation,
-                'projectThesaurusAssociationForm' => $form->createView()
+                'projectThesaurusAssociationForm' => $form->createView(),
             ]);
 
             try {
@@ -115,39 +119,39 @@ class ProjectThesaurusAssociationController extends AbstractController
                 $message = $e->getMessage();
             }
 
-            $response = array(
+            $response = [
                 'status' => $status,
                 'associationID' => $projectThesaurusAssociation->getId(),
                 'message' => $message,
-                'html' => $html
-            );
+                'html' => $html,
+            ];
 
             return new JsonResponse($response);
-
-        }
-        else if ($form->isSubmitted() && !$form->isValid()) {
+        } elseif ($form->isSubmitted() && !$form->isValid()) {
             $status = 'Error';
             $message = 'Invalid form validation';
             $html = $this->renderView('projectThesaurusAssociation/new.html.twig', [
                 'projectThesaurusAssociation' => $projectThesaurusAssociation,
-                'projectThesaurusAssociationForm' => $form->createView()
+                'projectThesaurusAssociationForm' => $form->createView(),
             ]);
-            $response = array(
+            $response = [
                 'status' => $status,
                 'message' => $message,
-                'html' => $html
-            );
+                'html' => $html,
+            ];
+
             return new JsonResponse($response);
         }
-        else return $this->render('projectThesaurusAssociation/new.html.twig', [
+
+        return $this->render('projectThesaurusAssociation/new.html.twig', [
             'projectThesaurusAssociation' => $projectThesaurusAssociation,
-            'projectThesaurusAssociationForm' => $form->createView()
+            'projectThesaurusAssociationForm' => $form->createView(),
         ]);
     }
 
     /**
      * @Route("/project-thesaurus-association/{id}/delete", name="project_thesaurus_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
-     * @param ProjectThesaurusAssociation $projectThesaurusAssociation
+     *
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteAction(ProjectThesaurusAssociation $projectThesaurusAssociation): JsonResponse
@@ -159,7 +163,7 @@ class ProjectThesaurusAssociationController extends AbstractController
         $em = $this->doctrine->getManager();
         $em->remove($projectThesaurusAssociation);
         $em->flush();
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
-
 }

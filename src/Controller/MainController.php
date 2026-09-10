@@ -1,25 +1,24 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 10/04/2017
- * Time: 11:08
+ * Time: 11:08.
  */
 
 namespace App\Controller;
 
 use App\Repository\LabelRepository;
-use App\Repository\TextPropertyRepository;
 use App\Repository\NamespaceRepository;
+use App\Repository\TextPropertyRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 class MainController extends AbstractController
 {
-
     public function homepageAction(): Response
     {
         return $this->render('main/homepage.html.twig');
@@ -45,9 +44,10 @@ class MainController extends AbstractController
      * @Route("/search")
      * @Route("/search/")
      * @Route("/search/{query}", name="search_query")
+     *
      * @param string $query
      */
-    public function searchAction($query="", TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository): Response
+    public function searchAction($query = '', TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository): Response
     {
         // Sécurité anti-injection SQL...
         $query_sanitized = filter_var($query, FILTER_SANITIZE_STRING);
@@ -58,44 +58,47 @@ class MainController extends AbstractController
 
         // Retrouver les termes qui ont été réellement comparées (pour information à l'utilisateur)
         $whatSearch = $textPropertyRepository->findWhatSearch($query_sanitized);
-        $arrayLexemes = array();
-        foreach($whatSearch as $wordSearch){
-            foreach($wordSearch as $word){
-                if($word != "")
+        $arrayLexemes = [];
+        foreach ($whatSearch as $wordSearch) {
+            foreach ($wordSearch as $word) {
+                if ($word != '') {
                     $arrayLexemes[] = $word;
+                }
             }
         }
-        return $this->render('main/search.html.twig', array('query' => $query_sanitized, 'resultatTxtp' => $resultatTxtp, 'resultatLbl' => $resultatLbl, 'lexemes' => $arrayLexemes));
+
+        return $this->render('main/search.html.twig', ['query' => $query_sanitized, 'resultatTxtp' => $resultatTxtp, 'resultatLbl' => $resultatLbl, 'lexemes' => $arrayLexemes]);
     }
 
     /**
      * @Route("/ns/{name}/{identifierInNamespace}")
+     *
      * @param string $name
      * @param string $identifierInNamespace
      */
     public function redirectUriAction($name, $identifierInNamespace, NamespaceRepository $namespaceRepository): RedirectResponse
     {
-
         // Sécurité anti-injection SQL...
         $name = filter_var($name, FILTER_SANITIZE_STRING);
         $identifierInNamespace = filter_var($identifierInNamespace, FILTER_SANITIZE_STRING);
 
-        $entity = $namespaceRepository->findEntity($name,$identifierInNamespace);
+        $entity = $namespaceRepository->findEntity($name, $identifierInNamespace);
 
-        if(count($entity) == 0 && substr($identifierInNamespace, -1) === "i"){
+        if (count($entity) == 0 && substr($identifierInNamespace, -1) === 'i') {
             // L'identifier n'a pas été retrouvé mais il se peut que ça soit l'identifiant d'une propriété inverse
             $identifierInNamespace = substr($identifierInNamespace, 0, -1); // Retire le i
-            $entity = $namespaceRepository->findEntity($name,$identifierInNamespace);
+            $entity = $namespaceRepository->findEntity($name, $identifierInNamespace);
         }
 
-        if(count($entity) == 0){
+        if (count($entity) == 0) {
             // Rien n'a été trouvé
-            $this->addFlash('warning', 'URI ontome.net/ns/'.$name."/".$identifierInNamespace." is not valid");
+            $this->addFlash('warning', 'URI ontome.net/ns/'.$name.'/'.$identifierInNamespace.' is not valid');
+
             return $this->redirectToRoute('home');
         }
 
         return $this->redirectToRoute($entity[0]['entity_type'].'_show', [
-            'id' => $entity[0]['entity_id']
+            'id' => $entity[0]['entity_id'],
         ]);
     }
 }

@@ -1,13 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 28/06/2017
- * Time: 15:50
+ * Time: 15:50.
  */
 
 namespace App\Controller;
-
 
 use App\Entity\EntityUserProjectAssociation;
 use App\Entity\Label;
@@ -17,8 +17,8 @@ use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\PropertyVersion;
 use App\Entity\ReferencedNamespaceAssociation;
-use App\Entity\TextProperty;
 use App\Entity\SystemType;
+use App\Entity\TextProperty;
 use App\Entity\UserProjectAssociation;
 use App\Form\NamespaceEditIdentifiersForm;
 use App\Form\NamespaceForm;
@@ -33,18 +33,18 @@ use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\SimpleType\VerticalJc;
 use PhpOffice\PhpWord\Style\Language;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class NamespaceController extends AbstractController
 {
@@ -62,10 +62,10 @@ class NamespaceController extends AbstractController
     public function listAction(NamespaceRepository $namespaceRepository): Response
     {
         $namespaces = $namespaceRepository->findAll();
-        //->findAllOrderedById();
+        // ->findAllOrderedById();
 
         return $this->render('namespace/list.html.twig', [
-            'namespaces' => $namespaces
+            'namespaces' => $namespaces,
         ]);
     }
 
@@ -74,10 +74,11 @@ class NamespaceController extends AbstractController
      */
     public function newNamespaceAction(Project $project, Request $request, TokenStorageInterface $tokenStorage, NamespaceRepository $namespaceRepository)
     {
-
         $tokenInterface = $tokenStorage->getToken();
         $isAuthenticated = $tokenInterface->isAuthenticated();
-        if (!$isAuthenticated) throw new AccessDeniedException('You must be an authenticated user to access this page.');
+        if (!$isAuthenticated) {
+            throw new AccessDeniedException('You must be an authenticated user to access this page.');
+        }
 
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
@@ -91,8 +92,8 @@ class NamespaceController extends AbstractController
         $ongoingNamespaceLabel = new Label();
 
         $em = $this->doctrine->getManager();
-        $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); //systemType 16 = Description
-        $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); //systemType 2 = Contributors
+        $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); // systemType 16 = Description
+        $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); // systemType 2 = Contributors
 
         $description = new TextProperty();
         $description->setNamespace($namespace);
@@ -134,7 +135,7 @@ class NamespaceController extends AbstractController
         // only handles data on POST
         $form->handleRequest($request);
 
-        //Vérification si le label n'a jamais été utilisé ailleurs
+        // Vérification si le label n'a jamais été utilisé ailleurs
         $isLabelValid = true;
         if ($form->isSubmitted()) {
             $labels = $form->get('labels');
@@ -163,7 +164,7 @@ class NamespaceController extends AbstractController
             $namespace->setCurrentPropertyNumber(0);
 
             // Ajout des namespaces références si choisi(s)
-            $referencesNamespaces = json_decode($form->get("referenceNamespaces")->getData());
+            $referencesNamespaces = json_decode($form->get('referenceNamespaces')->getData());
             if (!is_null($referencesNamespaces)) {
                 foreach ($referencesNamespaces as $referenceNamespace => $labelNamespace) {
                     $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
@@ -179,14 +180,14 @@ class NamespaceController extends AbstractController
                 }
             }
 
-            //just in case, we set the domain to ontome.net for non external namespaces
+            // just in case, we set the domain to ontome.net for non external namespaces
             if (!$namespace->getIsExternalNamespace() && strpos($namespace->getNamespaceURI(), 'https://ontome.net/ns') !== 0) {
                 $u = parse_url($namespace->getNamespaceURI());
-                $uri = 'https://ontome.net/ns' . $u['path']; //if the user tries to change the domain, we force it to be ontome.net
+                $uri = 'https://ontome.net/ns'.$u['path']; // if the user tries to change the domain, we force it to be ontome.net
                 $namespace->setNamespaceURI($uri);
             }
 
-            //$ongoingNamespace->setNamespaceURI($namespace->getNamespaceURI());
+            // $ongoingNamespace->setNamespaceURI($namespace->getNamespaceURI());
             $ongoingNamespace->setIsExternalNamespace($namespace->getIsExternalNamespace());
             $ongoingNamespace->setIsTopLevelNamespace(false);
             $ongoingNamespace->setIsOngoing(true);
@@ -199,7 +200,7 @@ class NamespaceController extends AbstractController
             $ongoingNamespace->setModificationTime(new \DateTime('now'));
 
             $ongoingNamespaceLabel->setIsStandardLabelForLanguage(true);
-            $ongoingNamespaceLabel->setLabel($namespaceLabel->getLabel() . ' ongoing');
+            $ongoingNamespaceLabel->setLabel($namespaceLabel->getLabel().' ongoing');
             $ongoingNamespaceLabel->setLanguageIsoCode($namespaceLabel->getLanguageIsoCode());
             $ongoingNamespaceLabel->setCreator($this->getUser());
             $ongoingNamespaceLabel->setModifier($this->getUser());
@@ -210,7 +211,7 @@ class NamespaceController extends AbstractController
             $ongoingDescription->setNamespace($ongoingNamespace);
             $ongoingNamespace->addTextProperty($ongoingDescription);
 
-            $contributors = $form->get("contributors")->getData();
+            $contributors = $form->get('contributors')->getData();
             $contributors->setNamespace($ongoingNamespace);
             $contributors->setSystemType($systemTypeContributors);
             $contributors->setCreator($this->getUser());
@@ -223,7 +224,7 @@ class NamespaceController extends AbstractController
             $userProjectAssociations = $em->getRepository(UserProjectAssociation::class)->findByProject($project);
             foreach ($userProjectAssociations as $userProjectAssociation) {
                 $eupa = new EntityUserProjectAssociation();
-                $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                 $eupa->setNamespace($ongoingNamespace);
                 $eupa->setUserProjectAssociation($userProjectAssociation);
                 $eupa->setSystemType($systemTypeSelected);
@@ -239,14 +240,12 @@ class NamespaceController extends AbstractController
             $em->persist($ongoingNamespace);
             $em->flush();
 
-
             return $this->redirectToRoute('namespace_edit', [
-                'id' => $ongoingNamespace->getId()
+                'id' => $ongoingNamespace->getId(),
             ]);
-
         }
 
-        $rootNamespaces = $namespaceRepository->findBy(array("isTopLevelNamespace" => true), array("standardLabel" => "ASC"));
+        $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true], ['standardLabel' => 'ASC']);
         $rootNamespaces = array_filter($rootNamespaces, function ($v) {
             return $v->getId() != 5;
         });
@@ -254,33 +253,36 @@ class NamespaceController extends AbstractController
         return $this->render('namespace/new.html.twig', [
             'namespace' => $namespace,
             'namespaceForm' => $form->createView(),
-            'rootNamespaces' => $rootNamespaces
+            'rootNamespaces' => $rootNamespaces,
         ]);
     }
 
     /**
      * @Route("/namespace/{id}", name="namespace_show", requirements={"id"="^([0-9]+)|(selectedValue|refId|namespaceId){1}$"})
-     * @param OntoNamespace $namespace
+     *
      * @return Response the rendered template
      */
     public function showAction(OntoNamespace $namespace, TextPropertyRepository $textPropertyRepository): Response
     {
-        $textProperties = $textPropertyRepository->findBy(array("namespaceForVersion" => $namespace->getId()));
-        return $this->render('namespace/show.html.twig', array(
+        $textProperties = $textPropertyRepository->findBy(['namespaceForVersion' => $namespace->getId()]);
+
+        return $this->render('namespace/show.html.twig', [
             'namespace' => $namespace,
-            'textProperties' => $textProperties
-        ));
+            'textProperties' => $textProperties,
+        ]);
     }
 
     /**
      * @Route("/namespace/{id}/edit", name="namespace_edit", requirements={"id"="^[0-9]+$"})
+     *
      * @param string $namespace
+     *
      * @return Response the rendered template
      */
     public function editAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, TextPropertyRepository $textPropertyRepository)
     {
         if (is_null($namespace)) {
-            throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
+            throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
         }
 
         $this->denyAccessUnlessGranted('edit', $namespace);
@@ -299,10 +301,9 @@ class NamespaceController extends AbstractController
             return $v->getId() != 5;
         });
 
-        $textProperties = $textPropertyRepository->findBy(array("namespaceForVersion" => $namespace->getId()));
+        $textProperties = $textPropertyRepository->findBy(['namespaceForVersion' => $namespace->getId()]);
 
         if ($this->isGranted('full_edit', $namespace)) {
-
             $ongoingNamespaceHasChanged = $namespaceRepository->checkNamespaceChange($namespace);
 
             $isRoot = $namespace->getIsTopLevelNamespace();
@@ -319,13 +320,13 @@ class NamespaceController extends AbstractController
                 $em->merge($namespace);
                 if (!$namespace->getIsExternalNamespace() && strpos($namespace->getNamespaceURI(), 'https://ontome.net/ns') !== 0) {
                     $u = parse_url($namespace->getNamespaceURI());
-                    $uri = 'https://ontome.net/ns' . $u['path']; //if the user tries to change the domain, we force it to be ontome.net
+                    $uri = 'https://ontome.net/ns'.$u['path']; // if the user tries to change the domain, we force it to be ontome.net
                     $namespace->setNamespaceURI($uri);
                 }
                 $namespace->setModifier($this->getUser());
                 $em->persist($namespace);
 
-                //update URI and isExternalNamespace values for child namespaces
+                // update URI and isExternalNamespace values for child namespaces
 
                 if ($namespace->getIsTopLevelNamespace()) {
                     foreach ($namespace->getChildVersions() as $childNamespace) {
@@ -342,25 +343,25 @@ class NamespaceController extends AbstractController
                 $this->addFlash('success', 'Namespace Updated!');
 
                 return $this->redirectToRoute('namespace_edit', [
-                    'id' => $namespace->getId()
+                    'id' => $namespace->getId(),
                 ]);
             }
             $formIdentifiers = $this->createForm(NamespaceEditIdentifiersForm::class, $namespace);
             $formIdentifiers->handleRequest($request);
             if ($formIdentifiers->isSubmitted() && $formIdentifiers->isValid()) {
-
                 $em = $this->doctrine->getManager();
                 $em->persist($namespace);
                 $em->flush();
 
                 $this->addFlash('success', 'Namespace identifiers updated!');
+
                 return $this->redirectToRoute('namespace_edit', [
                     'id' => $namespace->getId(),
-                    '_fragment' => 'identifiers'
+                    '_fragment' => 'identifiers',
                 ]);
             }
 
-            $formUriParameter = $this->createForm(NamespaceUriParameterForm::class, $namespace, array('default_choice' => $namespace->getUriParameter()));
+            $formUriParameter = $this->createForm(NamespaceUriParameterForm::class, $namespace, ['default_choice' => $namespace->getUriParameter()]);
             $formUriParameter->handleRequest($request);
             if ($formUriParameter->isSubmitted() && $formUriParameter->isValid()) {
                 $em = $this->doctrine->getManager();
@@ -381,9 +382,10 @@ class NamespaceController extends AbstractController
                 $em->flush();
 
                 $this->addFlash('success', 'Namespace uri parameter updated!');
+
                 return $this->redirectToRoute('namespace_edit', [
                     'id' => $namespace->getId(),
-                    '_fragment' => 'identifiers'
+                    '_fragment' => 'identifiers',
                 ]);
             }
 
@@ -396,44 +398,44 @@ class NamespaceController extends AbstractController
                 'textProperties' => $textProperties,
                 'hasChanged' => $ongoingNamespaceHasChanged,
             ]);
-        } else {
-            return $this->render('namespace/edit.html.twig', [
-                'namespaceForm' => null,
-                'namespace' => $namespace,
-                'rootNamespaces' => $rootNamespaces,
-                'textProperties' => $textProperties,
-                'hasChanged' => null,
-            ]);
         }
+
+        return $this->render('namespace/edit.html.twig', [
+            'namespaceForm' => null,
+            'namespace' => $namespace,
+            'rootNamespaces' => $rootNamespaces,
+            'textProperties' => $textProperties,
+            'hasChanged' => null,
+        ]);
     }
 
     /**
      * @Route("/namespace/{id}/publish", name="namespace_publication", requirements={"id"="^[0-9]+$"})
-     * @param OntoNamespace $namespace
+     *
      * @return Response the rendered template
      */
     public function publishAction(OntoNamespace $namespace, Request $request): Response
     {
         if (is_null($namespace)) {
-            throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
+            throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
         }
 
         $this->denyAccessUnlessGranted('publish', $namespace);
 
-        return $this->render('namespace/publish.html.twig', array(
-            'namespace' => $namespace
-        ));
+        return $this->render('namespace/publish.html.twig', [
+            'namespace' => $namespace,
+        ]);
     }
 
     /**
      * @Route("/namespace/{id}/validate-publication", name="namespace_validate_publication", requirements={"id"="^[0-9]+$"})
-     * @param OntoNamespace $namespace
+     *
      * @return Response the rendered template
      */
     public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository): RedirectResponse
     {
         if (is_null($namespace)) {
-            throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
+            throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
         }
 
         $this->denyAccessUnlessGranted('publish', $namespace);
@@ -466,30 +468,28 @@ class NamespaceController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('namespace_show', [
-            'id' => $newNamespaceId
+            'id' => $newNamespaceId,
         ]);
     }
 
     /**
      * @Route("/namespace/{id}/toggle-automatic-identifier-management", name="namespace_toggle_identifier_management", requirements={"id"="^[0-9]+$"}, methods={"POST"})
-     * @param OntoNamespace $namespace
-     * @return JsonResponse
      */
     public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request): JsonResponse
     {
         if (is_null($namespace)) {
-            throw $this->createNotFoundException('The namespace n° ' . $namespace->getId() . ' does not exist. Please contact an administrator.');
+            throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
         }
 
         if (!$namespace->getIsTopLevelNamespace()) {
-            throw $this->createAccessDeniedException('The namespace n° ' . $namespace->getId() . ' is not root and can\'t manage identifiers. Please contact an administrator.');
+            throw $this->createAccessDeniedException('The namespace n° '.$namespace->getId().' is not root and can\'t manage identifiers. Please contact an administrator.');
         }
 
         $this->denyAccessUnlessGranted('edit', $namespace);
 
         if (is_null($namespace->getClassPrefix()) && is_null($namespace->getPropertyPrefix())) {
-            $namespace->setClassPrefix("C");
-            $namespace->setPropertyPrefix("P");
+            $namespace->setClassPrefix('C');
+            $namespace->setPropertyPrefix('P');
         } else {
             $namespace->setClassPrefix(null);
             $namespace->setPropertyPrefix(null);
@@ -504,12 +504,14 @@ class NamespaceController extends AbstractController
         $em->persist($namespace);
         $em->flush();
 
-        return new JsonResponse("", Response::HTTP_NO_CONTENT, array(), true);
+        return new JsonResponse('', Response::HTTP_NO_CONTENT, [], true);
     }
 
     /**
      * @Route("/namespace/root-namespace/{id}/json", name="namespaces_by_root_id_list_json", requirements={"id"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
+     *
      * @param OntoNamespace $rootNamespace The root namespace
+     *
      * @return JsonResponse a Json formatted namespaces list
      */
     public function getNamespacesByRootNamespaceID(OntoNamespace $rootNamespace): JsonResponse
@@ -522,10 +524,10 @@ class NamespaceController extends AbstractController
             $user = $this->getUser();
             foreach ($rootNamespace->getChildVersions()->filter(function ($v) use ($user) {
                 return $v->getIsVisible() or $v->getProjectForTopLevelNamespace()->getuserProjectAssociations()->filter(function ($v) use ($user) {
-                        return $v->getUser() == $user;
-                    })->count() == 1;
+                    return $v->getUser() == $user;
+                })->count() == 1;
             }) as $namespace) {
-                $referencedNamespaces = array();
+                $referencedNamespaces = [];
                 foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
                     $referencedNamespaces[$referencedNamespace->getTopLevelNamespace()->getId()] = [$referencedNamespace->getId(), $referencedNamespace->getStandardLabel()];
                 }
@@ -544,7 +546,7 @@ class NamespaceController extends AbstractController
                     'standardLabel' => $namespace->getStandardLabel(),
                     'topLevelNamespaceId' => $namespace->getTopLevelNamespace()->getId(),
                     'warningOngoing' => $warningOngoing,
-                    'referencedNamespaces' => $referencedNamespaces
+                    'referencedNamespaces' => $referencedNamespaces,
                 ];
             }
         } else {
@@ -552,19 +554,20 @@ class NamespaceController extends AbstractController
             $message = 'This namespace is not a top level namespace';
         }
 
-
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'namespaces' => $namespaces
-        );
+            'namespaces' => $namespaces,
+        ];
 
         return new JsonResponse($response);
     }
 
     /**
      * @Route("/namespace/profile/{id}/json", name="root_namespaces_list_for_profile_json", requirements={"id"="^[0-9]+$"}, methods={"GET"})
+     *
      * @param Profile $profile The profile to be associated with a namespace
+     *
      * @return JsonResponse a Json formatted namespaces list
      */
     public function getRootNamespacesForAssociationWithProfile(Profile $profile, NamespaceRepository $namespaceRepository): JsonResponse
@@ -579,32 +582,35 @@ class NamespaceController extends AbstractController
             $message = 'This profile cannot be associated with another namespace';
         }
 
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'namespaces' => $rootNamespaces
-        );
+            'namespaces' => $rootNamespaces,
+        ];
 
         return new JsonResponse($response);
     }
 
     /**
      * @Route("/namespace/{id}/json", name="namespace_json", schemes={"https"}, requirements={"id"="^[0-9]+"}, methods={"GET"})
-     * @param OntoNamespace $namespace
+     *
      * @return JsonResponse a Json formatted graph representation of Namespaces
      */
     public function getGraphJson(OntoNamespace $namespace, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $namespaces = $namespaceRepository->findNamespacesGraph($namespace);
 
-        return new JsonResponse($namespaces[0]['json'], Response::HTTP_OK, array(), true);
+        return new JsonResponse($namespaces[0]['json'], Response::HTTP_OK, [], true);
     }
 
     /**
      * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add", name="namespace_referenced_namespace_association", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     * @param OntoNamespace $namespace The namespace to be associated with a referenced namespace
+     *
+     * @param OntoNamespace $namespace           The namespace to be associated with a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be associated with a namespace
+     *
      * @return JsonResponse a Json formatted namespaces list
+     *
      * @throws \Exception in case of unsuccessful association
      */
     public function newReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
@@ -614,12 +620,12 @@ class NamespaceController extends AbstractController
         $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
-            ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
+            ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
 
         if ($namespace->getIsTopLevelNamespace()) {
             $status = 'Error';
             $message = 'This namespace is not valid';
-        } else if (!is_null($referencedNamespaceAssociation)) {
+        } elseif (!is_null($referencedNamespaceAssociation)) {
             $status = 'Error';
             $message = 'This namespace is already associated with a referenced namespace';
         } else {
@@ -633,27 +639,25 @@ class NamespaceController extends AbstractController
 
             $em->persist($referencedNamespaceAssociation);
             $em->flush();
-            
+
             $status = 'Success';
             $message = 'Namespace successfully associated';
         }
 
-
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'nbchildversions' => count($referencedNamespace->getTopLevelNamespace()->getChildVersions())
-        );
+            'nbchildversions' => count($referencedNamespace->getTopLevelNamespace()->getChildVersions()),
+        ];
 
         return new JsonResponse($response);
-
     }
 
     /**
      * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete", name="namespace_referenced_namespace_disassociation", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     * @param OntoNamespace $namespace The namespace to be disassociated from a referenced namespace
+     *
+     * @param OntoNamespace $namespace           The namespace to be disassociated from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be disassociated from a namespace
-     * @return JsonResponse
      */
     public function deleteReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
@@ -662,27 +666,26 @@ class NamespaceController extends AbstractController
         $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
-            ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
+            ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
 
         $em->remove($referencedNamespaceAssociation);
         $em->flush();
 
         $rootNamespaceReselectable = $referencedNamespace->getTopLevelNamespace();
 
-        $response = array(
+        $response = [
             'idRoot' => $rootNamespaceReselectable->getId(),
-            'labelRoot' => $rootNamespaceReselectable->getStandardLabel()
-        );
+            'labelRoot' => $rootNamespaceReselectable->getStandardLabel(),
+        ];
 
         return new JsonResponse($response);
-
     }
 
     /**
      * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change", name="namespace_referenced_namespace_change", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(oldRefNsId){1}$", "newReferencedNamespace"="^([0-9]+)|(newRefNsId){1}$"}, methods={"GET"})
-     * @param OntoNamespace $namespace The namespace to be changed from a referenced namespace
+     *
+     * @param OntoNamespace $namespace           The namespace to be changed from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be changed from a namespace
-     * @return JsonResponse
      */
     public function changeReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request): JsonResponse
     {
@@ -691,7 +694,7 @@ class NamespaceController extends AbstractController
         $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
-            ->findOneBy(array('namespace' => $namespace, 'referencedNamespace' => $referencedNamespace));
+            ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
 
         $referencedNamespaceAssociation->setReferencedNamespace($newReferencedNamespace);
 
@@ -702,18 +705,18 @@ class NamespaceController extends AbstractController
         foreach ($namespace->getClassAssociations() as $classAssociation) {
             // Parent
             if ($classAssociation->getParentClassNamespace() == $referencedNamespace) {
-                //Verifier si la classe parente existe dans la nouvelle référence
+                // Verifier si la classe parente existe dans la nouvelle référence
                 if ($classAssociation->getParentClass()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Elle existe, on peut modifier la classAssociation
+                    // Elle existe, on peut modifier la classAssociation
                     $classAssociation->setParentClassNamespace($newReferencedNamespace);
                 }
             }
 
             // Child
             if ($classAssociation->getChildClassNamespace() == $referencedNamespace) {
-                //Verifier si la classe child existe dans la nouvelle référence
+                // Verifier si la classe child existe dans la nouvelle référence
                 if ($classAssociation->getChildClass()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Elle existe, on peut modifier la classAssociation
+                    // Elle existe, on peut modifier la classAssociation
                     $classAssociation->setChildClassNamespace($newReferencedNamespace);
                 }
             }
@@ -723,18 +726,18 @@ class NamespaceController extends AbstractController
         foreach ($namespace->getPropertyAssociations() as $propertyAssociation) {
             // Parent
             if ($propertyAssociation->getParentPropertyNamespace() == $referencedNamespace) {
-                //Verifier si la propriété parente existe dans la nouvelle référence
+                // Verifier si la propriété parente existe dans la nouvelle référence
                 if ($propertyAssociation->getParentProperty()->getPropertyVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Elle existe, on peut modifier la propertyAssociation
+                    // Elle existe, on peut modifier la propertyAssociation
                     $propertyAssociation->setParentPropertyNamespace($newReferencedNamespace);
                 }
             }
 
             // Child
             if ($propertyAssociation->getChildPropertyNamespace() == $referencedNamespace) {
-                //Verifier si la propriété child existe dans la nouvelle référence
+                // Verifier si la propriété child existe dans la nouvelle référence
                 if ($propertyAssociation->getChildProperty()->getPropertyVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Elle existe, on peut modifier la propertyAssociation
+                    // Elle existe, on peut modifier la propertyAssociation
                     $propertyAssociation->setChildPropertyNamespace($newReferencedNamespace);
                 }
             }
@@ -744,18 +747,18 @@ class NamespaceController extends AbstractController
         foreach ($namespace->getPropertyVersions() as $propertyVersion) {
             // Domain
             if ($propertyVersion->getDomainNamespace() == $referencedNamespace) {
-                //Verifier si le domain existe dans la nouvelle référence
+                // Verifier si le domain existe dans la nouvelle référence
                 if ($propertyVersion->getDomain()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Il existe, on peut modifier la propriété
+                    // Il existe, on peut modifier la propriété
                     $propertyVersion->setDomainNamespace($newReferencedNamespace);
                 }
             }
 
             // Range
             if ($propertyVersion->getRangeNamespace() == $referencedNamespace) {
-                //Verifier si la range existe dans la nouvelle référence
+                // Verifier si la range existe dans la nouvelle référence
                 if ($propertyVersion->getRange()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
-                    //Elle existe, on peut modifier la propriété
+                    // Elle existe, on peut modifier la propriété
                     $propertyVersion->setRangeNamespace($newReferencedNamespace);
                 }
             }
@@ -763,9 +766,9 @@ class NamespaceController extends AbstractController
 
         // Relations
         foreach ($namespace->getEntityAssociations() as $relation) {
-            //Source
+            // Source
             if ($relation->getSourceNamespaceForVersion() == $referencedNamespace) {
-                //Verifier si la classe ou propriété source existe dans la nouvelle référence
+                // Verifier si la classe ou propriété source existe dans la nouvelle référence
                 if (!is_null($relation->getSourceClass()) && $relation->getSource()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
                     $relation->setSourceNamespaceForVersion($newReferencedNamespace);
                 }
@@ -774,9 +777,9 @@ class NamespaceController extends AbstractController
                 }
             }
 
-            //Target
+            // Target
             if ($relation->getTargetNamespaceForVersion() == $referencedNamespace) {
-                //Verifier si la classe ou propriété target existe dans la nouvelle référence
+                // Verifier si la classe ou propriété target existe dans la nouvelle référence
                 if (!is_null($relation->getSourceClass()) && $relation->getTarget()->getClassVersionForDisplay($newReferencedNamespace)->getNamespaceForVersion() == $newReferencedNamespace) {
                     $relation->setTargetNamespaceForVersion($newReferencedNamespace);
                 }
@@ -788,37 +791,37 @@ class NamespaceController extends AbstractController
 
         $em->flush();
 
-        $response = array();
+        $response = [];
 
         return new JsonResponse($response);
-
     }
 
     /**
      * @Route("/namespace/{namespace}/choices", name="get_choices_namespaces", requirements={"namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
+     *
      * @param OntoNamespace $namespace The namespace
+     *
      * @return JsonResponse
-     * Cette fonction retrouve les espaces de noms soeurs
+     *                      Cette fonction retrouve les espaces de noms soeurs
      */
     public function getChoicesNamespaceAssociation(OntoNamespace $namespace): JsonResponse
     {
         $rootNamespace = $namespace->getTopLevelNamespace();
 
-        $childVersions = array();
+        $childVersions = [];
         foreach ($rootNamespace->getChildVersions() as $childVersion) {
             $childVersions[$childVersion->getId()] = $childVersion->getStandardLabel();
         }
 
-        $response = array("rootNamespaceChildVersions" => $childVersions);
+        $response = ['rootNamespaceChildVersions' => $childVersions];
 
         return new JsonResponse($response);
-
     }
 
     /**
      * @Route("/namespace/{namespace}/document", name="namespace_document", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$"}, methods={"GET"})
+     *
      * @param OntoNamespace $namespace The namespace
-     * @return BinaryFileResponse
      */
     public function getNamespaceOdt(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): BinaryFileResponse
     {
@@ -827,30 +830,31 @@ class NamespaceController extends AbstractController
             $string = htmlspecialchars_decode($string, ENT_QUOTES);
             $string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
             if ($forHTML) {
-                $string = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $string;
+                $string = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$string;
             }
+
             return $string;
         }
 
-        $optionCardinality = $request->get('optCardinality', 'cardinality-opt-uml'); //cardinality-opt-er est l'autre option
-        $optionTextCardinality = filter_var($request->get('optTextCardinality', true), FILTER_VALIDATE_BOOLEAN);; //false est l'autre option
-        $optionFol = filter_var($request->get('optFol', true), FILTER_VALIDATE_BOOLEAN);; //false est l'autre option
+        $optionCardinality = $request->get('optCardinality', 'cardinality-opt-uml'); // cardinality-opt-er est l'autre option
+        $optionTextCardinality = filter_var($request->get('optTextCardinality', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
+        $optionFol = filter_var($request->get('optFol', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
 
         $allNamespacesReferences = $namespace->getAllReferencedNamespaces();
         $allNamespacesReferences->add($namespace);
-        $allNamespacesReferences->add($namespaceRepository->findOneBy(array('id' => 4)));
-        //var_dump($allNamespacesReferences->map(function($v){return $v->getId();})->toArray()); die;
+        $allNamespacesReferences->add($namespaceRepository->findOneBy(['id' => 4]));
+        // var_dump($allNamespacesReferences->map(function($v){return $v->getId();})->toArray()); die;
 
         foreach ($namespace->getTextProperties()->filter(function ($v) {
             return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
         }) as $textProperty) {
-            if ($textProperty->getSystemType()->getId() == 2 and $textProperty->getLanguageIsoCode() == "en") {
+            if ($textProperty->getSystemType()->getId() == 2 and $textProperty->getLanguageIsoCode() == 'en') {
                 $textp_contributors = $textProperty;
             }
             if ($textProperty->getSystemType()->getId() == 2 and !isset($textp_contributors)) {
                 $textp_contributors = $textProperty;
             }
-            if ($textProperty->getSystemType()->getId() == 16 and $textProperty->getLanguageIsoCode() == "en") {
+            if ($textProperty->getSystemType()->getId() == 16 and $textProperty->getLanguageIsoCode() == 'en') {
                 $textp_definition = $textProperty;
             }
             if ($textProperty->getSystemType()->getId() == 16 and !isset($textp_definition)) {
@@ -865,67 +869,67 @@ class NamespaceController extends AbstractController
         $phpWord = new \PhpOffice\PhpWord\PhpWord();
         \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
         $phpWord->getSettings()->setThemeFontLang(new Language(Language::EN_GB));
-        $phpWord->setDefaultFontName("Times New Roman");
+        $phpWord->setDefaultFontName('Times New Roman');
 
         // STYLES
         $paragrapheCentre = 'pCentre';
-        $phpWord->addParagraphStyle($paragrapheCentre, array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
-        $phpWord->addTitleStyle(1, array('bold' => true, 'size' => 20), array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER));
-        $phpWord->addTitleStyle(2, array('bold' => true, 'size' => 18));
-        $phpWord->addTitleStyle(3, array('bold' => true, 'size' => 16));
+        $phpWord->addParagraphStyle($paragrapheCentre, ['alignment' => Jc::CENTER]);
+        $phpWord->addTitleStyle(1, ['bold' => true, 'size' => 20], ['alignment' => Jc::CENTER]);
+        $phpWord->addTitleStyle(2, ['bold' => true, 'size' => 18]);
+        $phpWord->addTitleStyle(3, ['bold' => true, 'size' => 16]);
 
-        $phpWord->addFontStyle("gras", array('bold' => true));
-        $phpWord->addFontStyle("italic11", array('italic' => true, 'size' => 11));
+        $phpWord->addFontStyle('gras', ['bold' => true]);
+        $phpWord->addFontStyle('italic11', ['italic' => true, 'size' => 11]);
 
         $fancyTableStyleName2 = 'Fancy Table 2';
-        $fancyTableStyle = array('borderSize' => 1, 'borderColor' => '000000', 'unit' => \PhpOffice\PhpWord\SimpleType\TblWidth::TWIP);
-        $fancyTableFirstRowStyle = array();
+        $fancyTableStyle = ['borderSize' => 1, 'borderColor' => '000000', 'unit' => \PhpOffice\PhpWord\SimpleType\TblWidth::TWIP];
+        $fancyTableFirstRowStyle = [];
         $phpWord->addTableStyle($fancyTableStyleName2, $fancyTableStyle, $fancyTableFirstRowStyle);
 
         // Couverture
-        $section = $phpWord->addSection(array('vAlign' => VerticalJc::CENTER));
-        //-- Definition of
-        $section->addTitle('Definition of ' . $namespace->getStandardLabel(), 1);
+        $section = $phpWord->addSection(['vAlign' => VerticalJc::CENTER]);
+        // -- Definition of
+        $section->addTitle('Definition of '.$namespace->getStandardLabel(), 1);
         $section->addTextBreak(10);
-        //-- Version
+        // -- Version
         if (isset($textp_version)) {
-            $section->addText('Version: ' . specialCharactersConversion($textp_version->getTextProperty()), null, $paragrapheCentre);
+            $section->addText('Version: '.specialCharactersConversion($textp_version->getTextProperty()), null, $paragrapheCentre);
             $section->addTextBreak(1);
         }
-        //-- Date
-        $namespaceStatut = "Published";
+        // -- Date
+        $namespaceStatut = 'Published';
         $namespaceDate = $namespace->getPublishedAt();
         if ($namespace->getIsOngoing() or is_null($namespaceDate)) {
-            $namespaceStatut = "Ongoing";
+            $namespaceStatut = 'Ongoing';
             $namespaceDate = new \DateTime();
         }
-        $section->addText(date_format($namespaceDate, "Y/m/d"), null, $paragrapheCentre);
+        $section->addText(date_format($namespaceDate, 'Y/m/d'), null, $paragrapheCentre);
         $section->addTextBreak(5);
-        //-- Contributors
+        // -- Contributors
         if (isset($textp_contributors)) {
-            //$string = htmlentities($textp_contributors->getTextProperty());
-            //$string = str_replace($allowedTagsEncoded, $allowedTagsDecoded, $string);
+            // $string = htmlentities($textp_contributors->getTextProperty());
+            // $string = str_replace($allowedTagsEncoded, $allowedTagsDecoded, $string);
             $string = specialCharactersConversion($textp_contributors->getTextProperty());
-            $section->addText("Contributors: " . strip_tags($string), null, $paragrapheCentre);
+            $section->addText('Contributors: '.strip_tags($string), null, $paragrapheCentre);
         }
         $section->addTextBreak(15);
-        //-- Licence
+        // -- Licence
         $section->addText('License information: Creative Commons Licence Attribution-ShareAlike 4.0 International', null, $paragrapheCentre);
-        $txtrun = $section->addTextRun(array('alignment' => Jc::CENTER));
+        $txtrun = $section->addTextRun(['alignment' => Jc::CENTER]);
         $txtrun->addText('Exported from OntoME: ');
-        $txtrun->addText('https://ontome.net/namespace/' . $namespace->getId());
+        $txtrun->addText('https://ontome.net/namespace/'.$namespace->getId());
 
         $centerTableStyleName = 'Center Table';
-        $centerTableStyle = array('alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER);
-        $centerTableStyleFirstRow = array();
+        $centerTableStyle = ['alignment' => Jc::CENTER];
+        $centerTableStyleFirstRow = [];
         $phpWord->addTableStyle($centerTableStyleName, $centerTableStyle, $centerTableStyleFirstRow);
         $footer = $section->addFooter();
-        $textRun = $footer->addTextRun(array('alignment' => Jc::END));
-        $textRun->addField('PAGE', array('format' => 'ARABIC'));
-        //$textRun = $footer->addTextRun(array('alignment' => Jc::CENTER));
-        //$textRun->addField('PAGE', array('format' => 'ARABIC'));
-        //$textRun->addText(' of ');
-        //$textRun->addField('NUMPAGES', array('format' => 'ARABIC'));
+        $textRun = $footer->addTextRun(['alignment' => Jc::END]);
+        $textRun->addField('PAGE', ['format' => 'ARABIC']);
+        // $textRun = $footer->addTextRun(array('alignment' => Jc::CENTER));
+        // $textRun->addField('PAGE', array('format' => 'ARABIC'));
+        // $textRun->addText(' of ');
+        // $textRun->addField('NUMPAGES', array('format' => 'ARABIC'));
 
         // Blank page
         $section = $phpWord->addSection();
@@ -937,20 +941,20 @@ class NamespaceController extends AbstractController
         $section->addTitle('Scope', 3);
         if (isset($textp_definition)) {
             $section->addTextBreak();
-            //$string = htmlentities($textp_definition->getTextProperty());
-            //$string = str_replace($allowedTagsEncoded, $allowedTagsDecoded, $string);
+            // $string = htmlentities($textp_definition->getTextProperty());
+            // $string = str_replace($allowedTagsEncoded, $allowedTagsDecoded, $string);
             $string = specialCharactersConversion($textp_definition->getTextProperty(), true);
-            //$section->addText($string);
+            // $section->addText($string);
             \PhpOffice\PhpWord\Shared\Html::addHtml($section, $string, true, false);
         }
         $section->addTextBreak(2);
         $section->addTitle('Status', 3);
         $section->addTextBreak();
-        $section->addText($namespaceStatut . " version");
+        $section->addText($namespaceStatut.' version');
 
         // Class hierarchy
         $section = $phpWord->addSection();
-        if ($namespace->getDirectReferencedNamespaces()->count() > 0) { //S'il y a les NS références
+        if ($namespace->getDirectReferencedNamespaces()->count() > 0) { // S'il y a les NS références
             $directNamespacesReferences = $namespace->getDirectReferencedNamespaces();
             $standardLabelDirectNamespacesReferences = $directNamespacesReferences->map(function (OntoNamespace $ns) {
                 return $ns->getStandardLabel();
@@ -962,24 +966,24 @@ class NamespaceController extends AbstractController
             // Plusieurs formulations
             // Soit le CIDOC CRM est l'unique référence
             if ($directNamespacesReferences->count() == 1 and $directNamespacesReferences->first()->getTopLevelNamespace()->getId() == 7) {
-                $section->addTitle($namespace->getStandardLabel() . ' class hierarchy, aligned with portions from the CIDOC CRM hierarchy', 2);
+                $section->addTitle($namespace->getStandardLabel().' class hierarchy, aligned with portions from the CIDOC CRM hierarchy', 2);
             }
 
             // Soit le CIDOC CRM n'est ni espace de référence direct ni espace de référence d'un espace de référence
             if ($nsCRM->count() == 0) {
                 if ($directNamespacesReferences->count() > 1) {
-                    $section->addTitle($namespace->getStandardLabel() . ' class hierarchy, aligned with portions from the ' . implode($standardLabelDirectNamespacesReferences->toArray(), ', ') . 'class hierarchies', 2);
+                    $section->addTitle($namespace->getStandardLabel().' class hierarchy, aligned with portions from the '.implode($standardLabelDirectNamespacesReferences->toArray(), ', ').'class hierarchies', 2);
                 }
             }
 
             // Soit le CIDOC CRM est un espace de réf direct ou indirect
             if ($nsCRM->count() == 1 and $directNamespacesReferences->count() != 1) {
-                $section->addTitle($namespace->getStandardLabel() . ' class hierarchy, aligned with portions from the ' . implode($standardLabelDirectNamespacesReferences->toArray(), ', ') . ' and the CIDOC CRM class hierarchies', 2);
+                $section->addTitle($namespace->getStandardLabel().' class hierarchy, aligned with portions from the '.implode($standardLabelDirectNamespacesReferences->toArray(), ', ').' and the CIDOC CRM class hierarchies', 2);
             }
             $section->addTextBreak(2);
             $section->addText('This class hierarchy lists:');
             $section->addTextBreak();
-            $section->addListItem('all classes declared in ' . $namespace->getStandardLabel());
+            $section->addListItem('all classes declared in '.$namespace->getStandardLabel());
             $section->addTextBreak();
             // Les NS ref CRM
             foreach ($namespace->getAllReferencedNamespaces()->filter(function ($v) {
@@ -996,9 +1000,9 @@ class NamespaceController extends AbstractController
                     }
                     );
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all classes declared in CIDOC CRM' . $version . ' that are declared as superclasses of classes declared in the ' . $namespace->getStandardLabel());
+                $section->addListItem('all classes declared in CIDOC CRM'.$version.' that are declared as superclasses of classes declared in the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
@@ -1016,9 +1020,9 @@ class NamespaceController extends AbstractController
                     }
                     );
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all classes declared in ' . $ns->getStandardLabel() . $version . ' that are declared as superclasses of classes declared in the ' . $namespace->getStandardLabel());
+                $section->addListItem('all classes declared in '.$ns->getStandardLabel().$version.' that are declared as superclasses of classes declared in the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
             // Les NS ref CRM
@@ -1035,9 +1039,9 @@ class NamespaceController extends AbstractController
                         return $v->getSystemType()->getId() == 31;
                     });
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all classes declared in CIDOC CRM' . $version . ' that are either domain or range for a property declared in  the ' . $namespace->getStandardLabel());
+                $section->addListItem('all classes declared in CIDOC CRM'.$version.' that are either domain or range for a property declared in  the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
@@ -1055,20 +1059,20 @@ class NamespaceController extends AbstractController
                     }
                     );
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all classes declared in ' . $ns->getStandardLabel() . $version . ' that are either domain or range for a property declared in  the ' . $namespace->getStandardLabel());
+                $section->addListItem('all classes declared in '.$ns->getStandardLabel().$version.' that are either domain or range for a property declared in  the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
-        } else { //Pas de NS réferences
-            $section->addTitle($namespace->getStandardLabel() . ' Class hierarchy', 2);
+        } else { // Pas de NS réferences
+            $section->addTitle($namespace->getStandardLabel().' Class hierarchy', 2);
         }
 
         $section->addTextBreak();
         $section->addText('Table 1: Class Hierarchy', 'italic11');
         $fancyTableStyleName = 'Fancy Table';
-        $fancyTableStyle = array('borderSize' => 1, 'borderColor' => 'FFFFFF');
-        $fancyTableFirstRowStyle = array();
+        $fancyTableStyle = ['borderSize' => 1, 'borderColor' => 'FFFFFF'];
+        $fancyTableFirstRowStyle = [];
         $phpWord->addTableStyle($fancyTableStyleName, $fancyTableStyle, $fancyTableFirstRowStyle);
 
         // Peut on construire un tableau hierarchique ? (trouver les classes qui n'ont pas de superclass dans les ns ref)
@@ -1124,14 +1128,14 @@ class NamespaceController extends AbstractController
             $table->addRow();
             $cell = $table->addCell(1000);
             $cell->addText($rootClass->getIdentifierInNamespace());
-            //$table->addCell(null, array('gridSpan' => $nbColumn))->addText($classVersion->getStandardLabel());
+            // $table->addCell(null, array('gridSpan' => $nbColumn))->addText($classVersion->getStandardLabel());
             $cell = $table->addCell(4000);
             $cell->getStyle()->setGridSpan($nbColumn - 1);
             $cell->addText($classVersion->getStandardLabel());
             foreach ($rootClass->getHierarchicalTreeClasses($namespace) as $tuple) {
                 $table->addRow();
                 $table->addCell(1000)->addText($tuple[0]->getIdentifierInNamespace());
-                for ($i = 0; $i <= $tuple[1]; $i++) {
+                for ($i = 0; $i <= $tuple[1]; ++$i) {
                     if ($i < $tuple[1]) {
                         $table->addCell(400)->addText('-');
                     } else {
@@ -1147,9 +1151,8 @@ class NamespaceController extends AbstractController
         // Domains & Ranges utilisés NSref
         foreach ($namespace->getPropertyVersions()
                      ->filter(function ($v) {
-                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /*On retire les denied*/
-                     })
-                 as $propertyVersion) {
+                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
+                     }) as $propertyVersion) {
             if (!is_null($propertyVersion->getDomain()) && $propertyVersion->getDomainNamespace() != $namespace && $propertyVersion->getDomainNamespace()->getId() != 4 and !$classesVersionWithNSref->contains($propertyVersion->getDomain())) {
                 if (!$classesVersionWithNSref->contains($propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace()))) {
                     $classesVersionWithNSref->add($propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace()));
@@ -1164,7 +1167,7 @@ class NamespaceController extends AbstractController
 
         // Hierarchy classes utilisés NSref
         foreach ($namespace->getClassAssociations()->filter(function ($v) {
-            return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /*On retire les denied*/
+            return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
         }) as $classAssociation) {
             if ($classAssociation->getParentClassNamespace() != $namespace && $classAssociation->getParentClassNamespace()->getId() != 4 and !$classesVersionWithNSref->contains($classAssociation->getParentClass())) {
                 if (!$classesVersionWithNSref->contains($classAssociation->getParentClass()->getClassVersionForDisplay($classAssociation->getParentClassNamespace()))) {
@@ -1181,12 +1184,11 @@ class NamespaceController extends AbstractController
         // Relations autres
         foreach ($namespace->getEntityAssociations()
                      ->filter(function ($v) {
-                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /*On retire les denied*/
+                         return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                      })
                      ->filter(function ($v) {
                          return !is_null($v->getSourceClass());
-                     })
-                 as $classAssociation) {
+                     }) as $classAssociation) {
             if ($classAssociation->getSourceNamespaceForVersion() != $namespace && $classAssociation->getSourceNamespaceForVersion()->getId() != 4 and !$classesVersionWithNSref->contains($classAssociation->getSourceClass())) {
                 if (!$classesVersionWithNSref->contains($classAssociation->getSourceClass()->getClassVersionForDisplay($classAssociation->getSourceNamespaceForVersion()))) {
                     $classesVersionWithNSref->add($classAssociation->getSourceClass()->getClassVersionForDisplay($classAssociation->getSourceNamespaceForVersion()));
@@ -1217,16 +1219,16 @@ class NamespaceController extends AbstractController
 
         if ($classesVersionWithNSref->count() > 0) {
             $section->addTextBreak();
-            $section->addTitle('List of external classes used in ' . $namespace->getStandardLabel(), 2);
+            $section->addTitle('List of external classes used in '.$namespace->getStandardLabel(), 2);
             $section->addTextBreak();
             $section->addText('Table 2: List of external classes grouped by model and ordered by model (exception: CRMbase always goes first) and then by class identifier.', 'italic11');
 
             $table = $section->addTable($fancyTableStyleName2);
             $table->addRow();
-            $table->addCell(2250)->addText('Class identifier', array('bold' => true));
-            $table->addCell(2250)->addText('Class name', array('bold' => true));
-            $table->addCell(2250)->addText('Model', array('bold' => true));
-            $table->addCell(2250)->addText('Version', array('bold' => true));
+            $table->addCell(2250)->addText('Class identifier', ['bold' => true]);
+            $table->addCell(2250)->addText('Class name', ['bold' => true]);
+            $table->addCell(2250)->addText('Model', ['bold' => true]);
+            $table->addCell(2250)->addText('Version', ['bold' => true]);
 
             foreach ($classesVersionWithNSref as $classVersion) {
                 $table->addRow();
@@ -1246,7 +1248,7 @@ class NamespaceController extends AbstractController
 
         // Property hierarchy
         $section = $phpWord->addSection();
-        if ($namespace->getDirectReferencedNamespaces()->count() > 0) { //S'il y a les NS références
+        if ($namespace->getDirectReferencedNamespaces()->count() > 0) { // S'il y a les NS références
             $directNamespacesReferences = $namespace->getDirectReferencedNamespaces();
             $standardLabelDirectNAmespacesReferences = $directNamespacesReferences->map(function (OntoNamespace $ns) {
                 return $ns->getStandardLabel();
@@ -1258,24 +1260,24 @@ class NamespaceController extends AbstractController
             // Plusieurs formulations
             // Soit le CIDOC CRM est l'unique référence
             if ($directNamespacesReferences->count() == 1 and $directNamespacesReferences->first()->getTopLevelNamespace()->getId() == 7) {
-                $section->addTitle($namespace->getStandardLabel() . ' property hierarchy, aligned with portions from the CIDOC CRM hierarchy', 2);
+                $section->addTitle($namespace->getStandardLabel().' property hierarchy, aligned with portions from the CIDOC CRM hierarchy', 2);
             }
 
             // Soit le CIDOC CRM n'est ni espace de référence direct ni espace de référence d'un espace de référence
             if ($nsCRM->count() == 0) {
                 if ($directNamespacesReferences->count() > 1) {
-                    $section->addTitle($namespace->getStandardLabel() . ' property hierarchy, aligned with portions from the ' . implode($standardLabelDirectNAmespacesReferences->toArray(), ', ') . 'property hierarchies', 2);
+                    $section->addTitle($namespace->getStandardLabel().' property hierarchy, aligned with portions from the '.implode($standardLabelDirectNAmespacesReferences->toArray(), ', ').'property hierarchies', 2);
                 }
             }
 
             // Soit le CIDOC CRM est un espace de réf direct ou indirect
             if ($nsCRM->count() == 1 and $directNamespacesReferences->count() != 1) {
-                $section->addTitle($namespace->getStandardLabel() . ' property hierarchy, aligned with portions from the ' . implode($standardLabelDirectNAmespacesReferences->toArray(), ', ') . ' and the CIDOC CRM property hierarchies', 2);
+                $section->addTitle($namespace->getStandardLabel().' property hierarchy, aligned with portions from the '.implode($standardLabelDirectNAmespacesReferences->toArray(), ', ').' and the CIDOC CRM property hierarchies', 2);
             }
             $section->addTextBreak(2);
             $section->addText('This property hierarchy lists:');
             $section->addTextBreak();
-            $section->addListItem('all properties declared in ' . $namespace->getStandardLabel());
+            $section->addListItem('all properties declared in '.$namespace->getStandardLabel());
             $section->addTextBreak();
             // Les NS ref CRM
             foreach ($namespace->getAllReferencedNamespaces()->filter(function ($v) {
@@ -1284,15 +1286,15 @@ class NamespaceController extends AbstractController
                 $version = '';
                 $ns_txtp_versions = $ns->getTextProperties()
                     ->filter(function ($v) {
-                        return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /*On retire les denied*/
+                        return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                     })
                     ->filter(function ($v) {
                         return $v->getSystemType()->getId() == 31;
                     });
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all properties declared in CIDOC CRM' . $version . ' that are declared as superproperties of properties declared in the ' . $namespace->getStandardLabel());
+                $section->addListItem('all properties declared in CIDOC CRM'.$version.' that are declared as superproperties of properties declared in the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
             // Les NS direct sauf CRM
@@ -1302,23 +1304,22 @@ class NamespaceController extends AbstractController
                 $version = '';
                 $ns_txtp_versions = $ns->getTextProperties()
                     ->filter(function ($v) {
-                        return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /*On retire les denied*/
+                        return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27; /* On retire les denied */
                     })
                     ->filter(function ($v) {
                         return $v->getSystemType()->getId() == 31;
                     });
                 if ($ns_txtp_versions->count() > 0) {
-                    $version = ' version ' . $ns_txtp_versions->first()->getTextProperty();
+                    $version = ' version '.$ns_txtp_versions->first()->getTextProperty();
                 }
-                $section->addListItem('all properties declared in ' . $ns->getStandardLabel() . $version . ' that are declared as superproperties of properties declared in the ' . $namespace->getStandardLabel());
+                $section->addListItem('all properties declared in '.$ns->getStandardLabel().$version.' that are declared as superproperties of properties declared in the '.$namespace->getStandardLabel());
                 $section->addTextBreak();
             }
-        } else { //Pas de NS réferences
-            $section->addTitle($namespace->getStandardLabel() . ' Property hierarchy', 2);
+        } else { // Pas de NS réferences
+            $section->addTitle($namespace->getStandardLabel().' Property hierarchy', 2);
         }
         $section->addTextBreak();
         $section->addText('Table 3: Property Hierarchy', 'italic11');
-
 
         // Peut on construire un tableau hierarchique ? (trouver les propriétés sans parents)
         $nsRef = $namespace->getAllReferencedNamespaces();
@@ -1335,10 +1336,10 @@ class NamespaceController extends AbstractController
         }
         $rootProperties = $allProperties->filter(function ($v) use ($nsRef, $namespace) {
             return $v->getChildPropertyAssociations()->filter(function ($w) use ($nsRef, $namespace) {
-                    return $namespace == $w->getNamespaceForVersion() and $nsRef->contains($w->getParentPropertyNamespace());
-                })->count() == 0 and $v->getParentPropertyAssociations()->filter(function ($w) use ($namespace) {
-                    return $w->getNamespaceForVersion() == $namespace;
-                })->count() > 0;
+                return $namespace == $w->getNamespaceForVersion() and $nsRef->contains($w->getParentPropertyNamespace());
+            })->count() == 0 and $v->getParentPropertyAssociations()->filter(function ($w) use ($namespace) {
+                return $w->getNamespaceForVersion() == $namespace;
+            })->count() > 0;
         });
 
         // Trier d'abord CRM les autres puis par identifier
@@ -1360,45 +1361,45 @@ class NamespaceController extends AbstractController
         // tableau
         $table = $section->addTable($fancyTableStyleName);
         $table->addRow();
-        $table->addCell(2000)->addText('Property id', array('bold' => true));
-        $table->addCell(2000)->addText('Property Name', array('bold' => true));
-        $table->addCell(2000)->addText('Entity – Domain', array('bold' => true));
-        $table->addCell(2000)->addText('Entity - Range', array('bold' => true));;
+        $table->addCell(2000)->addText('Property id', ['bold' => true]);
+        $table->addCell(2000)->addText('Property Name', ['bold' => true]);
+        $table->addCell(2000)->addText('Entity – Domain', ['bold' => true]);
+        $table->addCell(2000)->addText('Entity - Range', ['bold' => true]);
         foreach ($rootProperties as $rootProperty) {
             $propertyVersion = $rootProperty->getPropertyVersions()->filter(function ($v) use ($nsRef) {
                 return $nsRef->contains($v->getNamespaceForVersion());
             })->first();
 
             $table->addRow();
-            $table->addCell(1000, array('valign' => 'center', 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER))->addText($rootProperty->getIdentifierInNamespace());
-            $table->addCell(2000, array('valign' => 'center'))->addText($propertyVersion->getStandardLabel());
+            $table->addCell(1000, ['valign' => 'center', 'alignment' => Jc::CENTER])->addText($rootProperty->getIdentifierInNamespace());
+            $table->addCell(2000, ['valign' => 'center'])->addText($propertyVersion->getStandardLabel());
             if (!is_null($propertyVersion->getDomain())) {
-                $table->addCell(2000, array('valign' => 'center'))->addText(html_entity_decode(strip_tags($propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace())->getInvertedLabel())));
+                $table->addCell(2000, ['valign' => 'center'])->addText(html_entity_decode(strip_tags($propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace())->getInvertedLabel())));
             } else {
-                $table->addCell(2000, array('valign' => 'center'))->addText('');
+                $table->addCell(2000, ['valign' => 'center'])->addText('');
             }
 
             if (!is_null($propertyVersion->getRange())) {
-                $table->addCell(2000, array('valign' => 'center'))->addText(html_entity_decode(strip_tags($propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getInvertedLabel())));
+                $table->addCell(2000, ['valign' => 'center'])->addText(html_entity_decode(strip_tags($propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getInvertedLabel())));
             } else {
-                $table->addCell(2000, array('valign' => 'center'))->addText('');
+                $table->addCell(2000, ['valign' => 'center'])->addText('');
             }
             // Trier d'abord CRM les autres puis par identifier
             $hierarchicalTreeProperties = $rootProperty->getHierarchicalTreeProperties($namespace);
             foreach ($hierarchicalTreeProperties as $tuple) {
                 $table->addRow();
-                $table->addCell(1000, array('valign' => 'center'))->addText($tuple[0]->getIdentifierInNamespace());
-                $table->addCell(2000, array('valign' => 'center'))->addText(str_repeat('-  ', $tuple[1]) . $tuple[0]->getPropertyVersionForDisplay($tuple[2])->getStandardLabel());
+                $table->addCell(1000, ['valign' => 'center'])->addText($tuple[0]->getIdentifierInNamespace());
+                $table->addCell(2000, ['valign' => 'center'])->addText(str_repeat('-  ', $tuple[1]).$tuple[0]->getPropertyVersionForDisplay($tuple[2])->getStandardLabel());
                 if (!is_null($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomain())) {
-                    $table->addCell(2000, array('valign' => 'center'))->addText(html_entity_decode(strip_tags($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomain()->getClassVersionForDisplay($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomainNamespace())->getInvertedLabel())));
+                    $table->addCell(2000, ['valign' => 'center'])->addText(html_entity_decode(strip_tags($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomain()->getClassVersionForDisplay($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomainNamespace())->getInvertedLabel())));
                 } else {
-                    $table->addCell(2000, array('valign' => 'center'))->addText('');
+                    $table->addCell(2000, ['valign' => 'center'])->addText('');
                 }
 
                 if (!is_null($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getDomain())) {
-                    $table->addCell(2000, array('valign' => 'center'))->addText(html_entity_decode(strip_tags($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getRange()->getClassVersionForDisplay($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getRangeNamespace())->getInvertedLabel())));
+                    $table->addCell(2000, ['valign' => 'center'])->addText(html_entity_decode(strip_tags($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getRange()->getClassVersionForDisplay($tuple[0]->getPropertyVersionForDisplay($tuple[2])->getRangeNamespace())->getInvertedLabel())));
                 } else {
-                    $table->addCell(2000, array('valign' => 'center'))->addText('');
+                    $table->addCell(2000, ['valign' => 'center'])->addText('');
                 }
             }
         }
@@ -1409,8 +1410,7 @@ class NamespaceController extends AbstractController
         foreach ($namespace->getPropertyAssociations()
                      ->filter(function ($v) {
                          return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
-                     }) /*On retire les denied*/
-                 as $propertyAssociation) {
+                     }) /* On retire les denied */ as $propertyAssociation) {
             if ($propertyAssociation->getParentPropertyNamespace() != $namespace && $propertyAssociation->getParentPropertyNamespace()->getId() != 4 and !$propertiesVersionWithNSref->contains($propertyAssociation->getParentProperty())) {
                 if (!$propertiesVersionWithNSref->contains($propertyAssociation->getParentProperty()->getPropertyVersionForDisplay($propertyAssociation->getParentPropertyNamespace()))) {
                     $propertiesVersionWithNSref->add($propertyAssociation->getParentProperty()->getPropertyVersionForDisplay($propertyAssociation->getParentPropertyNamespace()));
@@ -1427,11 +1427,10 @@ class NamespaceController extends AbstractController
         foreach ($namespace->getEntityAssociations()
                      ->filter(function ($v) {
                          return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
-                     })/*On retire les denied*/
+                     })/* On retire les denied */
             ->filter(function ($v) {
                 return !is_null($v->getSourceProperty());
-            })
-                 as $propertyAssociation) {
+            }) as $propertyAssociation) {
             if ($propertyAssociation->getSourceNamespaceForVersion() != $namespace && $propertyAssociation->getSourceNamespaceForVersion()->getId() != 4 and !$propertiesVersionWithNSref->contains($propertyAssociation->getSourceProperty())) {
                 if (!$propertiesVersionWithNSref->contains($propertyAssociation->getSourceProperty()->getPropertyVersionForDisplay($propertyAssociation->getSourceNamespaceForVersion()))) {
                     $propertiesVersionWithNSref->add($propertyAssociation->getSourceProperty()->getPropertyVersionForDisplay($propertyAssociation->getSourceNamespaceForVersion()));
@@ -1461,7 +1460,7 @@ class NamespaceController extends AbstractController
 
         if ($propertiesVersionWithNSref->count() > 0) {
             $section->addTextBreak();
-            $section->addTitle('List of external properties used in ' . $namespace->getStandardLabel(), 2);
+            $section->addTitle('List of external properties used in '.$namespace->getStandardLabel(), 2);
             $section->addTextBreak();
             $section->addText('Table 4: List of external properties grouped by model and ordered by model and then by property identifier.', 'italic11');
             $table = $section->addTable($fancyTableStyleName2);
@@ -1483,7 +1482,7 @@ class NamespaceController extends AbstractController
 
         // Section suivante
         $section = $phpWord->addSection();
-        $section->addTitle($namespace->getStandardLabel() . ' Class Declarations', 2);
+        $section->addTitle($namespace->getStandardLabel().' Class Declarations', 2);
         $section->addTextBreak();
         $section->addText('The classes are comprehensively declared in this section using the following format:');
         $section->addTextBreak();
@@ -1509,14 +1508,14 @@ class NamespaceController extends AbstractController
 
         foreach ($classesVersion as $classVersion) {
             $section->addTextBreak(2);
-            $section->addTitle($classVersion->getClass()->getIdentifierInNamespace() . " " . $classVersion->getStandardLabel(), 3);
+            $section->addTitle($classVersion->getClass()->getIdentifierInNamespace().' '.$classVersion->getStandardLabel(), 3);
             $childAssociations = $classVersion->getClass()->getChildClassAssociations()->filter(function ($v) use ($namespace) {
                 return $v->getNamespaceForVersion() == $namespace && $v->getParentClassNamespace()->getId() != 4 && (is_null($v->getValidationStatus()) || $v->getValidationStatus()->getId() != 27);
             });
 
             if ($childAssociations->count() > 0) {
                 $section->addTextBreak();
-                $section->addText('Subclass of: ', "gras");
+                $section->addText('Subclass of: ', 'gras');
                 // Trier naturellement par identifiant A1 A2 B1 B2...
                 $iterator = $childAssociations->getIterator();
                 $iterator->uasort(function ($a, $b) {
@@ -1524,7 +1523,7 @@ class NamespaceController extends AbstractController
                 });
                 $childAssociations = new ArrayCollection(iterator_to_array($iterator));
                 foreach ($childAssociations as $association) {
-                    $section->addText($association->getParentClass()->getIdentifierInNamespace() . ' ' . $association->getParentClass()->getClassVersionForDisplay($association->getParentClassNamespace())->getStandardLabel(), null, array('indentation' => array('left' => 1100)));
+                    $section->addText($association->getParentClass()->getIdentifierInNamespace().' '.$association->getParentClass()->getClassVersionForDisplay($association->getParentClassNamespace())->getStandardLabel(), null, ['indentation' => ['left' => 1100]]);
                 }
             }
 
@@ -1533,7 +1532,7 @@ class NamespaceController extends AbstractController
             });
             if ($parentAssociations->count() > 0) {
                 $section->addTextBreak();
-                $section->addText('Superclass of:', "gras");
+                $section->addText('Superclass of:', 'gras');
                 // Trier naturellement par identifiant A1 A2 B1 B2...
                 $iterator = $parentAssociations->getIterator();
                 $iterator->uasort(function ($a, $b) {
@@ -1542,16 +1541,16 @@ class NamespaceController extends AbstractController
                 $parentAssociations = new ArrayCollection(iterator_to_array($iterator));
 
                 foreach ($parentAssociations as $association) {
-                    $section->addText($association->getChildClass()->getIdentifierInNamespace() . ' ' . $association->getChildClass()->getClassVersionForDisplay($association->getChildClassNamespace())->getStandardLabel(), null, array('indentation' => array('left' => 1100)));
+                    $section->addText($association->getChildClass()->getIdentifierInNamespace().' '.$association->getChildClass()->getClassVersionForDisplay($association->getChildClassNamespace())->getStandardLabel(), null, ['indentation' => ['left' => 1100]]);
                 }
             }
 
             foreach ($classVersion->getClass()->getTextProperties()->filter(function ($v) {
                 return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
             }) as $textProperty) {
-                //if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
+                // if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
-                    if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == "en") {
+                    if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == 'en') {
                         $textp_scopenote = $textProperty;
                     }
                     if ($textProperty->getSystemType()->getId() == 1 and !isset($textp_scopenote)) {
@@ -1561,7 +1560,7 @@ class NamespaceController extends AbstractController
             }
             if (isset($textp_scopenote)) {
                 $section->addTextBreak();
-                $section->addText('Scope note:', "gras");
+                $section->addText('Scope note:', 'gras');
                 $string = specialCharactersConversion($textp_scopenote->getTextProperty(), true);
                 \PhpOffice\PhpWord\Shared\Html::addHtml($section, $string, true, false);
 
@@ -1570,11 +1569,11 @@ class NamespaceController extends AbstractController
                 $arrayElements = $section->getElements();
                 $lastElement = end($arrayElements);
                 if ($lastElement->getFontStyle() !== null) {
-                    $lastElement->getFontStyle()->getParagraph()->setIndentation(array('left' => 1100));
+                    $lastElement->getFontStyle()->getParagraph()->setIndentation(['left' => 1100]);
                 } elseif ($lastElement->getParagraphStyle() !== null) {
                     foreach (array_reverse($arrayElements) as $element) {
                         if ($element->getText() != 'Scope note:') { // On remonte les éléments crées par addHtml jusqu'à l'élément crée par le dernier addText
-                            $lastElements[] = $element->getParagraphStyle()->setIndentation(array('left' => 1100));;
+                            $lastElements[] = $element->getParagraphStyle()->setIndentation(['left' => 1100]);
                         } else {
                             break;
                         }
@@ -1586,13 +1585,13 @@ class NamespaceController extends AbstractController
             foreach ($classVersion->getClass()->getTextProperties()->filter(function ($v) {
                 return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
             }) as $textProperty) {
-                //if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
+                // if(in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if ($allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 7) {
                         if ($i == 0) {
                             $section->addTextBreak();
-                            $section->addText('Examples:', "gras");
-                            $i++;
+                            $section->addText('Examples:', 'gras');
+                            ++$i;
                         }
                         $string = specialCharactersConversion($textProperty->getTextProperty(), true);
                         \PhpOffice\PhpWord\Shared\Html::addHtml($section, $string, true, false);
@@ -1602,11 +1601,11 @@ class NamespaceController extends AbstractController
                         $arrayElements = $section->getElements();
                         $lastElement = end($arrayElements);
                         if ($lastElement->getFontStyle() !== null) {
-                            $lastElement->getFontStyle()->getParagraph()->setIndentation(array('left' => 1100));
+                            $lastElement->getFontStyle()->getParagraph()->setIndentation(['left' => 1100]);
                         } elseif ($lastElement->getParagraphStyle() !== null) {
                             foreach (array_reverse($arrayElements) as $element) {
                                 if ($element->getText() != 'Examples:') { // On remonte les éléments crées par addHtml jusqu'à l'élément crée par le dernier addText
-                                    $lastElements[] = $element->getParagraphStyle()->setIndentation(array('left' => 1100));;
+                                    $lastElements[] = $element->getParagraphStyle()->setIndentation(['left' => 1100]);
                                 } else {
                                     break;
                                 }
@@ -1619,31 +1618,31 @@ class NamespaceController extends AbstractController
             if ($childAssociations->count() > 0 && $optionFol) {
                 $section->addTextBreak();
                 $textRun = $section->addTextRun();
-                $textRun->addText('In First Order Logic: ', "gras");
+                $textRun->addText('In First Order Logic: ', 'gras');
                 foreach ($childAssociations as $association) {
-                    $section->addText($association->getChildClass()->getIdentifierInNamespace() . '(x) ⇒ ' . $association->getParentClass()->getIdentifierInNamespace() . '(x)', null, array('indentation' => array('left' => 1100)));
+                    $section->addText($association->getChildClass()->getIdentifierInNamespace().'(x) ⇒ '.$association->getParentClass()->getIdentifierInNamespace().'(x)', null, ['indentation' => ['left' => 1100]]);
                 }
             }
 
             $i = 0;
-            //$outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
+            // $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespace->getLargeSelectedNamespacesId());
             $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $allNamespacesReferences->map(function ($v) {
                 return $v->getId();
             })->toArray());
             foreach ($outgoingProperties as $outgoingProperty) {
                 if ($i == 0) {
                     $section->addTextBreak();
-                    $section->addText('Properties:', "gras");
-                    $i++;
+                    $section->addText('Properties:', 'gras');
+                    ++$i;
                 }
-                $propertyVersion = $propertyRepository->findOneBy(array("property" => $outgoingProperty['propertyId'], "namespaceForVersion" => $outgoingProperty['propertyNamespaceId']));
-                $section->addText($propertyVersion->getInvertedLabel() . ": " . $propertyVersion->getRange()->getIdentifierInNamespace() . ' ' . $propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel(), null, array('indentation' => array('left' => 1100)));
+                $propertyVersion = $propertyRepository->findOneBy(['property' => $outgoingProperty['propertyId'], 'namespaceForVersion' => $outgoingProperty['propertyNamespaceId']]);
+                $section->addText($propertyVersion->getInvertedLabel().': '.$propertyVersion->getRange()->getIdentifierInNamespace().' '.$propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel(), null, ['indentation' => ['left' => 1100]]);
             }
         }
 
         // Section suivante
         $section = $phpWord->addSection();
-        $section->addTitle($namespace->getStandardLabel() . ' Property Declarations', 2);
+        $section->addTitle($namespace->getStandardLabel().' Property Declarations', 2);
         $section->addTextBreak();
         $section->addText('The properties are comprehensively declared in this section using the following format:');
         $section->addTextBreak();
@@ -1668,66 +1667,66 @@ class NamespaceController extends AbstractController
         $propertiesVersion = new ArrayCollection(iterator_to_array($iterator));
 
         foreach ($propertiesVersion as $propertyVersion) {
-            $label = $propertyVersion->getProperty()->getIdentifierInNamespace() . " " . $propertyVersion->getStandardLabel();
+            $label = $propertyVersion->getProperty()->getIdentifierInNamespace().' '.$propertyVersion->getStandardLabel();
             $section->addTitle($label, 3);
             $section->addTextBreak();
             if (!is_null($propertyVersion->getDomain())) {
-                $label = $propertyVersion->getDomain()->getIdentifierInNamespace() . " " . $propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace())->getStandardLabel();
-                $section->addText('Domain: ', "gras");
-                $section->addText($label, null, array('indentation' => array('left' => 1100)));
+                $label = $propertyVersion->getDomain()->getIdentifierInNamespace().' '.$propertyVersion->getDomain()->getClassVersionForDisplay($propertyVersion->getDomainNamespace())->getStandardLabel();
+                $section->addText('Domain: ', 'gras');
+                $section->addText($label, null, ['indentation' => ['left' => 1100]]);
             }
             if (!is_null($propertyVersion->getRange())) {
-                $label = $propertyVersion->getRange()->getIdentifierInNamespace() . " " . $propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel();
-                $section->addText('Range: ', "gras");
-                $section->addText($label, null, array('indentation' => array('left' => 1100)));
+                $label = $propertyVersion->getRange()->getIdentifierInNamespace().' '.$propertyVersion->getRange()->getClassVersionForDisplay($propertyVersion->getRangeNamespace())->getStandardLabel();
+                $section->addText('Range: ', 'gras');
+                $section->addText($label, null, ['indentation' => ['left' => 1100]]);
             }
             $associations = $propertyVersion->getProperty()->getChildPropertyAssociations()->filter(function ($v) {
                 return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
             });
             $parentPropertyVersion = null;
             foreach ($associations as $association) {
-                //if(in_array($association->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
+                // if(in_array($association->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if ($allNamespacesReferences->contains($association->getNamespaceForVersion())) {
                     $parentPropertyVersion = $association->getParentProperty()->getPropertyVersionForDisplay($association->getParentPropertyNamespace());
                 }
             }
             if (!is_null($parentPropertyVersion)) {
-                $labelDomain = "";
-                $labelRange = "";
-                $label = $parentPropertyVersion->getProperty()->getIdentifierInNamespace() . " " . $parentPropertyVersion->getStandardLabel();
+                $labelDomain = '';
+                $labelRange = '';
+                $label = $parentPropertyVersion->getProperty()->getIdentifierInNamespace().' '.$parentPropertyVersion->getStandardLabel();
                 if (!is_null($parentPropertyVersion->getDomain())) {
-                    $labelDomain = $parentPropertyVersion->getDomain()->getIdentifierInNamespace() . " " . $parentPropertyVersion->getDomain()->getClassVersionForDisplay($parentPropertyVersion->getDomainNamespace())->getStandardLabel() . ":";
+                    $labelDomain = $parentPropertyVersion->getDomain()->getIdentifierInNamespace().' '.$parentPropertyVersion->getDomain()->getClassVersionForDisplay($parentPropertyVersion->getDomainNamespace())->getStandardLabel().':';
                 }
                 if (!is_null($parentPropertyVersion->getRange())) {
-                    $labelRange = ":" . $parentPropertyVersion->getRange()->getIdentifierInNamespace() . " " . $parentPropertyVersion->getRange()->getClassVersionForDisplay($parentPropertyVersion->getRangeNamespace())->getStandardLabel();
+                    $labelRange = ':'.$parentPropertyVersion->getRange()->getIdentifierInNamespace().' '.$parentPropertyVersion->getRange()->getClassVersionForDisplay($parentPropertyVersion->getRangeNamespace())->getStandardLabel();
                 }
-                $label = $labelDomain . $label . $labelRange;
+                $label = $labelDomain.$label.$labelRange;
                 $section->addTextBreak();
-                $section->addText('Subproperty of: ', "gras");
-                $section->addText($label, null, array('indentation' => array('left' => 1100)));
+                $section->addText('Subproperty of: ', 'gras');
+                $section->addText($label, null, ['indentation' => ['left' => 1100]]);
             }
 
             if (!is_null($propertyVersion->getQuantifiersString())) {
                 $section->addTextBreak();
-                $section->addText('Quantification: ', "gras");
-                $trun = $section->addTextRun(array('indentation' => array('left' => 1100)));
+                $section->addText('Quantification: ', 'gras');
+                $trun = $section->addTextRun(['indentation' => ['left' => 1100]]);
                 if ($optionTextCardinality) {
                     $trun->addText($propertyVersion->getQuantifiersString());
                 }
-                if ($optionCardinality == "cardinality-opt-uml") {
-                    $trun->addText(" (" . $propertyVersion->getQuantifiers() . ')');
+                if ($optionCardinality == 'cardinality-opt-uml') {
+                    $trun->addText(' ('.$propertyVersion->getQuantifiers().')');
                 }
-                if ($optionCardinality == "cardinality-opt-er") {
-                    $trun->addText(" (" . $propertyVersion->getQuantifiersMerise() . ')');
+                if ($optionCardinality == 'cardinality-opt-er') {
+                    $trun->addText(' ('.$propertyVersion->getQuantifiersMerise().')');
                 }
             }
 
             foreach ($propertyVersion->getProperty()->getTextProperties()->filter(function ($v) {
                 return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
             }) as $textProperty) {
-                //if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
+                // if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
-                    if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == "en") {
+                    if ($textProperty->getSystemType()->getId() == 1 and $textProperty->getLanguageIsoCode() == 'en') {
                         $textp_scopenote = $textProperty;
                     }
                     if ($textProperty->getSystemType()->getId() == 1 and !isset($textp_scopenote)) {
@@ -1737,7 +1736,7 @@ class NamespaceController extends AbstractController
             }
             if (isset($textp_scopenote)) {
                 $section->addTextBreak();
-                $section->addText('Scope note:', "gras");
+                $section->addText('Scope note:', 'gras');
                 $string = specialCharactersConversion($textp_scopenote->getTextProperty(), true);
                 \PhpOffice\PhpWord\Shared\Html::addHtml($section, $string, true, false);
 
@@ -1746,11 +1745,11 @@ class NamespaceController extends AbstractController
                 $arrayElements = $section->getElements();
                 $lastElement = end($arrayElements);
                 if ($lastElement->getFontStyle() !== null) {
-                    $lastElement->getFontStyle()->getParagraph()->setIndentation(array('left' => 1100));
+                    $lastElement->getFontStyle()->getParagraph()->setIndentation(['left' => 1100]);
                 } elseif ($lastElement->getParagraphStyle() !== null) {
                     foreach (array_reverse($arrayElements) as $element) {
                         if ($element->getText() != 'Scope note:') { // On remonte les éléments crées par addHtml jusqu'à l'élément crée par le dernier addText
-                            $lastElements[] = $element->getParagraphStyle()->setIndentation(array('left' => 1100));;
+                            $lastElements[] = $element->getParagraphStyle()->setIndentation(['left' => 1100]);
                         } else {
                             break;
                         }
@@ -1762,13 +1761,13 @@ class NamespaceController extends AbstractController
             foreach ($propertyVersion->getProperty()->getTextProperties()->filter(function ($v) {
                 return is_null($v->getValidationStatus()) || !is_null($v->getValidationStatus()) && $v->getValidationStatus()->getId() != 27;
             }) as $textProperty) {
-                //if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
+                // if(!is_null($textProperty->getNamespaceForVersion()) and in_array($textProperty->getNamespaceForVersion()->getId(), $namespace->getLargeSelectedNamespacesId())){
                 if (!is_null($textProperty->getNamespaceForVersion()) and $allNamespacesReferences->contains($textProperty->getNamespaceForVersion())) {
                     if ($textProperty->getSystemType()->getId() == 7) {
                         if ($i == 0) {
                             $section->addTextBreak();
-                            $section->addText('Examples:', "gras");
-                            $i++;
+                            $section->addText('Examples:', 'gras');
+                            ++$i;
                         }
                         $string = specialCharactersConversion($textProperty->getTextProperty(), true);
                         \PhpOffice\PhpWord\Shared\Html::addHtml($section, $string, true, false);
@@ -1778,11 +1777,11 @@ class NamespaceController extends AbstractController
                         $arrayElements = $section->getElements();
                         $lastElement = end($arrayElements);
                         if ($lastElement->getFontStyle() !== null) {
-                            $lastElement->getFontStyle()->getParagraph()->setIndentation(array('left' => 1100));
+                            $lastElement->getFontStyle()->getParagraph()->setIndentation(['left' => 1100]);
                         } elseif ($lastElement->getParagraphStyle() !== null) {
                             foreach (array_reverse($arrayElements) as $element) {
                                 if ($element->getText() != 'Examples:') { // On remonte les éléments crées par addHtml jusqu'à l'élément crée par le dernier addText
-                                    $lastElements[] = $element->getParagraphStyle()->setIndentation(array('left' => 1100));;
+                                    $lastElements[] = $element->getParagraphStyle()->setIndentation(['left' => 1100]);
                                 } else {
                                     break;
                                 }
@@ -1793,15 +1792,15 @@ class NamespaceController extends AbstractController
             }
             if ($optionFol) {
                 $section->addTextBreak();
-                $section->addText('In First Order Logic:', "gras");
+                $section->addText('In First Order Logic:', 'gras');
                 if (!is_null($propertyVersion->getDomain())) {
-                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace() . '(x,y) ⇒ ' . $propertyVersion->getDomain()->getIdentifierInNamespace() . '(x)', null, array('indentation' => array('left' => 1100)));
+                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace().'(x,y) ⇒ '.$propertyVersion->getDomain()->getIdentifierInNamespace().'(x)', null, ['indentation' => ['left' => 1100]]);
                 }
                 if (!is_null($propertyVersion->getRange())) {
-                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace() . '(x,y) ⇒ ' . $propertyVersion->getRange()->getIdentifierInNamespace() . '(y)', null, array('indentation' => array('left' => 1100)));
+                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace().'(x,y) ⇒ '.$propertyVersion->getRange()->getIdentifierInNamespace().'(y)', null, ['indentation' => ['left' => 1100]]);
                 }
                 if (!is_null($parentPropertyVersion)) {
-                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace() . '(x,y) ⇒ ' . $parentPropertyVersion->getProperty()->getIdentifierInNamespace() . '(x,y)', null, array('indentation' => array('left' => 1100)));
+                    $section->addText($propertyVersion->getProperty()->getIdentifierInNamespace().'(x,y) ⇒ '.$parentPropertyVersion->getProperty()->getIdentifierInNamespace().'(x,y)', null, ['indentation' => ['left' => 1100]]);
                 }
             }
             $section->addTextBreak(2);
@@ -1811,8 +1810,8 @@ class NamespaceController extends AbstractController
         $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
 
         // Create a temporal file in the system
-        $fileName = 'namespace-' . preg_replace('/[^a-zA-Z0-9\-\._]/', '', $namespace->getStandardLabel()) . '.docx';
-        //var_dump($fileName); die;
+        $fileName = 'namespace-'.preg_replace('/[^a-zA-Z0-9\-\._]/', '', $namespace->getStandardLabel()).'.docx';
+        // var_dump($fileName); die;
         $temp_file = tempnam(sys_get_temp_dir(), $fileName);
 
         // Write in the temporal filepath
@@ -1830,8 +1829,6 @@ class NamespaceController extends AbstractController
 
     /**
      * @Route("/namespace/{id}/makevisible", name="namespace_make_visible", requirements={"id"="^([0-9]+)|(namespaceID){1}$"})
-     * @param OntoNamespace $namespace
-     * @return JsonResponse
      */
     public function makeVisibleAction(OntoNamespace $namespace): JsonResponse
     {
@@ -1842,8 +1839,9 @@ class NamespaceController extends AbstractController
             $em->persist($namespace);
             $em->flush();
         } catch (\Exception $e) {
-            return new JsonResponse(null, Response::HTTP_INTERNAL_SERVER_ERROR, array('content-type:application/problem+json'));
+            return new JsonResponse(null, Response::HTTP_INTERNAL_SERVER_ERROR, ['content-type:application/problem+json']);
         }
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

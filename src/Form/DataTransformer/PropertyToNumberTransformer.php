@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 06/02/2018
- * Time: 10:59
+ * Time: 10:59.
  */
 
 namespace App\Form\DataTransformer;
@@ -25,7 +26,8 @@ class PropertyToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms an object (property) to a string (number).
      *
-     * @param  Property|null $property
+     * @param Property|null $property
+     *
      * @return string
      */
     public function transform($property)
@@ -40,9 +42,11 @@ class PropertyToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms a string (number) to an object (property).
      *
-     * @param  string $propertyNumber
+     * @param string $propertyNumber
+     *
      * @return Property|null
-     * @throws TransformationFailedException if object (property) is not found.
+     *
+     * @throws TransformationFailedException if object (property) is not found
      */
     public function reverseTransform($propertyNumber)
     {
@@ -61,13 +65,9 @@ class PropertyToNumberTransformer implements DataTransformerInterface
             // causes a validation error
             // this message is not shown to the user
             // see the invalid_message option
-            throw new TransformationFailedException(sprintf(
-                'An issue with number "%s" does not exist!',
-                $propertyNumber
-            ));
+            throw new TransformationFailedException(sprintf('An issue with number "%s" does not exist!', $propertyNumber));
         }
 
         return $property;
     }
-
 }

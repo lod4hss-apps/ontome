@@ -1,16 +1,16 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 15/01/2018
- * Time: 15:19
+ * Time: 15:19.
  */
 
 namespace App\Controller;
 
 use App\Entity\ClassAssociation;
 use App\Entity\OntoClass;
-use App\Entity\OntoClassVersion;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\ClassAssociationEditForm;
@@ -18,15 +18,15 @@ use App\Form\ParentClassAssociationForm;
 use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
 use App\Repository\NamespaceRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
 
 class ClassAssociationController extends AbstractController
 {
@@ -49,8 +49,8 @@ class ClassAssociationController extends AbstractController
 
         $em = $this->doctrine->getManager();
 
-        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
-        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 1 = example
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); // systemType 15 = justification
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 1 = example
 
         $justification = new TextProperty();
         $justification->setClassAssociation($classAssociation);
@@ -66,26 +66,26 @@ class ClassAssociationController extends AbstractController
 
         // Filtrage
         // On n'utilise pas les espaces de noms additionnels.
-        //$namespacesId = $childClass->getClassVersionForDisplay()->getNamespaceForVersion()->getSelectedNamespacesId();
+        // $namespacesId = $childClass->getClassVersionForDisplay()->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
         $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
-        foreach ($arrayClassesVersion as $cv){
-            if($cv['id'] == $childClass->getId()){
+        foreach ($arrayClassesVersion as $cv) {
+            if ($cv['id'] == $childClass->getId()) {
                 unset($arrayClassesVersion[array_search($cv, $arrayClassesVersion)]);
             }
         }
 
-        $form = $this->createForm(ParentClassAssociationForm::class, $classAssociation, array(
-            "classesVersion" => $arrayClassesVersion
-        ));
+        $form = $this->createForm(ParentClassAssociationForm::class, $classAssociation, [
+            'classesVersion' => $arrayClassesVersion,
+        ]);
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $classAssociation = $form->getData();
-            $parentClass = $classRepository->find($form->get("parentClassVersion")->getData());
+            $parentClass = $classRepository->find($form->get('parentClassVersion')->getData());
             $classAssociation->setParentClass($parentClass);
             $classAssociation->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
             $classAssociation->setChildClassNamespace(
@@ -100,7 +100,7 @@ class ClassAssociationController extends AbstractController
             $classAssociation->setCreationTime(new \DateTime('now'));
             $classAssociation->setModificationTime(new \DateTime('now'));
 
-            if($classAssociation->getTextProperties()->containsKey(1)){
+            if ($classAssociation->getTextProperties()->containsKey(1)) {
                 $classAssociation->getTextProperties()[1]->setCreationTime(new \DateTime('now'));
                 $classAssociation->getTextProperties()[1]->setModificationTime(new \DateTime('now'));
                 $classAssociation->getTextProperties()[1]->setSystemType($systemTypeExample);
@@ -113,16 +113,14 @@ class ClassAssociationController extends AbstractController
 
             return $this->redirectToRoute('class_show', [
                 'id' => $classAssociation->getChildClass()->getId(),
-                '_fragment' => 'class-hierarchy'
+                '_fragment' => 'class-hierarchy',
             ]);
-
         }
 
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
-        if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
             $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
-        }
-        else{ // Utilisateur connecté et utilisant un autre projet
+        } else { // Utilisateur connecté et utilisant un autre projet
             $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
@@ -131,23 +129,23 @@ class ClassAssociationController extends AbstractController
         return $this->render('classAssociation/newParent.html.twig', [
             'childClass' => $childClass,
             'parentClassAssociationForm' => $form->createView(),
-            'ancestors' => $ancestors
+            'ancestors' => $ancestors,
         ]);
     }
 
     /**
      * @Route("/class-association/{id}", name="class_association_show", requirements={"id"="^[0-9]+$"})
-     * @param ClassAssociation $classAssociation
+     *
      * @return Response the rendered template
      */
     public function showAction(ClassAssociation $classAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing class association: '.$classAssociation->getObjectIdentification());
 
-        return $this->render('classAssociation/show.html.twig', array(
+        return $this->render('classAssociation/show.html.twig', [
             'class' => $classAssociation->getChildClass(),
-            'classAssociation' => $classAssociation
-        ));
+            'classAssociation' => $classAssociation,
+        ]);
     }
 
     /**
@@ -159,7 +157,7 @@ class ClassAssociationController extends AbstractController
         $childClassVersion = $classAssociation->getChildClass()->getClassVersionForDisplay();
 
         // On doit avoir une version de la classe sinon on lance une exception.
-        if(is_null($childClassVersion)){
+        if (is_null($childClassVersion)) {
             throw $this->createNotFoundException('The class n°'.$classAssociation->getChildClass()->getId().' has no version. Please contact an administrator.');
         }
 
@@ -167,25 +165,25 @@ class ClassAssociationController extends AbstractController
 
         // Filtrage
         // On n'utilise pas les espaces de noms additionnels.
-        //$namespacesId = $childClassVersion->getNamespaceForVersion()->getSelectedNamespacesId();
+        // $namespacesId = $childClassVersion->getNamespaceForVersion()->getSelectedNamespacesId();
         $namespacesId = $this->getUser()->getCurrentOngoingNamespace()->getSelectedNamespacesId();
 
         $arrayClassesVersion = $classVersionRepository->findIdAndStandardLabelOfClassesVersionByNamespacesId($namespacesId);
 
-        foreach ($arrayClassesVersion as $cv){
-            if($cv['id'] == $classAssociation->getChildClass()->getId()){
+        foreach ($arrayClassesVersion as $cv) {
+            if ($cv['id'] == $classAssociation->getChildClass()->getId()) {
                 unset($arrayClassesVersion[array_search($cv, $arrayClassesVersion)]);
             }
         }
 
-        $form = $this->createForm(ClassAssociationEditForm::class, $classAssociation, array(
+        $form = $this->createForm(ClassAssociationEditForm::class, $classAssociation, [
             'classesVersion' => $arrayClassesVersion,
-            'defaultParent' => $classAssociation->getParentClass()->getId()));
+            'defaultParent' => $classAssociation->getParentClass()->getId()]);
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $parentClass = $classRepository->find($form->get("parentClassVersion")->getData());
+            $parentClass = $classRepository->find($form->get('parentClassVersion')->getData());
             $classAssociation->setParentClass($parentClass);
             $parentClassNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($parentClass, $namespacesId)->getNamespaceForVersion();
             $classAssociation->setParentClassNamespace($parentClassNamespace);
@@ -200,63 +198,63 @@ class ClassAssociationController extends AbstractController
             return $this->redirectToRoute('class_show_with_version', [
                 'id' => $classAssociation->getChildClass()->getId(),
                 'namespaceFromUrlId' => $classAssociation->getChildClass()->getClassVersionForDisplay()->getNamespaceForVersion()->getId(),
-                '_fragment' => 'class-hierarchy'
+                '_fragment' => 'class-hierarchy',
             ]);
         }
 
-        return $this->render('classAssociation/edit.html.twig', array(
+        return $this->render('classAssociation/edit.html.twig', [
             'class' => $classAssociation->getChildClass(),
             'classAssociation' => $classAssociation,
             'classAssociationForm' => $form->createView(),
-        ));
+        ]);
     }
 
     /**
      * @Route("/class-association/{id}/edit-validity/{validationStatus}", name="class_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     * @param ClassAssociation $classAssociation
-     * @param SystemType $validationStatus
-     * @throws \Exception in case of unsuccessful validation
+     *
      * @return RedirectResponse|Response
+     *
+     * @throws \Exception in case of unsuccessful validation
      */
     public function editValidationStatusAction(ClassAssociation $classAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
-        if(is_null($classAssociation)){
+        if (is_null($classAssociation)) {
             throw $this->createNotFoundException('The class association n°'.$classAssociation->getId().' does not exist. Please contact an administrator.');
         }
 
-        //Denied access if not an authorized validator
+        // Denied access if not an authorized validator
         $this->denyAccessUnlessGranted('validate', $classAssociation->getNamespaceForVersion());
 
-        //Verifier que les références sont cohérents
+        // Verifier que les références sont cohérents
         $nsRefsClassAssociation = $classAssociation->getNamespaceForVersion()->getAllReferencedNamespaces();
         $nsRefsClassAssociation->add($classAssociation->getNamespaceForVersion());
         $nsParent = $classAssociation->getParentClassNamespace();
         $nsChild = $classAssociation->getChildClassNamespace();
-        if(!$nsRefsClassAssociation->contains($nsParent) || !$nsRefsClassAssociation->contains($nsChild)){
+        if (!$nsRefsClassAssociation->contains($nsParent) || !$nsRefsClassAssociation->contains($nsChild)) {
             $uriNamespaceMismatches = $this->generateUrl('namespace_show', ['id' => $classAssociation->getNamespaceForVersion()->getId(), '_fragment' => 'mismatches']);
             $this->addFlash('warning', 'This relation can\'t be validated. Check <a href="'.$uriNamespaceMismatches.'">mismatches</a>.');
+
             return $this->redirectToRoute('class_association_show', [
-                'id' => $classAssociation->getId()
+                'id' => $classAssociation->getId(),
             ]);
         }
-
 
         $classAssociation->setModifier($this->getUser());
 
         $newValidationStatus = new SystemType();
 
-        try{
+        try {
             $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
-                ->findOneBy(array('id' => $validationStatus->getId()));
+                ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
         }
 
         if (!is_null($newValidationStatus)) {
             $statusId = intval($newValidationStatus->getId());
-            if (in_array($statusId, [26,27,28,37], true)) {
+            if (in_array($statusId, [26, 27, 28, 37], true)) {
                 $classAssociation->setValidationStatus($newValidationStatus);
                 $classAssociation->setModifier($this->getUser());
                 $classAssociation->setModificationTime(new \DateTime('now'));
@@ -265,25 +263,26 @@ class ClassAssociationController extends AbstractController
 
                 $em->flush();
 
-                if ($statusId == 27){
+                if ($statusId == 27) {
                     return $this->redirectToRoute('class_association_edit', [
-                        'id' => $classAssociation->getId()
+                        'id' => $classAssociation->getId(),
                     ]);
                 }
-                else return $this->redirectToRoute('class_association_show', [
-                    'id' => $classAssociation->getId()
-                ]);
 
+                return $this->redirectToRoute('class_association_show', [
+                    'id' => $classAssociation->getId(),
+                ]);
             }
         }
 
         return $this->redirectToRoute('class_association_show', [
-            'id' => $classAssociation->getId()
+            'id' => $classAssociation->getId(),
         ]);
     }
+
     /**
      * @Route("/class-association/{id}/delete", name="class_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     * @param ClassAssociation  $classAssociation
+     *
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteAction(ClassAssociation $classAssociation): JsonResponse
@@ -291,16 +290,15 @@ class ClassAssociationController extends AbstractController
         $this->denyAccessUnlessGranted('delete', $classAssociation);
 
         $em = $this->doctrine->getManager();
-        foreach($classAssociation->getTextProperties() as $textProperty)
-        {
+        foreach ($classAssociation->getTextProperties() as $textProperty) {
             $em->remove($textProperty);
         }
-        foreach($classAssociation->getComments() as $comment)
-        {
+        foreach ($classAssociation->getComments() as $comment) {
             $em->remove($comment);
         }
         $em->remove($classAssociation);
         $em->flush();
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }

@@ -1,28 +1,28 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
 
 use App\Entity\Property;
 use App\Entity\User;
-use LogicException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class PropertyVoter extends Voter
 {
-    const EDIT = 'edit';
-    const EDITMANAGER = 'edit_manager';
+    public const EDIT = 'edit';
+    public const EDITMANAGER = 'edit_manager';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT))) {
+        if (!in_array($attribute, [self::EDIT])) {
             return false;
         }
 
@@ -53,50 +53,47 @@ class PropertyVoter extends Voter
                 return $this->canEditManager($property, $user);
         }
 
-        throw new LogicException('This code should not be reached!');
+        throw new \LogicException('This code should not be reached!');
     }
 
     /**
-     * @param Property $property
-     * @param User $user
      * @return bool TRUE if $user and $property have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEdit(Property $property, User $user)
     {
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // Il faut absolument un espace de nom pour pouvoir associer les entités à un espace de nom.
             // Or les projets n'ont pas forcément un espace de nom ongoing. Il faut donc à ce moment là empêcher le mode Edit.
-            if(!$property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($property->getPropertyVersions()) > 1) {
+            if (!$property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($property->getPropertyVersions()) > 1) {
                 return false;
             }
 
-            if($userProjectAssociation->getProject() === $property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 3){
+            if ($userProjectAssociation->getProject() === $property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 3) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param Property $property
-     * @param User $user
      * @return bool TRUE if $user is the administrator or a manager of $class project and $user and $class have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEditManager(Property $property, User $user)
     {
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // On ne peut éditer une property que si elle dispose d'une seule version
-            if(!$property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($property->getPropertyVersions()) > 1) {
+            if (!$property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($property->getPropertyVersions()) > 1) {
                 return false;
             }
 
-            if($userProjectAssociation->getProject() === $property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 2){
+            if ($userProjectAssociation->getProject() === $property->getPropertyVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
-
 }

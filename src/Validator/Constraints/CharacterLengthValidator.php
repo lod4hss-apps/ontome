@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: pc-alexandre-pro
  * Date: 18/02/2019
- * Time: 16:04
+ * Time: 16:04.
  */
 
 namespace App\Validator\Constraints;
@@ -16,20 +17,17 @@ class CharacterLengthValidator extends ConstraintValidator
 {
     public function validate($value, Constraint $constraint)
     {
-        if (!$constraint instanceof CharacterLength)
-        {
+        if (!$constraint instanceof CharacterLength) {
             throw new UnexpectedTypeException($constraint, CharacterLength::class);
         }
 
         // custom constraints should ignore null and empty values to allow
         // other constraints (NotBlank, NotNull, etc.) take care of that
-        if (null === $value || '' === $value)
-        {
+        if (null === $value || '' === $value) {
             return;
         }
 
-        if (strlen(strip_tags($value)) < $constraint->min)
-        {
+        if (strlen(strip_tags($value)) < $constraint->min) {
             $this->context->buildViolation($constraint->message)
                 ->addViolation();
         }

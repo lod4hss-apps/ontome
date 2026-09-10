@@ -1,21 +1,22 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 15/01/2018
- * Time: 15:19
+ * Time: 15:19.
  */
 
 namespace App\Controller;
 
 use App\Entity\ProjectAssociation;
-use App\Form\PublicProjectNamespaceAssociationAddForm;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Entity\SystemType;
+use App\Form\PublicProjectNamespaceAssociationAddForm;
 use App\Repository\ProjectRepository;
-use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
 
 class ProjectAssociationController extends AbstractController
 {
@@ -28,18 +29,17 @@ class ProjectAssociationController extends AbstractController
     }
 
     /**
-     * @param Request $request
      * @Route("/public-project-namespace-association/new", name="public_project_namespace_association_new")
      */
     public function newPublicProjectNamespaceAssociationAction(Request $request, ProjectRepository $projectRepository)
     {
         $projectAssociation = new ProjectAssociation();
-        $publicProject =  $projectRepository->find(21); //public project = 21
+        $publicProject = $projectRepository->find(21); // public project = 21
 
-        $this->denyAccessUnlessGranted('full_edit', $publicProject); //admins only can add a new namespace to the public project
+        $this->denyAccessUnlessGranted('full_edit', $publicProject); // admins only can add a new namespace to the public project
 
         $em = $this->doctrine->getManager();
-        $systemType= $em->getRepository(SystemType::class)->find(17); //systemType 17 = Default display
+        $systemType = $em->getRepository(SystemType::class)->find(17); // systemType 17 = Default display
 
         $form = $this->createForm(PublicProjectNamespaceAssociationAddForm::class, $projectAssociation);
 
@@ -59,19 +59,17 @@ class ProjectAssociationController extends AbstractController
 
             return $this->redirectToRoute('project_edit', [
                 'id' => $projectAssociation->getProject()->getId(),
-                '_fragment' => 'managed-namespaces'
+                '_fragment' => 'managed-namespaces',
             ]);
-
         }
 
         return $this->render('projectAssociation/newPublicProjectNamespaceAssociation.html.twig', [
             'projectAssociation' => $projectAssociation,
-            'publicProjectNamespaceAssociationForm' => $form->createView()
+            'publicProjectNamespaceAssociationForm' => $form->createView(),
         ]);
     }
 
     /**
-     * @param ProjectAssociation $projectAssociation
      * @Route("/project-association/{id}/delete", name="project_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
      */
     public function deleteAction(ProjectAssociation $projectAssociation)
@@ -86,15 +84,13 @@ class ProjectAssociationController extends AbstractController
             $em = $this->doctrine->getManager();
             $em->remove($projectAssociation);
             $em->flush();
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return new \Exception('Something went wrong!');
         }
+
         return $this->redirectToRoute('project_edit', [
             'id' => $projectAssociation->getProject()->getId(),
-            '_fragment' => 'managed-namespaces'
+            '_fragment' => 'managed-namespaces',
         ]);
     }
-
-
 }

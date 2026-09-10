@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 26/04/2017
- * Time: 11:38
+ * Time: 11:38.
  */
 
 namespace App\Repository;
@@ -21,7 +22,9 @@ class LabelRepository extends ServiceEntityRepository
 
     /**
      * @param string $query
+     *
      * @return array
+     *
      * @throws \Doctrine\DBAL\DBALException
      */
     public function findByFullTextSearch($query)
@@ -73,9 +76,8 @@ class LabelRepository extends ServiceEntityRepository
                   AND to_tsvector('english', CONCAT(lbl.label, ' ', lbl.inverse_label)) @@ plainto_tsquery('english', :query);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('query' => $query));
+        $stmt->execute(['query' => $query]);
 
         return $stmt->fetchAll();
     }
-
 }

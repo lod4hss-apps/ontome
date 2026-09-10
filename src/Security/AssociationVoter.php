@@ -1,29 +1,30 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
 
 use App\Entity\ClassAssociation;
-use App\Entity\PropertyAssociation;
 use App\Entity\EntityAssociation;
+use App\Entity\PropertyAssociation;
 use App\Entity\User;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class AssociationVoter extends Voter
 {
-    const EDIT = 'edit';
-    const DELETE = 'delete';
+    public const EDIT = 'edit';
+    public const DELETE = 'delete';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT, self::DELETE))) {
+        if (!in_array($attribute, [self::EDIT, self::DELETE])) {
             return false;
         }
 
@@ -45,7 +46,6 @@ class AssociationVoter extends Voter
         }
 
         // we know $subject is a (Class/Property/Entity)Association object, thanks to supports
-        /** @var mixed $association */
         $association = $subject;
         switch ($attribute) {
             case self::EDIT:
@@ -58,60 +58,62 @@ class AssociationVoter extends Voter
     }
 
     /**
-     * @param mixed $association
-     * @param User $user
      * @return bool TRUE if $user and $association have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEdit($association, User $user)
     {
-        if(is_null($user->getCurrentOngoingNamespace())){return false;}
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2 && $user->getCurrentOngoingNamespace()->getProjectForTopLevelNamespace() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+        if (is_null($user->getCurrentOngoingNamespace())) {
+            return false;
+        }
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2 && $user->getCurrentOngoingNamespace()->getProjectForTopLevelNamespace() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param mixed $association
-     * @param User $user
      * @return bool TRUE if $user and $namespace have matching namespace (thanks to the $userProjectAssociation) and $user is a project manager
      */
     private function canDelete($association, User $user)
     {
-        if(is_null($user->getCurrentOngoingNamespace())){return false;}
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2 && $user->getCurrentOngoingNamespace()->getProjectForTopLevelNamespace() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+        if (is_null($user->getCurrentOngoingNamespace())) {
+            return false;
+        }
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace() && $userProjectAssociation->getPermission() <= 2 && $user->getCurrentOngoingNamespace()->getProjectForTopLevelNamespace() === $association->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
                 $countNs = 0;
-                foreach ($association->getNamespaceForVersion()->getTopLevelNamespace()->getChildVersions() as $namespace_version){
-                    if($association instanceof ClassAssociation){
-                        foreach ($namespace_version->getClassAssociations() as $classAssociation){
-                            if($classAssociation->getChildClass() == $association->getChildClass() && $classAssociation->getParentClass() == $association->getParentClass()){
-                                $countNs++;
+                foreach ($association->getNamespaceForVersion()->getTopLevelNamespace()->getChildVersions() as $namespace_version) {
+                    if ($association instanceof ClassAssociation) {
+                        foreach ($namespace_version->getClassAssociations() as $classAssociation) {
+                            if ($classAssociation->getChildClass() == $association->getChildClass() && $classAssociation->getParentClass() == $association->getParentClass()) {
+                                ++$countNs;
                             }
                         }
                     }
-                    if($association instanceof PropertyAssociation){
-                        foreach ($namespace_version->getPropertyAssociations() as $propertyAssociation){
-                            if($propertyAssociation->getChildProperty() == $association->getChildProperty() && $propertyAssociation->getParentProperty() == $association->getParentProperty()){
-                                $countNs++;
+                    if ($association instanceof PropertyAssociation) {
+                        foreach ($namespace_version->getPropertyAssociations() as $propertyAssociation) {
+                            if ($propertyAssociation->getChildProperty() == $association->getChildProperty() && $propertyAssociation->getParentProperty() == $association->getParentProperty()) {
+                                ++$countNs;
                             }
                         }
                     }
-                    if($association instanceof EntityAssociation){
-                        foreach ($namespace_version->getEntityAssociations() as $entityAssociation){
-                            if($entityAssociation->getTarget() == $association->getTarget() && $entityAssociation->getSource() == $association->getSource()){
-                                $countNs++;
+                    if ($association instanceof EntityAssociation) {
+                        foreach ($namespace_version->getEntityAssociations() as $entityAssociation) {
+                            if ($entityAssociation->getTarget() == $association->getTarget() && $entityAssociation->getSource() == $association->getSource()) {
+                                ++$countNs;
                             }
                         }
                     }
                 }
-                if($association->getNamespaceForVersion()->getIsOngoing() && $countNs <= 1){
+                if ($association->getNamespaceForVersion()->getIsOngoing() && $countNs <= 1) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 }

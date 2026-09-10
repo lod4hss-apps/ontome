@@ -1,16 +1,16 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 15/01/2018
- * Time: 15:19
+ * Time: 15:19.
  */
 
 namespace App\Controller;
 
-use Psr\Log\LoggerInterface;
-use App\Entity\PropertyAssociation;
 use App\Entity\Property;
+use App\Entity\PropertyAssociation;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\ParentPropertyAssociationForm;
@@ -18,14 +18,15 @@ use App\Form\PropertyAssociationEditForm;
 use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Annotation\Route;
 
 class PropertyAssociationController extends AbstractController
 {
@@ -36,7 +37,7 @@ class PropertyAssociationController extends AbstractController
         // Inject the ManagerRegistry into the controller
         $this->doctrine = $doctrine;
     }
-    
+
     /**
      * @Route("/parent-property-association/new/{childProperty}", name="new_parent_property_form", requirements={"childProperty"="^[0-9]+$"})
      */
@@ -46,10 +47,9 @@ class PropertyAssociationController extends AbstractController
 
         $this->denyAccessUnlessGranted('add_associations', $childProperty->getPropertyVersionForDisplay()->getNamespaceForVersion());
 
-
         $em = $this->doctrine->getManager();
-        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
-        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); //systemType 7 = example
+        $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); // systemType 15 = justification
+        $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 7 = example
 
         $justification = new TextProperty();
         $justification->setPropertyAssociation($propertyAssociation);
@@ -64,35 +64,35 @@ class PropertyAssociationController extends AbstractController
         $propertyAssociation->setChildProperty($childProperty);
 
         // FILTRAGE
-        //$namespaceForChildPropertyVersion = $childProperty->getPropertyVersionForDisplay()->getNamespaceForVersion();
-        //$namespacesId[] = $namespaceForChildPropertyVersion->getId();
+        // $namespaceForChildPropertyVersion = $childProperty->getPropertyVersionForDisplay()->getNamespaceForVersion();
+        // $namespacesId[] = $namespaceForChildPropertyVersion->getId();
         $namespacesId[] = $this->getUser()->getCurrentOngoingNamespace()->getId();
 
         // Sans oublier les namespaces références si indisponibles
-        //foreach($this->getUser()->getCurrentOngoingNamespace()->getReferencedNamespaceAssociations() as $referencedNamespacesAssociation){
-        foreach($this->getUser()->getCurrentOngoingNamespace()->getAllReferencedNamespaces() as $referencedNamespaces){
-            if(!in_array($referencedNamespaces->getId(), $namespacesId)){
+        // foreach($this->getUser()->getCurrentOngoingNamespace()->getReferencedNamespaceAssociations() as $referencedNamespacesAssociation){
+        foreach ($this->getUser()->getCurrentOngoingNamespace()->getAllReferencedNamespaces() as $referencedNamespaces) {
+            if (!in_array($referencedNamespaces->getId(), $namespacesId)) {
                 $namespacesId[] = $referencedNamespaces->getId();
             }
         }
 
         $arrayPropertiesVersion = $propertyVersionRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
 
-        foreach ($arrayPropertiesVersion as $pv){
-            if($pv['id'] == $childProperty->getId()){
+        foreach ($arrayPropertiesVersion as $pv) {
+            if ($pv['id'] == $childProperty->getId()) {
                 unset($arrayPropertiesVersion[array_search($pv, $arrayPropertiesVersion)]);
             }
         }
 
-        $form = $this->createForm(ParentPropertyAssociationForm::class, $propertyAssociation, array(
-            "propertiesVersion" => $arrayPropertiesVersion
-        ));
+        $form = $this->createForm(ParentPropertyAssociationForm::class, $propertyAssociation, [
+            'propertiesVersion' => $arrayPropertiesVersion,
+        ]);
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $propertyAssociation = $form->getData();
-            $parentProperty = $propertyRepository->find($form->get("parentPropertyVersion")->getData());
+            $parentProperty = $propertyRepository->find($form->get('parentPropertyVersion')->getData());
             $propertyAssociation->setParentProperty($parentProperty);
             $propertyAssociation->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
             $propertyAssociation->setChildPropertyNamespace(
@@ -107,7 +107,7 @@ class PropertyAssociationController extends AbstractController
             $propertyAssociation->setCreationTime(new \DateTime('now'));
             $propertyAssociation->setModificationTime(new \DateTime('now'));
 
-            if($propertyAssociation->getTextProperties()->containsKey(1)){
+            if ($propertyAssociation->getTextProperties()->containsKey(1)) {
                 $propertyAssociation->getTextProperties()[1]->setCreationTime(new \DateTime('now'));
                 $propertyAssociation->getTextProperties()[1]->setModificationTime(new \DateTime('now'));
                 $propertyAssociation->getTextProperties()[1]->setSystemType($systemTypeExample);
@@ -115,25 +115,22 @@ class PropertyAssociationController extends AbstractController
                 $propertyAssociation->getTextProperties()[1]->setPropertyAssociation($propertyAssociation);
             }
 
-
             $em = $this->doctrine->getManager();
             $em->persist($propertyAssociation);
             $em->flush();
 
             return $this->redirectToRoute('property_show', [
                 'id' => $propertyAssociation->getChildProperty()->getId(),
-                '_fragment' => 'property-hierarchy'
+                '_fragment' => 'property-hierarchy',
             ]);
-
         }
 
         $em = $this->doctrine->getManager();
 
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
-        if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
             $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
-        }
-        else{ // Utilisateur connecté et utilisant un autre projet
+        } else { // Utilisateur connecté et utilisant un autre projet
             $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
@@ -142,25 +139,23 @@ class PropertyAssociationController extends AbstractController
         return $this->render('propertyAssociation/newParent.html.twig', [
             'childProperty' => $childProperty,
             'parentPropertyAssociationForm' => $form->createView(),
-            'ancestors' => $ancestors
+            'ancestors' => $ancestors,
         ]);
     }
 
     /**
      * @Route("/property-association/{id}", name="property_association_show", requirements={"id"="^[0-9]+$"})
-     * @param PropertyAssociation $propertyAssociation
+     *
      * @return Response the rendered template
      */
     public function showAction(PropertyAssociation $propertyAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing property association: '.$propertyAssociation->getObjectIdentification());
 
-
-        return $this->render('propertyAssociation/show.html.twig', array(
+        return $this->render('propertyAssociation/show.html.twig', [
             'property' => $propertyAssociation->getChildProperty(),
-            'propertyAssociation' => $propertyAssociation
-        ));
-
+            'propertyAssociation' => $propertyAssociation,
+        ]);
     }
 
     /**
@@ -172,7 +167,7 @@ class PropertyAssociationController extends AbstractController
         $childPropertyVersion = $propertyAssociation->getChildProperty()->getPropertyVersionForDisplay();
 
         // On doit avoir une version de la propriété sinon on lance une exception.
-        if(is_null($childPropertyVersion)){
+        if (is_null($childPropertyVersion)) {
             throw $this->createNotFoundException('The property n°'.$propertyAssociation->getChildProperty()->getId().' has no version. Please contact an administrator.');
         }
 
@@ -207,20 +202,20 @@ class PropertyAssociationController extends AbstractController
 
         $arrayPropertiesVersion = $propertyVersionRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
 
-        foreach ($arrayPropertiesVersion as $pv){
-            if($pv['id'] == $propertyAssociation->getChildProperty()->getId()){
+        foreach ($arrayPropertiesVersion as $pv) {
+            if ($pv['id'] == $propertyAssociation->getChildProperty()->getId()) {
                 unset($arrayPropertiesVersion[array_search($pv, $arrayPropertiesVersion)]);
             }
         }
 
-        $form = $this->createForm(PropertyAssociationEditForm::class, $propertyAssociation, array(
+        $form = $this->createForm(PropertyAssociationEditForm::class, $propertyAssociation, [
             'propertiesVersion' => $arrayPropertiesVersion,
-            'defaultParent' => $propertyAssociation->getParentProperty()->getId()));
+            'defaultParent' => $propertyAssociation->getParentProperty()->getId()]);
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $parentProperty = $propertyRepository->find($form->get("parentPropertyVersion")->getData());
+            $parentProperty = $propertyRepository->find($form->get('parentPropertyVersion')->getData());
             $parentPropertyVersion = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($parentProperty, $namespacesId);
             $propertyAssociation->setParentProperty($parentProperty);
             $parentPropertyNamespace = $propertyVersionRepository->findPropertyVersionByPropertyAndNamespacesId($parentProperty, $namespacesId)->getNamespaceForVersion();
@@ -236,23 +231,22 @@ class PropertyAssociationController extends AbstractController
             return $this->redirectToRoute('property_show_with_version', [
                 'id' => $propertyAssociation->getChildProperty()->getId(),
                 'namespaceFromUrlId' => $propertyAssociation->getChildProperty()->getPropertyVersionForDisplay()->getNamespaceForVersion()->getId(),
-                '_fragment' => 'property-hierarchy'
+                '_fragment' => 'property-hierarchy',
             ]);
-
         }
 
         $em = $this->doctrine->getManager();
 
-        return $this->render('propertyAssociation/edit.html.twig', array(
+        return $this->render('propertyAssociation/edit.html.twig', [
             'property' => $propertyAssociation->getChildProperty(),
             'propertyAssociation' => $propertyAssociation,
             'propertyAssociationForm' => $form->createView(),
-        ));
+        ]);
     }
 
     /**
      * @Route("/property-association/{id}/delete", name="property_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     * @param PropertyAssociation $propertyAssociation
+     *
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteAction(PropertyAssociation $propertyAssociation): JsonResponse
@@ -260,47 +254,46 @@ class PropertyAssociationController extends AbstractController
         $this->denyAccessUnlessGranted('delete', $propertyAssociation);
 
         $em = $this->doctrine->getManager();
-        foreach($propertyAssociation->getTextProperties() as $textProperty)
-        {
+        foreach ($propertyAssociation->getTextProperties() as $textProperty) {
             $em->remove($textProperty);
         }
-        foreach($propertyAssociation->getComments() as $comment)
-        {
+        foreach ($propertyAssociation->getComments() as $comment) {
             $em->remove($comment);
         }
         $em->remove($propertyAssociation);
         $em->flush();
+
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
      * @Route("/property-association/{id}/edit-validity/{validationStatus}", name="property_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     * @param PropertyAssociation $propertyAssociation
-     * @param SystemType $validationStatus
-     * @param Request $request
-     * @throws \Exception in case of unsuccessful validation
+     *
      * @return RedirectResponse|Response
+     *
+     * @throws \Exception in case of unsuccessful validation
      */
     public function editValidationStatusAction(PropertyAssociation $propertyAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
-        if(is_null($propertyAssociation)){
+        if (is_null($propertyAssociation)) {
             throw $this->createNotFoundException('The property association n°'.$propertyAssociation->getId().' does not exist. Please contact an administrator.');
         }
 
-        //Denied access if not an authorized validator
+        // Denied access if not an authorized validator
         $this->denyAccessUnlessGranted('validate', $propertyAssociation->getNamespaceForVersion());
 
-        //Verifier que les références sont cohérents
+        // Verifier que les références sont cohérents
         $nsRefsPropertyAssociation = $propertyAssociation->getNamespaceForVersion()->getAllReferencedNamespaces();
         $nsRefsPropertyAssociation->add($propertyAssociation->getNamespaceForVersion());
         $nsParent = $propertyAssociation->getParentPropertyNamespace();
         $nsChild = $propertyAssociation->getChildPropertyNamespace();
-        if(!$nsRefsPropertyAssociation->contains($nsParent) || !$nsRefsPropertyAssociation->contains($nsChild)){
+        if (!$nsRefsPropertyAssociation->contains($nsParent) || !$nsRefsPropertyAssociation->contains($nsChild)) {
             $uriNamespaceMismatches = $this->generateUrl('namespace_show', ['id' => $propertyAssociation->getNamespaceForVersion()->getId(), '_fragment' => 'mismatches']);
             $this->addFlash('warning', 'This relation can\'t be validated. Check <a href="'.$uriNamespaceMismatches.'">mismatches</a>.');
+
             return $this->redirectToRoute('class_association_show', [
-                'id' => $propertyAssociation->getId()
+                'id' => $propertyAssociation->getId(),
             ]);
         }
 
@@ -308,17 +301,17 @@ class PropertyAssociationController extends AbstractController
 
         $newValidationStatus = new SystemType();
 
-        try{
+        try {
             $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
-                ->findOneBy(array('id' => $validationStatus->getId()));
+                ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
         }
 
         if (!is_null($newValidationStatus)) {
             $statusId = intval($newValidationStatus->getId());
-            if (in_array($statusId, [26,27,28], true)) {
+            if (in_array($statusId, [26, 27, 28], true)) {
                 $propertyAssociation->setValidationStatus($newValidationStatus);
                 $propertyAssociation->setModifier($this->getUser());
                 $propertyAssociation->setModificationTime(new \DateTime('now'));
@@ -327,20 +320,20 @@ class PropertyAssociationController extends AbstractController
 
                 $em->flush();
 
-                if ($statusId == 27){
+                if ($statusId == 27) {
                     return $this->redirectToRoute('property_association_edit', [
-                        'id' => $propertyAssociation->getId()
+                        'id' => $propertyAssociation->getId(),
                     ]);
                 }
-                else return $this->redirectToRoute('property_association_show', [
-                    'id' => $propertyAssociation->getId()
-                ]);
 
+                return $this->redirectToRoute('property_association_show', [
+                    'id' => $propertyAssociation->getId(),
+                ]);
             }
         }
 
         return $this->redirectToRoute('property_association_show', [
-            'id' => $propertyAssociation->getId()
+            'id' => $propertyAssociation->getId(),
         ]);
     }
 }

@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
@@ -15,13 +16,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class OntoClassVersionVoter extends Voter
 {
-    const EDIT = 'edit';
-    const VALIDATE = 'validate';
+    public const EDIT = 'edit';
+    public const VALIDATE = 'validate';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT, self::VALIDATE))) {
+        if (!in_array($attribute, [self::EDIT, self::VALIDATE])) {
             return false;
         }
 
@@ -56,49 +57,46 @@ class OntoClassVersionVoter extends Voter
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param User $user
      * @return bool TRUE if $user and $classVersion have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEdit(OntoClassVersion $classVersion, User $user)
     {
         // La classe doit être dans une version ongoing
         // Ne pas autoriser l'utilisateur à modifier une classe, même ongoing, s'il n'a pas activé le projet d'appartenance
-        if(!$classVersion->getNamespaceForVersion()->getIsOngoing() ||
-            $user->getCurrentActiveProject() !== $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+        if (!$classVersion->getNamespaceForVersion()->getIsOngoing()
+            || $user->getCurrentActiveProject() !== $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
             return false;
         }
 
-        foreach($user->getUserProjectAssociations() as $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 3){
+        foreach ($user->getUserProjectAssociations() as $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 3) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoClassVersion $classVersion
-     * @param User $user
      * @return bool TRUE if $user is the administrator or a manager of $class project and $user and $class have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canValidate(OntoClassVersion $classVersion, User $user)
     {
         // La classe doit être dans une version ongoing
         // Ne pas autoriser l'utilisateur à modifier une classe, même ongoing, s'il n'a pas activé le projet d'appartenance
-        if(!$classVersion->getNamespaceForVersion()->getIsOngoing() ||
-            $user->getCurrentActiveProject() !== $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()){
+        if (!$classVersion->getNamespaceForVersion()->getIsOngoing()
+            || $user->getCurrentActiveProject() !== $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()) {
             return false;
         }
 
-        foreach($user->getUserProjectAssociations() as $userProjectAssociation) {
-            if($userProjectAssociation->getProject() === $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 2){
+        foreach ($user->getUserProjectAssociations() as $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() === $classVersion->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
-
 }

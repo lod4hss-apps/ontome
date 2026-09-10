@@ -1,19 +1,20 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 15/10/2017
- * Time: 15:03
+ * Time: 15:03.
  */
 
 namespace App\Controller;
 
-use Psr\Log\LoggerInterface;
+use App\Entity\ClassAssociation;
+use App\Entity\EntityAssociation;
+use App\Entity\PropertyAssociation;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
-use App\Entity\ClassAssociation;
-use App\Entity\PropertyAssociation;
-use App\Entity\EntityAssociation;
+use App\Form\TextPropertyForm;
 use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
 use App\Repository\NamespaceRepository;
@@ -21,15 +22,15 @@ use App\Repository\ProfileRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
-use App\Form\TextPropertyForm;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
 
 class TextPropertyController extends AbstractController
 {
@@ -43,94 +44,86 @@ class TextPropertyController extends AbstractController
 
     /**
      * @Route("/text-property/{id}", name="text_property_show", requirements={"id"="^[0-9]+$"})
-     * @param string $id
+     *
      * @return Response the rendered template
      */
     public function showAction(TextProperty $textProperty, LoggerInterface $logger): Response
     {
-        $logger->info('Showing text property: ' . $textProperty->getId());
-        return $this->render('textProperty/show.html.twig', array(
-            'textProperty' => $textProperty
-        ));
+        $logger->info('Showing text property: '.$textProperty->getId());
+
+        return $this->render('textProperty/show.html.twig', [
+            'textProperty' => $textProperty,
+        ]);
     }
 
     /**
      * @Route("/text-property/{id}/edit", name="text_property_edit", requirements={"id"="^[0-9]+$"})
      * @Route("/text-property/{id}/inverse/edit", name="text_property_inverse_edit", requirements={"id"="^[0-9]+$"})
-     * @param TextProperty $textProperty
-     * @param Request $request
+     *
      * @return RedirectResponse|Response
      */
     public function editAction(TextProperty $textProperty, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $textProperty);
-        if(!is_null($textProperty->getClassAssociation())){
+        if (!is_null($textProperty->getClassAssociation())) {
             $object = $textProperty->getClassAssociation();
             $objectType = 'class-association';
             $redirectToRoute = 'class_association_edit';
             $redirectToRouteFragment = 'justifications';
-        }
-        else if(!is_null($textProperty->getPropertyAssociation())){
+        } elseif (!is_null($textProperty->getPropertyAssociation())) {
             $object = $textProperty->getPropertyAssociation();
             $objectType = 'property-association';
             $redirectToRoute = 'property_association_edit';
             $redirectToRouteFragment = 'justifications';
-        }
-        else if(!is_null($textProperty->getEntityAssociation())){
+        } elseif (!is_null($textProperty->getEntityAssociation())) {
             $object = $textProperty->getEntityAssociation();
             $objectType = 'entity-association';
             $redirectToRoute = 'entity_association_edit';
-            if($request->attributes->get('_route') == 'text_property_inverse_edit'){
+            if ($request->attributes->get('_route') == 'text_property_inverse_edit') {
                 $redirectToRoute = 'entity_association_inverse_edit';
             }
 
             $redirectToRouteFragment = 'justifications';
-        }
-        else if(!is_null($textProperty->getClass())){
+        } elseif (!is_null($textProperty->getClass())) {
             $object = $textProperty->getClass();
             $objectType = 'class';
-            if($this->isGranted('edit', $textProperty->getClass())){
+            if ($this->isGranted('edit', $textProperty->getClass())) {
                 $redirectToRoute = 'class_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'class_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if(!is_null($textProperty->getProperty())){
+        } elseif (!is_null($textProperty->getProperty())) {
             $object = $textProperty->getProperty();
             $objectType = 'property';
-            if($this->isGranted('edit', $textProperty->getProperty())){
+            if ($this->isGranted('edit', $textProperty->getProperty())) {
                 $redirectToRoute = 'property_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'property_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if(!is_null($textProperty->getProject())){
+        } elseif (!is_null($textProperty->getProject())) {
             $object = $textProperty->getProject();
             $objectType = 'project';
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'definition';
-        }
-        else if(!is_null($textProperty->getProfile())){
+        } elseif (!is_null($textProperty->getProfile())) {
             $object = $textProperty->getProfile();
             $objectType = 'profile';
             $redirectToRoute = 'profile_edit';
             $redirectToRouteFragment = 'identification';
-        }
-        else if(!is_null($textProperty->getNamespace())){
+        } elseif (!is_null($textProperty->getNamespace())) {
             $object = $textProperty->getNamespace();
             $objectType = 'namespace';
             $redirectToRoute = 'namespace_edit';
             $redirectToRouteFragment = 'definition';
+        } else {
+            throw $this->createNotFoundException('The related object for the text property  n° '.$textProperty->getId().' does not exist. Please contact an administrator.');
         }
-        else throw $this->createNotFoundException('The related object for the text property  n° '.$textProperty->getId().' does not exist. Please contact an administrator.');
 
         $textProperty->setModifier($this->getUser());
 
-        $form = $this->createForm(TextPropertyForm::class, $textProperty, array('systemType' => $textProperty->getSystemType()->getId(), 'objectType' => $objectType));
+        $form = $this->createForm(TextPropertyForm::class, $textProperty, ['systemType' => $textProperty->getSystemType()->getId(), 'objectType' => $objectType]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -143,23 +136,22 @@ class TextPropertyController extends AbstractController
 
             return $this->redirectToRoute($redirectToRoute, [
                 'id' => $object->getId(),
-                '_fragment' => $redirectToRouteFragment
+                '_fragment' => $redirectToRouteFragment,
             ]);
         }
 
-        //If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
+        // If validation status is in validation request or is validation, we can't allow edition of the entity and we rended the show template
         if (!is_null($textProperty->getValidationStatus()) && ($textProperty->getValidationStatus()->getId() === 26 || $textProperty->getValidationStatus()->getId() === 28)) {
             return $this->render('textProperty/show.html.twig', [
-                'textProperty' => $textProperty
+                'textProperty' => $textProperty,
             ]);
         }
 
         return $this->render('textProperty/edit.html.twig', [
             'textPropertyForm' => $form->createView(),
             'associatedObject' => $object,
-            'textProperty' => $textProperty
+            'textProperty' => $textProperty,
         ]);
-
     }
 
     /**
@@ -174,67 +166,59 @@ class TextPropertyController extends AbstractController
 
         $textProperty = new TextProperty();
 
-        if($object === 'class-association') {
+        if ($object === 'class-association') {
             $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
             $textProperty->setClassAssociation($associatedEntity);
             $associatedObject = $associatedEntity->getChildClass()->getClassVersionForDisplay();
-            if($associatedEntity->isGranted('edit')){
+            if ($associatedEntity->isGranted('edit')) {
                 $redirectToRoute = 'class_association_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'class_association_show';
             }
             $redirectToRouteFragment = 'justifications';
-        }
-        else if($object === 'property-association') {
+        } elseif ($object === 'property-association') {
             $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
             $textProperty->setPropertyAssociation($associatedEntity);
             $associatedObject = $associatedEntity->getChildProperty()->getPropertyVersionForDisplay();
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'property_association_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'property_association_show';
             }
             $redirectToRouteFragment = 'justifications';
-        }
-        else if($object === 'class') {
+        } elseif ($object === 'class') {
             $associatedEntity = $classRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
             $textProperty->setClass($associatedEntity);
             $associatedObject = $associatedEntity->getClassVersionForDisplay();
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'class_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'class_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if($object === 'property') {
+        } elseif ($object === 'property') {
             $associatedEntity = $propertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
             $textProperty->setProperty($associatedEntity);
             $associatedObject = $associatedEntity->getPropertyVersionForDisplay();
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'property_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'property_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if($object === 'class-version') {
+        } elseif ($object === 'class-version') {
             $associatedEntity = $classVersionRepository->find($objectId);
             $associatedClass = $associatedEntity->getClass();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
@@ -245,17 +229,15 @@ class TextPropertyController extends AbstractController
             $textProperty->setClass($associatedClass);
             $textProperty->setEntityNamespaceForVersion($associatedNamespace);
 
-            if($this->isGranted('edit', $associatedEntity)){
+            if ($this->isGranted('edit', $associatedEntity)) {
                 $redirectToRoute = 'class_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'class_show_with_version';
                 $redirectToRouteVersion = $associatedNamespace->getId();
             }
             $redirectToRouteFragment = 'definition';
             $objectId = $associatedClass->getId();
-        }
-        else if($object === 'property-version') {
+        } elseif ($object === 'property-version') {
             $associatedEntity = $propertyVersionRepository->find($objectId);
             $associatedProperty = $associatedEntity->getProperty();
             $associatedNamespace = $associatedEntity->getNamespaceForVersion();
@@ -266,48 +248,42 @@ class TextPropertyController extends AbstractController
             $textProperty->setProperty($associatedProperty);
             $textProperty->setEntityNamespaceForVersion($associatedNamespace);
 
-            if($this->isGranted('edit', $associatedEntity)){
+            if ($this->isGranted('edit', $associatedEntity)) {
                 $redirectToRoute = 'property_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'property_show_with_version';
                 $redirectToRouteVersion = $associatedNamespace->getId();
             }
             $redirectToRouteFragment = 'definition';
             $objectId = $associatedProperty->getId();
-        }
-        else if($object === 'project') {
+        } elseif ($object === 'project') {
             $associatedEntity = $projectRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The project n° '.$objectId.' does not exist');
             }
             $textProperty->setProject($associatedEntity);
             $associatedObject = $associatedEntity;
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'project_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'project_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if($object === 'profile') {
+        } elseif ($object === 'profile') {
             $associatedEntity = $profileRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The profile n° '.$objectId.' does not exist');
             }
             $textProperty->setProfile($associatedEntity);
             $associatedObject = $associatedEntity;
-            //if($associatedEntity->isGranted('edit')){
-            if($this->isGranted('edit', $associatedObject)){
+            // if($associatedEntity->isGranted('edit')){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'profile_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'profile_show';
             }
             $redirectToRouteFragment = 'definition';
-        }
-        else if($object === 'namespace') {
+        } elseif ($object === 'namespace') {
             $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
@@ -315,78 +291,70 @@ class TextPropertyController extends AbstractController
             $textProperty->setNamespace($associatedEntity);
             $associatedObject = $associatedEntity;
 
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'namespace_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'namespace_show';
             }
 
             if ($type === 'owl:versionInfo') {
                 $redirectToRouteFragment = 'identification';
+            } else {
+                $redirectToRouteFragment = 'definition';
             }
-            else $redirectToRouteFragment = 'definition';
-        }
-        else if($object === 'entity-association') {
+        } elseif ($object === 'entity-association') {
             $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
             $textProperty->setEntityAssociation($associatedEntity);
             $associatedObject = $associatedEntity->getSource();
-            if($this->isGranted('edit', $associatedObject)){
+            if ($this->isGranted('edit', $associatedObject)) {
                 $redirectToRoute = 'entity_association_edit';
-            }
-            else{
+            } else {
                 $redirectToRoute = 'entity_association_show';
             }
-            if($request->attributes->get('_route') == 'text_property_inverse_new'){
-                if($this->isGranted('edit', $associatedObject)){
+            if ($request->attributes->get('_route') == 'text_property_inverse_new') {
+                if ($this->isGranted('edit', $associatedObject)) {
                     $redirectToRoute = 'entity_association_inverse_edit';
-                }
-                else{
+                } else {
                     $redirectToRoute = 'entity_association_inverse_show';
                 }
             }
 
             $redirectToRouteFragment = 'justifications';
+        } else {
+            throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
         }
-        else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 
-        if($type === 'scope-note') {
-            $systemType = $em->getRepository(SystemType::class)->find(1); //systemType 1 = scope note
-        }
-        else if($type === 'example') {
-            $systemType = $em->getRepository(SystemType::class)->find(7); //systemType 7 = example
-        }
-        else if($type === 'justification') {
-            $systemType = $em->getRepository(SystemType::class)->find(15); //systemType 15 = justification
-        }
-        else if($type === 'internal-note') {
-            $systemType = $em->getRepository(SystemType::class)->find(33); //systemType 33 = internal note
-        }
-        else if($type === 'context-note') {
-            $systemType = $em->getRepository(SystemType::class)->find(34); //systemType 34 = context note
-        }
-        else if($type === 'bibliographical-note') {
-            $systemType = $em->getRepository(SystemType::class)->find(35); //systemType 35 = bibliographical note
+        if ($type === 'scope-note') {
+            $systemType = $em->getRepository(SystemType::class)->find(1); // systemType 1 = scope note
+        } elseif ($type === 'example') {
+            $systemType = $em->getRepository(SystemType::class)->find(7); // systemType 7 = example
+        } elseif ($type === 'justification') {
+            $systemType = $em->getRepository(SystemType::class)->find(15); // systemType 15 = justification
+        } elseif ($type === 'internal-note') {
+            $systemType = $em->getRepository(SystemType::class)->find(33); // systemType 33 = internal note
+        } elseif ($type === 'context-note') {
+            $systemType = $em->getRepository(SystemType::class)->find(34); // systemType 34 = context note
+        } elseif ($type === 'bibliographical-note') {
+            $systemType = $em->getRepository(SystemType::class)->find(35); // systemType 35 = bibliographical note
         }
         /*else if($type === 'additional-note') {
             $systemType = $em->getRepository(SystemType::class)->find(12); //systemType 12 = additional-note
         }*/
-        else if($type === 'definition') {
-            $systemType = $em->getRepository(SystemType::class)->find(16); //systemType 16 = description
+        elseif ($type === 'definition') {
+            $systemType = $em->getRepository(SystemType::class)->find(16); // systemType 16 = description
+        } elseif ($type === 'dct:contributor') {
+            $systemType = $em->getRepository(SystemType::class)->find(2); // systemType 2 = dc:contributors
+        } elseif ($type === 'owl:versionInfo') {
+            $systemType = $em->getRepository(SystemType::class)->find(31); // systemType 31 = owl:versionInfo
+        } else {
+            throw $this->createNotFoundException('The requested text property type "'.$type.'" does not exist!');
         }
-        else if($type === 'dct:contributor') {
-            $systemType = $em->getRepository(SystemType::class)->find(2); //systemType 2 = dc:contributors
-        }
-        else if($type === 'owl:versionInfo') {
-            $systemType = $em->getRepository(SystemType::class)->find(31); //systemType 31 = owl:versionInfo
-        }
-        else throw $this->createNotFoundException('The requested text property type "'.$type.'" does not exist!');
 
-        //ongoingNamespace associated to the textProperty for any kind of object, except Project or Profile
-        if($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
+        // ongoingNamespace associated to the textProperty for any kind of object, except Project or Profile
+        if ($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
             $textProperty->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
         }
 
@@ -396,15 +364,15 @@ class TextPropertyController extends AbstractController
         $textProperty->setCreationTime(new \DateTime('now'));
         $textProperty->setModificationTime(new \DateTime('now'));
 
-        $form = $this->createForm(TextPropertyForm::class, $textProperty, array('systemType' => $textProperty->getSystemType()->getId(), 'objectType' => $object));
+        $form = $this->createForm(TextPropertyForm::class, $textProperty, ['systemType' => $textProperty->getSystemType()->getId(), 'objectType' => $object]);
 
         // only handles data on POST
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $textProperty = $form->getData();
 
-            //ongoingNamespace associated to the textProperty for any kind of object, except Project or Profile
-            if($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
+            // ongoingNamespace associated to the textProperty for any kind of object, except Project or Profile
+            if ($object !== 'project' && $object !== 'profile' && $object !== 'namespace') {
                 $textProperty->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
             }
 
@@ -417,70 +385,61 @@ class TextPropertyController extends AbstractController
             $em->persist($textProperty);
             $em->flush();
 
-            $this->addFlash('success',  $textProperty->getSystemType().' created!');
+            $this->addFlash('success', $textProperty->getSystemType().' created!');
 
-            if(isset($redirectToRouteVersion)){
+            if (isset($redirectToRouteVersion)) {
                 return $this->redirectToRoute($redirectToRoute, [
                     'id' => $objectId,
                     'namespaceFromUrlId' => $redirectToRouteVersion,
-                    '_fragment' => $redirectToRouteFragment
+                    '_fragment' => $redirectToRouteFragment,
                 ]);
             }
+
             return $this->redirectToRoute($redirectToRoute, [
                 'id' => $objectId,
-                '_fragment' => $redirectToRouteFragment
+                '_fragment' => $redirectToRouteFragment,
             ]);
-
         }
 
         return $this->render('textProperty/new.html.twig', [
             'textProperty' => $textProperty,
-            'textPropertyForm' => $form->createView()
+            'textPropertyForm' => $form->createView(),
         ]);
-
     }
 
     /**
      * @Route("/text-property/{id}/edit-validity/{validationStatus}", name="text_property_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     * @param TextProperty $textProperty
-     * @param SystemType $validationStatus
-     * @param Request $request
-     * @throws \Exception in case of unsuccessful association
+     *
      * @return RedirectResponse|Response
+     *
+     * @throws \Exception in case of unsuccessful association
      */
     public function editValidationStatusAction(TextProperty $textProperty, SystemType $validationStatus): RedirectResponse
     {
         $object = null;
-        if(!is_null($textProperty->getClassAssociation())){
+        if (!is_null($textProperty->getClassAssociation())) {
             $object = $textProperty->getClassAssociation();
-        }
-        else if(!is_null($textProperty->getPropertyAssociation())){
+        } elseif (!is_null($textProperty->getPropertyAssociation())) {
             $object = $textProperty->getPropertyAssociation();
-        }
-        else if(!is_null($textProperty->getEntityAssociation())){
+        } elseif (!is_null($textProperty->getEntityAssociation())) {
             $object = $textProperty->getEntityAssociation();
-        }
-        else if(!is_null($textProperty->getClass())){
+        } elseif (!is_null($textProperty->getClass())) {
             $object = $textProperty->getClass();
-        }
-        else if(!is_null($textProperty->getProperty())){
+        } elseif (!is_null($textProperty->getProperty())) {
             $object = $textProperty->getProperty();
-        }
-        else if(!is_null($textProperty->getProject())){
+        } elseif (!is_null($textProperty->getProject())) {
             $object = $textProperty->getProject();
-        }
-        else if(!is_null($textProperty->getProfile())){
+        } elseif (!is_null($textProperty->getProfile())) {
             $object = $textProperty->getProfile();
-        }
-        else if(!is_null($textProperty->getNamespace())){
+        } elseif (!is_null($textProperty->getNamespace())) {
             $object = $textProperty->getNamespace();
+        } else {
+            throw $this->createNotFoundException('The related object for the text property  n° '.$textProperty->getId().' does not exist. Please contact an administrator.');
         }
-        else throw $this->createNotFoundException('The related object for the text property  n° '.$textProperty->getId().' does not exist. Please contact an administrator.');
 
-        if(!is_null($textProperty->getNamespaceForVersion()) or !is_null($textProperty->getNamespace())){
+        if (!is_null($textProperty->getNamespaceForVersion()) or !is_null($textProperty->getNamespace())) {
             $this->denyAccessUnlessGranted('validate', $textProperty);
-        }
-        else{
+        } else {
             throw new AccessDeniedHttpException('The validation of this resource is forbidden.');
         }
 
@@ -488,67 +447,68 @@ class TextPropertyController extends AbstractController
 
         $newValidationStatus = new SystemType();
 
-        try{
+        try {
             $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
-                ->findOneBy(array('id' => $validationStatus->getId()));
+                ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
             throw new BadRequestHttpException('The provided status does not exist.');
         }
 
         if (!is_null($newValidationStatus)) {
             $statusId = intval($newValidationStatus->getId());
-            if (in_array($statusId, [26,27,28,37], true)) {
+            if (in_array($statusId, [26, 27, 28, 37], true)) {
                 $textProperty->setValidationStatus($newValidationStatus);
                 $textProperty->setModifier($this->getUser());
                 $textProperty->setModificationTime(new \DateTime('now'));
 
                 $em->persist($textProperty);
 
-                //if the status is not validated, then unvalidate the related class or property if necessary
+                // if the status is not validated, then unvalidate the related class or property if necessary
                 if ($statusId != 26) {
-                    if (!is_null($textProperty->getClass()) and $textProperty->getNamespaceForVersion() == $object->getClassVersionForDisplay()->getNamespaceForVersion()){
+                    if (!is_null($textProperty->getClass()) and $textProperty->getNamespaceForVersion() == $object->getClassVersionForDisplay()->getNamespaceForVersion()) {
                         $cv = $object->getClassVersionForDisplay();
                         if (!is_null($cv->getValidationStatus())) {
                             if ($cv->getValidationStatus()->getId() != 27) {
                                 $underRevisionStatus = $em->getRepository(SystemType::class)
-                                    ->findOneBy(array('id' => 37));
+                                    ->findOneBy(['id' => 37]);
                                 $cv->setValidationStatus($underRevisionStatus);
                             }
+                        } else {
+                            $cv->setValidationStatus(null);
                         }
-                        else $cv->setValidationStatus(null);
                         $em->persist($cv);
-                    }
-                    else if (!is_null($textProperty->getProperty()) and $textProperty->getNamespaceForVersion() == $object->getPropertyVersionForDisplay()->getNamespaceForVersion()){
+                    } elseif (!is_null($textProperty->getProperty()) and $textProperty->getNamespaceForVersion() == $object->getPropertyVersionForDisplay()->getNamespaceForVersion()) {
                         $pv = $object->getPropertyVersionForDisplay();
                         if (!is_null($pv->getValidationStatus())) {
                             if ($pv->getValidationStatus()->getId() != 27) {
                                 $underRevisionStatus = $em->getRepository(SystemType::class)
-                                    ->findOneBy(array('id' => 37));
+                                    ->findOneBy(['id' => 37]);
                                 $pv->setValidationStatus($underRevisionStatus);
                             }
+                        } else {
+                            $pv->setValidationStatus(null);
                         }
-                        else $pv->setValidationStatus(null);
                         $em->persist($pv);
                     }
                 }
 
                 $em->flush();
 
-                if ($statusId == 27){
+                if ($statusId == 27) {
                     return $this->redirectToRoute('text_property_edit', [
-                        'id' => $textProperty->getId()
+                        'id' => $textProperty->getId(),
                     ]);
                 }
-                else return $this->redirectToRoute('text_property_show', [
-                    'id' => $textProperty->getId()
-                ]);
 
+                return $this->redirectToRoute('text_property_show', [
+                    'id' => $textProperty->getId(),
+                ]);
             }
         }
 
         return $this->redirectToRoute('text_property_show', [
-            'id' => $textProperty->getId()
+            'id' => $textProperty->getId(),
         ]);
     }
 }

@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 23/06/2017
- * Time: 14:57
+ * Time: 14:57.
  */
 
 namespace App\Repository;
@@ -11,10 +12,10 @@ namespace App\Repository;
 use App\Entity\Profile;
 use App\Entity\Project;
 use App\Entity\User;
-use Doctrine\DBAL\DBALException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ProfileRepository extends ServiceEntityRepository
 {
@@ -22,13 +23,13 @@ class ProfileRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Profile::class);
     }
-    
+
     public function findAllActiveProfilesForUser(User $user)
     {
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
         $rsm->addRootEntityFromClassMetadata('App\Entity\Profile', 'prf');
 
-        $sql = "
+        $sql = '
           SELECT prf.* FROM che.profile prf
           LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_profile = prf.pk_profile 
           WHERE prf.fk_project_of_belonging = :id_project
@@ -36,11 +37,12 @@ class ProfileRepository extends ServiceEntityRepository
             SELECT pk_associate_user_to_project FROM che.associate_user_to_project
 	        WHERE fk_user = :id_user AND fk_project = :id_project)) 
 	      OR aseup.fk_system_type IS NULL);
-        ";
+        ';
 
         $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
         $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
         $query->setParameter('id_user', $user->getId());
+
         return $query->getResult();
     }
 
@@ -49,7 +51,7 @@ class ProfileRepository extends ServiceEntityRepository
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
         $rsm->addRootEntityFromClassMetadata('App\Entity\Profile', 'prf');
 
-        $sql = "
+        $sql = '
           SELECT prf.* FROM che.profile prf
           LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_profile = prf.pk_profile 
           WHERE prf.fk_project_of_belonging = :id_project 
@@ -57,33 +59,34 @@ class ProfileRepository extends ServiceEntityRepository
           AND (aseup.fk_associate_user_to_project IN(
             SELECT pk_associate_user_to_project FROM che.associate_user_to_project
 	        WHERE fk_user = :id_user AND fk_project = :id_project));
-        ";
+        ';
 
         $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
         $query->setParameter('id_project', $user->getCurrentActiveProject()->getId());
         $query->setParameter('id_user', $user->getId());
+
         return $query->getResult();
     }
 
     /**
      * @return array
      */
-    public function findProfileGraph(Profile $profile){
+    public function findProfileGraph(Profile $profile)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT get_webvowl_json_for_profile AS json FROM che.get_webvowl_json_for_profile(:profile)";
+        $sql = 'SELECT get_webvowl_json_for_profile AS json FROM che.get_webvowl_json_for_profile(:profile)';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('profile' => $profile->getId()));
+        $stmt->execute(['profile' => $profile->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param $lang string the language iso code
-     * @param $selectingProjectId
-     * @param $owningProjectId
+     *
      * @return array
      */
     public function findProfilesApi($lang, $selectingProjectId, $owningProjectId)
@@ -91,76 +94,78 @@ class ProfileRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_profiles_list(:lang, :selectingProject, :owningProject) ) result;";
+        $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_profiles_list(:lang, :selectingProject, :owningProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
             'selectingProject' => $selectingProjectId,
-            'owningProject' => $owningProjectId
-        ));
+            'owningProject' => $owningProjectId,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Project $project
      * @return array
      */
-    public function findProfilesByProjectId(Project $project){
+    public function findProfilesByProjectId(Project $project)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT pk_profile AS id, 
-                standard_label AS \"standardLabel\",
-                was_closed_at AS \"wasClosedAt\",
-                end_date AS \"endDate\",
-                is_forced_publication AS \"isForcedPublication\",
-                is_ongoing AS \"isOngoing\",
-                version AS \"version\"
+        $sql = 'SELECT DISTINCT pk_profile AS id, 
+                standard_label AS "standardLabel",
+                was_closed_at AS "wasClosedAt",
+                end_date AS "endDate",
+                is_forced_publication AS "isForcedPublication",
+                is_ongoing AS "isOngoing",
+                version AS "version"
                 FROM che.profile
                 WHERE pk_profile IN(
                   SELECT fk_profile 
                   FROM che.associates_project 
                   WHERE fk_project = :project
-                  );";
+                  );';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param Project $project
      * @return array
      */
-    public function findProfilesForAssociationWithProjectByProjectId(Project $project){
+    public function findProfilesForAssociationWithProjectByProjectId(Project $project)
+    {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT DISTINCT pk_profile AS \"profileId\", standard_label AS \"standardLabel\", version AS \"version\"
+        $sql = 'SELECT DISTINCT pk_profile AS "profileId", standard_label AS "standardLabel", version AS "version"
                 FROM che.profile
                 WHERE (was_closed_at IS NOT NULL OR is_forced_publication) AND end_date IS NULL AND NOT is_root_profile
                 EXCEPT 
                 SELECT DISTINCT pk_profile AS id, 
-                standard_label AS \"standardLabel\",
-                version AS \"version\"
+                standard_label AS "standardLabel",
+                version AS "version"
                 FROM che.profile
                 WHERE pk_profile IN(
                   SELECT fk_profile 
                   FROM che.associates_project 
                   WHERE fk_project = :project
-                  );";
+                  );';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array('project' => $project->getId()));
+        $stmt->execute(['project' => $project->getId()]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param $lang string the language iso code
+     * @param $lang    string the language iso code
      * @param $profile int the ID of the profile
+     *
      * @return array
+     *
      * @throws DBALException
      */
     public function findClassesAndPropertiesByProfileIdApi($lang, $profile)
@@ -168,21 +173,23 @@ class ProfileRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_owl_classes_and_properties_for_profiles(:lang, :profile, 0) as result;";
+        $sql = 'SELECT result::text FROM api.get_owl_classes_and_properties_for_profiles(:lang, :profile, 0) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
-            'profile' => $profile
-        ));
+            'profile' => $profile,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
-     * @param $lang string the language iso code
+     * @param $lang    string the language iso code
      * @param $profile int the ID of the profile
+     *
      * @return array
+     *
      * @throws DBALException
      */
     public function findClassesAndPropertiesByProfileIdApiRdfs($lang, $profile)
@@ -190,35 +197,33 @@ class ProfileRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT result::text FROM api.get_rdfs_classes_and_properties_for_profiles(:lang, :profile, 0) as result;";
+        $sql = 'SELECT result::text FROM api.get_rdfs_classes_and_properties_for_profiles(:lang, :profile, 0) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array(
+        $stmt->execute([
             'lang' => $lang,
-            'profile' => $profile
-        ));
+            'profile' => $profile,
+        ]);
 
         return $stmt->fetchAll();
     }
 
     /**
      * @param $lang string the language iso code
-     * @param $profileId
      */
     public function findShaclWithProfile($lang, $profileId)
     {
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT api.get_shacl_profile(:lang::TEXT, :profileId::INTEGER) AS shacl";
+        $sql = 'SELECT api.get_shacl_profile(:lang::TEXT, :profileId::INTEGER) AS shacl';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             'lang' => (string) $lang,
-            'profileId' => (int) $profileId
+            'profileId' => (int) $profileId,
         ]);
 
-        return $stmt->fetch()['shacl'];;
+        return $stmt->fetch()['shacl'];
     }
-
 }

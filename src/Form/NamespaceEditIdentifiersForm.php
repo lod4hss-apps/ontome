@@ -3,15 +3,9 @@
 namespace App\Form;
 
 use App\Entity\OntoNamespace;
-use App\Entity\User;
-use App\Form\DataTransformer\OntoClassToNumberTransformer;
 use App\Form\DataTransformer\UserToNumberTransformer;
-use App\Repository\NamespaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -20,7 +14,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class NamespaceEditIdentifiersForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -35,22 +28,22 @@ class NamespaceEditIdentifiersForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('classPrefix', TextType::class, array(
+            ->add('classPrefix', TextType::class, [
                 'label' => false,
-                'error_bubbling' => true
-            ))
-            ->add('propertyPrefix', TextType::class, array(
+                'error_bubbling' => true,
+            ])
+            ->add('propertyPrefix', TextType::class, [
                 'label' => false,
-                'error_bubbling' => true
-            ))
-            ->add('currentClassNumber', IntegerType::class, array(
+                'error_bubbling' => true,
+            ])
+            ->add('currentClassNumber', IntegerType::class, [
                 'label' => false,
-                'error_bubbling' => true
-            ))
-            ->add('currentPropertyNumber', IntegerType::class, array(
+                'error_bubbling' => true,
+            ])
+            ->add('currentPropertyNumber', IntegerType::class, [
                 'label' => false,
-                'error_bubbling' => true
-            ))
+                'error_bubbling' => true,
+            ])
         ;
     }
 
@@ -58,7 +51,7 @@ class NamespaceEditIdentifiersForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => OntoNamespace::class,
-            "allow_extra_fields" => true
+            'allow_extra_fields' => true,
         ]);
     }
 }

@@ -1,21 +1,20 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 15/10/2018
- * Time: 10:17
+ * Time: 10:17.
  */
 
 namespace App\Controller;
 
-use App\Entity\Comment;
-use App\Entity\Property;
 use App\Entity\ClassAssociation;
-use App\Entity\PropertyAssociation;
+use App\Entity\Comment;
 use App\Entity\EntityAssociation;
-use App\Entity\TextProperty;
 use App\Entity\Label;
-use App\Entity\OntoNamespace;
+use App\Entity\Property;
+use App\Entity\PropertyAssociation;
 use App\Form\CommentForm;
 use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
@@ -25,11 +24,10 @@ use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-
+use Symfony\Component\Routing\Annotation\Route;
 
 class CommentController extends AbstractController
 {
@@ -44,67 +42,63 @@ class CommentController extends AbstractController
     /**
      * @Route("/comment/{objectType}/{objectId}/json",
      *     name="comment_show_json",
-     *     requirements={"objectType"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"}, 
+     *     requirements={"objectType"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"},
      *     methods={"GET"})
-     * @param string $objectType    The object type name
-     * @param int  $objectId    The id of the object
+     *
+     * @param string $objectType The object type name
+     * @param int    $objectId   The id of the object
+     *
      * @return JsonResponse a Json formatted comments list
      */
     public function getCommentsAction(string $objectType, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();
 
-        //$objectType = 'class';
-        //$objectId = 268;
-        if($objectType === 'class') {
+        // $objectType = 'class';
+        // $objectId = 268;
+        if ($objectType === 'class') {
             $associatedEntity = $classRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'property') {
+        } elseif ($objectType === 'property') {
             $associatedEntity = $propertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'class-association') {
+        } elseif ($objectType === 'class-association') {
             $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'property-association') {
+        } elseif ($objectType === 'property-association') {
             $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'entity-association') {
+        } elseif ($objectType === 'entity-association') {
             $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'text-property') {
+        } elseif ($objectType === 'text-property') {
             $associatedEntity = $textPropertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'label') {
+        } elseif ($objectType === 'label') {
             $associatedEntity = $labelRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
-        }
-        else if($objectType === 'namespace') {
+        } elseif ($objectType === 'namespace') {
             $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
+        } else {
+            throw $this->createNotFoundException('The requested object "'.$objectType.'" does not exist!');
         }
-        else throw $this->createNotFoundException('The requested object "'.$objectType.'" does not exist!');
 
         $comments = [];
 
@@ -113,13 +107,14 @@ class CommentController extends AbstractController
                 'id' => $comment->getId(),
                 'creator' => $comment->getCreator(),
                 'text' => $comment->getComment(),
-                'creationTime' => $comment->getCreationTime()->format('M d, Y')
+                'creationTime' => $comment->getCreationTime()->format('M d, Y'),
             ];
         }
 
-        $data =[
-            'comments' => $comments
+        $data = [
+            'comments' => $comments,
         ];
+
         return new JsonResponse($data);
     }
 
@@ -132,7 +127,7 @@ class CommentController extends AbstractController
 
         $comment = new Comment();
 
-        if($object === 'class-version') {
+        if ($object === 'class-version') {
             $classVersion = $classVersionRepository->find($objectId);
             $associatedEntity = $classVersion->getClass();
             if (!$associatedEntity) {
@@ -140,8 +135,7 @@ class CommentController extends AbstractController
             }
             $namespaceForVersion = $namespaceRepository->find($classVersion->getNamespaceForVersion());
             $comment->setClass($associatedEntity);
-        }
-        else if($object === 'property-version') {
+        } elseif ($object === 'property-version') {
             $propertyVersion = $propertyVersionRepository->find($objectId);
             $associatedEntity = $propertyVersion->getProperty();
             if (!$associatedEntity) {
@@ -149,66 +143,59 @@ class CommentController extends AbstractController
             }
             $namespaceForVersion = $namespaceRepository->find($propertyVersion->getNamespaceForVersion());
             $comment->setProperty($associatedEntity);
-        }
-        else if($object === 'class-association') {
+        } elseif ($object === 'class-association') {
             $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
             $namespaceForVersion = $namespaceRepository->find($associatedEntity->getNamespaceForVersion());
             $comment->setClassAssociation($associatedEntity);
-        }
-        else if($object === 'property-association') {
+        } elseif ($object === 'property-association') {
             $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
             $namespaceForVersion = $namespaceRepository->find($associatedEntity->getNamespaceForVersion());
             $comment->setPropertyAssociation($associatedEntity);
-        }
-        else if($object === 'entity-association') {
+        } elseif ($object === 'entity-association') {
             $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
             $namespaceForVersion = $namespaceRepository->find($associatedEntity->getNamespaceForVersion());
             $comment->setEntityAssociation($associatedEntity);
-        }
-        else if($object === 'text-property') {
+        } elseif ($object === 'text-property') {
             $associatedEntity = $textPropertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
-            if(!is_null($associatedEntity->getNamespace()) and !is_null($associatedEntity->getProfile()) and !is_null($associatedEntity->getProject())){
+            if (!is_null($associatedEntity->getNamespace()) and !is_null($associatedEntity->getProfile()) and !is_null($associatedEntity->getProject())) {
                 $namespaceForVersion = $namespaceRepository->find($associatedEntity->getNamespaceForVersion());
-            }
-            else{
+            } else {
                 $namespaceForVersion = null;
             }
             $comment->setTextProperty($associatedEntity);
-        }
-        else if($object === 'label') {
+        } elseif ($object === 'label') {
             $associatedEntity = $labelRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
             $namespaceForVersion = null;
             $comment->setLabel($associatedEntity);
-        }
-        else if($object === 'namespace') {
+        } elseif ($object === 'namespace') {
             $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
             $namespaceForVersion = $associatedEntity;
             $comment->setNamespace($associatedEntity);
+        } else {
+            throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
         }
-        else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 
+        // $this->denyAccessUnlessGranted('edit', $associatedObject);
 
-        //$this->denyAccessUnlessGranted('edit', $associatedObject);
-
-        if(!in_array($this->getUser()->getId(), $comment->getViewedBy())){
+        if (!in_array($this->getUser()->getId(), $comment->getViewedBy())) {
             $viewedBy = $comment->getViewedBy();
             $viewedBy[] = $this->getUser()->getId();
             $comment->setViewedBy($viewedBy);
@@ -219,7 +206,6 @@ class CommentController extends AbstractController
         $comment->setCreationTime(new \DateTime('now'));
         $comment->setModificationTime(new \DateTime('now'));
         $comment->setNamespaceForVersion($namespaceForVersion);
-
 
         $form = $this->createForm(CommentForm::class, $comment);
 
@@ -243,7 +229,7 @@ class CommentController extends AbstractController
 
             $html = $this->renderView('comment/new.html.twig', [
                 'comment' => $comment,
-                'commentForm' => $form->createView()
+                'commentForm' => $form->createView(),
             ]);
 
             try {
@@ -254,111 +240,104 @@ class CommentController extends AbstractController
                 $message = $e->getMessage();
             }
 
-            $response = array(
+            $response = [
                 'status' => $status,
                 'message' => $message,
-                'html' => $html
-            );
+                'html' => $html,
+            ];
 
             return new JsonResponse($response);
-
-        }
-        else if ($form->isSubmitted() && !$form->isValid()) {
+        } elseif ($form->isSubmitted() && !$form->isValid()) {
             $status = 'Error';
             $message = 'Invalid form validation';
             $html = $this->renderView('comment/new.html.twig', [
                 'comment' => $comment,
-                'commentForm' => $form->createView()
+                'commentForm' => $form->createView(),
             ]);
-            $response = array(
+            $response = [
                 'status' => $status,
                 'message' => $message,
-                'html' => $html
-            );
+                'html' => $html,
+            ];
+
             return new JsonResponse($response);
         }
-        else return $this->render('comment/new.html.twig', [
+
+        return $this->render('comment/new.html.twig', [
             'comment' => $comment,
-            'commentForm' => $form->createView()
+            'commentForm' => $form->createView(),
         ]);
     }
 
     /**
      * @Route("/comment/{object}/{objectId}/viewedby/json", name="viewed_by_json", requirements={"object"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$","objectId"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
-     * @return JsonResponse
      */
     public function viewedByJson(string $object, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();
 
-        if($object === 'class') {
+        if ($object === 'class') {
             $associatedEntity = $classRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("class" => $associatedEntity));
-        }
-        else if($object === 'property') {
+            $comments = $em->getRepository(Comment::class)->findBy(['class' => $associatedEntity]);
+        } elseif ($object === 'property') {
             $associatedEntity = $propertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("property" => $associatedEntity));
-        }
-        else if($object === 'class-association') {
+            $comments = $em->getRepository(Comment::class)->findBy(['property' => $associatedEntity]);
+        } elseif ($object === 'class-association') {
             $associatedEntity = $em->getRepository(ClassAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The class association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("classAssociation" => $associatedEntity));
-        }
-        else if($object === 'property-association') {
+            $comments = $em->getRepository(Comment::class)->findBy(['classAssociation' => $associatedEntity]);
+        } elseif ($object === 'property-association') {
             $associatedEntity = $em->getRepository(PropertyAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The property association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("propertyAssociation" => $associatedEntity));
-        }
-        else if($object === 'entity-association') {
+            $comments = $em->getRepository(Comment::class)->findBy(['propertyAssociation' => $associatedEntity]);
+        } elseif ($object === 'entity-association') {
             $associatedEntity = $em->getRepository(EntityAssociation::class)->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The entity association n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("entityAssociation" => $associatedEntity));
-        }
-        else if($object === 'text-property') {
+            $comments = $em->getRepository(Comment::class)->findBy(['entityAssociation' => $associatedEntity]);
+        } elseif ($object === 'text-property') {
             $associatedEntity = $textPropertyRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The text property n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("textProperty" => $associatedEntity));
-        }
-        else if($object === 'label') {
+            $comments = $em->getRepository(Comment::class)->findBy(['textProperty' => $associatedEntity]);
+        } elseif ($object === 'label') {
             $associatedEntity = $labelRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The label n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("label" => $associatedEntity));
-        }
-        else if($object === 'namespace') {
+            $comments = $em->getRepository(Comment::class)->findBy(['label' => $associatedEntity]);
+        } elseif ($object === 'namespace') {
             $associatedEntity = $namespaceRepository->find($objectId);
             if (!$associatedEntity) {
                 throw $this->createNotFoundException('The namespace n° '.$objectId.' does not exist');
             }
 
-            $comments = $em->getRepository(Comment::class)->findBy(array("namespace" => $associatedEntity));
+            $comments = $em->getRepository(Comment::class)->findBy(['namespace' => $associatedEntity]);
+        } else {
+            throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
         }
-        else throw $this->createNotFoundException('The requested object "'.$object.'" does not exist!');
 
-        foreach ($comments as $comment){
-            if(!in_array($this->getUser()->getId(), $comment->getViewedBy())){
+        foreach ($comments as $comment) {
+            if (!in_array($this->getUser()->getId(), $comment->getViewedBy())) {
                 $viewedBy = $comment->getViewedBy();
                 $viewedBy[] = $this->getUser()->getId();
                 $comment->setViewedBy($viewedBy);
@@ -367,10 +346,10 @@ class CommentController extends AbstractController
             }
         }
 
-        $response = array(
+        $response = [
             'status' => 200,
-            'message' => "OK"
-        );
+            'message' => 'OK',
+        ];
 
         return new JsonResponse($response);
     }

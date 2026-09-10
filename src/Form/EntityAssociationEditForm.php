@@ -2,23 +2,18 @@
 
 namespace App\Form;
 
-use App\Entity\Property;
-use App\Entity\User;
 use App\Entity\EntityAssociation;
-use App\Repository\PropertyRepository;
+use App\Entity\User;
+use App\Form\DataTransformer\SystemTypeToNumberTransformer;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use App\Form\DataTransformer\SystemTypeToNumberTransformer;
 
 class EntityAssociationEditForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -36,86 +31,78 @@ class EntityAssociationEditForm extends AbstractType
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The EntityAssociationEditForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The EntityAssociationEditForm cannot be used without an authenticated user!');
         }
 
-        $choices = array();
-        foreach ($options['entitiesVersion'] as $ev){
-            if($ev['standardLabel'] != $ev['identifierInNamespace'])
-                $choices[$ev['rootNamespacePrefix'].":".$ev['standardLabel']." – ".$ev['identifierInNamespace']] = $ev['id'];
-            else
-                $choices[$ev['rootNamespacePrefix'].":".$ev['standardLabel']] = $ev['id'];
+        $choices = [];
+        foreach ($options['entitiesVersion'] as $ev) {
+            if ($ev['standardLabel'] != $ev['identifierInNamespace']) {
+                $choices[$ev['rootNamespacePrefix'].':'.$ev['standardLabel'].' – '.$ev['identifierInNamespace']] = $ev['id'];
+            } else {
+                $choices[$ev['rootNamespacePrefix'].':'.$ev['standardLabel']] = $ev['id'];
+            }
         }
 
-        if($options['object'] == 'class' and $options['inverse'])
-        {
+        if ($options['object'] == 'class' and $options['inverse']) {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                        'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentClass' => 4,
-                        'owl:disjointWith' => 19
-                    ),
-                    'label' => 'Relation'))
+                        'owl:disjointWith' => 19,
+                    ],
+                    'label' => 'Relation'])
                 ->add('sourceClassVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Source class",
-                        'choices'           => $choices,
-                        'data'              => $options['defaultSource']
-                    ));
-        }
-        elseif($options['object'] == 'class' and !$options['inverse'])
-        {
+                        'label' => 'Source class',
+                        'choices' => $choices,
+                        'data' => $options['defaultSource'],
+                    ]);
+        } elseif ($options['object'] == 'class' and !$options['inverse']) {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentClass' => 4,
-                        'owl:disjointWith' => 19
-                    ),
-                    'label' => 'Relation'))
+                        'owl:disjointWith' => 19,
+                    ],
+                    'label' => 'Relation'])
                 ->add('targetClassVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Target class",
-                        'choices'           => $choices,
-                        'data'              => $options['defaultTarget']
-                    ));
-        }
-        elseif($options['object'] == 'property' and $options['inverse'])
-        {
+                        'label' => 'Target class',
+                        'choices' => $choices,
+                        'data' => $options['defaultTarget'],
+                    ]);
+        } elseif ($options['object'] == 'property' and $options['inverse']) {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentProperty' => 18,
-                        'owl:inverseOf' => 20
-                    ),
-                    'label' => 'Relation'))
+                        'owl:inverseOf' => 20,
+                    ],
+                    'label' => 'Relation'])
                 ->add('sourcePropertyVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Source property",
-                        'choices'           => $choices,
-                        'data'              => $options['defaultSource']
-                    ));
-        }
-        elseif($options['object'] == 'property' and !$options['inverse'])
-        {
+                        'label' => 'Source property',
+                        'choices' => $choices,
+                        'data' => $options['defaultSource'],
+                    ]);
+        } elseif ($options['object'] == 'property' and !$options['inverse']) {
             $builder
-                ->add('systemType', ChoiceType::class, array(
-                    'choices'  => array(
+                ->add('systemType', ChoiceType::class, [
+                    'choices' => [
                         'owl:equivalentProperty' => 18,
-                        'owl:inverseOf' => 20
-                    ),
-                    'label' => 'Relation'))
+                        'owl:inverseOf' => 20,
+                    ],
+                    'label' => 'Relation'])
                 ->add('targetPropertyVersion', ChoiceType::class,
-                    array(
+                    [
                         'mapped' => false,
-                        'label' => "Target property",
-                        'choices'           => $choices,
-                        'data'              => $options['defaultTarget']
-                    ));
+                        'label' => 'Target property',
+                        'choices' => $choices,
+                        'data' => $options['defaultTarget'],
+                    ]);
         }
 
         $builder->get('systemType')
@@ -126,12 +113,12 @@ class EntityAssociationEditForm extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => EntityAssociation::class,
-            "allow_extra_fields" => true,
+            'allow_extra_fields' => true,
             'object' => 'class',
             'inverse' => false,
             'entitiesVersion' => null,
             'defaultSource' => null,
-            'defaultTarget' => null
+            'defaultTarget' => null,
         ]);
     }
 }

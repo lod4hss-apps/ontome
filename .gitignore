@@ -50,3 +50,6 @@ web/images/logo.png
 ###> phpstan/phpstan ###
 phpstan.neon
 ###< phpstan/phpstan ###
+
+/tools/php-cs-fixer/vendor/
+/.php-cs-fixer.cache

@@ -1,12 +1,10 @@
 <?php
 
 namespace App\Form;
+
 use App\Entity\PropertyAssociation;
-use App\Entity\Property;
 use App\Form\DataTransformer\PropertyToNumberTransformer;
-use App\Repository\PropertyRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -29,37 +27,32 @@ class PropertyAssociationEditForm extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $userID =$this->tokenStorage->getToken()->getUser()->getId();
+        $userID = $this->tokenStorage->getToken()->getUser()->getId();
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The ParentPropertyAssociationForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The ParentPropertyAssociationForm cannot be used without an authenticated user!');
         }
 
-        $choices = array();
-        foreach ($options['propertiesVersion'] as $pv){
-            if($pv['standardLabel'] != $pv['identifierInNamespace']){
-                $choices[$pv['rootNamespacePrefix'] . ":" . $pv['identifierInNamespace'] . " " . $pv['standardLabel']] = $pv['id'];
-
-            }
-            else {
-                $choices[$pv['rootNamespacePrefix'] . ":" . $pv['standardLabel']] = $pv['id'];
+        $choices = [];
+        foreach ($options['propertiesVersion'] as $pv) {
+            if ($pv['standardLabel'] != $pv['identifierInNamespace']) {
+                $choices[$pv['rootNamespacePrefix'].':'.$pv['identifierInNamespace'].' '.$pv['standardLabel']] = $pv['id'];
+            } else {
+                $choices[$pv['rootNamespacePrefix'].':'.$pv['standardLabel']] = $pv['id'];
             }
         }
 
         $builder
-            ->add('parentPropertyVersion', ChoiceType::class, array(
+            ->add('parentPropertyVersion', ChoiceType::class, [
                 'mapped' => false,
-                'choices'           => $choices,
-                'data'              => $options['defaultParent']
-            ))
+                'choices' => $choices,
+                'data' => $options['defaultParent'],
+            ])
             ->add('childProperty', HiddenType::class);
 
         $builder->get('childProperty')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -68,7 +61,7 @@ class PropertyAssociationEditForm extends AbstractType
             'data_class' => PropertyAssociation::class,
             'allow_extra_fields' => true,
             'propertiesVersion' => null,
-            'defaultParent' => null
+            'defaultParent' => null,
         ]);
     }
 }

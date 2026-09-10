@@ -1,12 +1,10 @@
 <?php
 
 namespace App\Form;
+
 use App\Entity\ClassAssociation;
-use App\Entity\OntoClass;
 use App\Form\DataTransformer\OntoClassToNumberTransformer;
-use App\Repository\ClassRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -15,10 +13,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
-
 class ParentClassAssociationForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -32,50 +28,48 @@ class ParentClassAssociationForm extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $userID =$this->tokenStorage->getToken()->getUser()->getId();
+        $userID = $this->tokenStorage->getToken()->getUser()->getId();
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The ParentClassAssociationForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The ParentClassAssociationForm cannot be used without an authenticated user!');
         }
 
-        $choices = array();
-        foreach ($options['classesVersion'] as $cv){
-            if($cv['standardLabel'] != $cv['identifierInNamespace'])
-                $choices[$cv['rootNamespacePrefix'].":".$cv['standardLabel']." – ".$cv['identifierInNamespace']] = $cv['id'];
-            else
-                $choices[$cv['rootNamespacePrefix'].":".$cv['standardLabel']] = $cv['id'];
+        $choices = [];
+        foreach ($options['classesVersion'] as $cv) {
+            if ($cv['standardLabel'] != $cv['identifierInNamespace']) {
+                $choices[$cv['rootNamespacePrefix'].':'.$cv['standardLabel'].' – '.$cv['identifierInNamespace']] = $cv['id'];
+            } else {
+                $choices[$cv['rootNamespacePrefix'].':'.$cv['standardLabel']] = $cv['id'];
+            }
         }
 
         $builder
-            ->add('parentClassVersion', ChoiceType::class, array(
+            ->add('parentClassVersion', ChoiceType::class, [
                 'mapped' => false,
                 'label' => 'Parent class',
-                'choices'           => $choices
-            ))
+                'choices' => $choices,
+            ])
             ->add('parentClass', HiddenType::class)
             ->add('childClass', HiddenType::class)
-            ->add('textProperties', CollectionType::class, array(
+            ->add('textProperties', CollectionType::class, [
                 'entry_type' => TextPropertyType::class,
-                'entry_options' => array('label' => false),
+                'entry_options' => ['label' => false],
                 'error_bubbling' => false,
                 'allow_add' => true,
                 'by_reference' => false,
-            ));
+            ]);
 
         $builder->get('childClass')
             ->addModelTransformer($this->transformer);
-
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => ClassAssociation::class,
-            "allow_extra_fields" => true,
-            "classesVersion" => null
+            'allow_extra_fields' => true,
+            'classesVersion' => null,
         ]);
     }
 }

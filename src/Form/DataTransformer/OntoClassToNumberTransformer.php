@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 06/02/2018
- * Time: 10:59
+ * Time: 10:59.
  */
 
 namespace App\Form\DataTransformer;
@@ -25,7 +26,8 @@ class OntoClassToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms an object (ontoclass) to a string (number).
      *
-     * @param  OntoClass|null $class
+     * @param OntoClass|null $class
+     *
      * @return string
      */
     public function transform($class)
@@ -40,9 +42,11 @@ class OntoClassToNumberTransformer implements DataTransformerInterface
     /**
      * Transforms a string (number) to an object (ontoclass).
      *
-     * @param  string $classNumber
+     * @param string $classNumber
+     *
      * @return OntoClass|null
-     * @throws TransformationFailedException if object (ontoclass) is not found.
+     *
+     * @throws TransformationFailedException if object (ontoclass) is not found
      */
     public function reverseTransform($classNumber)
     {
@@ -61,13 +65,9 @@ class OntoClassToNumberTransformer implements DataTransformerInterface
             // causes a validation error
             // this message is not shown to the user
             // see the invalid_message option
-            throw new TransformationFailedException(sprintf(
-                'An issue with number "%s" does not exist!',
-                $classNumber
-            ));
+            throw new TransformationFailedException(sprintf('An issue with number "%s" does not exist!', $classNumber));
         }
 
         return $class;
     }
-
 }

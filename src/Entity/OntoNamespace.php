@@ -1,34 +1,39 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 20/06/2017
- * Time: 10:26
+ * Time: 10:26.
  */
 
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Class OntoNamespace
+ * Class OntoNamespace.
+ *
  * @ORM\Entity(repositoryClass="App\Repository\NamespaceRepository")
+ *
  * @ORM\Table(schema="che", name="namespace")
  */
 class OntoNamespace
 {
     /**
      * @ORM\Id
+     *
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      * @ORM\Column(type="integer", name="pk_namespace")
      */
     private $id;
 
     /**
      * @Assert\Url(message="Please enter a valid URI")
+     *
      * @ORM\Column(type="text", nullable=true, unique=true)
      */
     private $namespaceURI;
@@ -40,6 +45,7 @@ class OntoNamespace
 
     /**
      * @Assert\Url()
+     *
      * @ORM\Column(type="text", nullable=true, unique=true)
      */
     private $originalNamespaceURI;
@@ -51,6 +57,7 @@ class OntoNamespace
      *     minMessage="Your class prefix must be at least {{ limit }} characters long",
      *     maxMessage="Your class prefix cannot be longer than {{ limit }} characters"
      * )
+     *
      * @ORM\Column(type="text")
      */
     private $classPrefix;
@@ -62,6 +69,7 @@ class OntoNamespace
      *     minMessage="Your property prefix must be at least {{ limit }} characters long",
      *     maxMessage="Your property prefix cannot be longer than {{ limit }} characters"
      * )
+     *
      * @ORM\Column(type="text")
      */
     private $propertyPrefix;
@@ -71,6 +79,7 @@ class OntoNamespace
      *     value = 0,
      *     message="Your current class number should be greater than or equal to 0."
      * )
+     *
      * @ORM\Column(type="integer")
      */
     private $currentClassNumber;
@@ -80,6 +89,7 @@ class OntoNamespace
      *     value = 0,
      *     message="Your current property number should be greater than or equal to 0."
      * )
+     *
      * @ORM\Column(type="integer")
      */
     private $currentPropertyNumber;
@@ -91,12 +101,14 @@ class OntoNamespace
 
     /**
      * @ORM\ManyToOne(targetEntity="OntoNamespace",  inversedBy="childVersions", cascade={"persist"})
+     *
      * @ORM\JoinColumn(name="fk_is_version_of", referencedColumnName="pk_namespace", nullable=true)
      */
     private $referencedVersion;
 
     /**
      * @ORM\ManyToOne(targetEntity="OntoNamespace", cascade={"persist"})
+     *
      * @ORM\JoinColumn(name="fk_top_level_namespace", referencedColumnName="pk_namespace", nullable=true)
      */
     private $topLevelNamespace;
@@ -123,6 +135,7 @@ class OntoNamespace
 
     /**
      * @ORM\ManyToOne(targetEntity="Project", cascade={"persist"})
+     *
      * @ORM\JoinColumn(name="fk_project_for_top_level_namespace", referencedColumnName="pk_project")
      */
     private $projectForTopLevelNamespace;
@@ -144,6 +157,7 @@ class OntoNamespace
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="namespace")
+     *
      * @ORM\OrderBy({"creationTime" = "DESC"})
      */
     private $comments;
@@ -155,14 +169,18 @@ class OntoNamespace
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
      */
     private $creator;
 
     /**
      * @Assert\NotBlank()
+     *
      * @ORM\ManyToOne(targetEntity="User")
+     *
      * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
      */
     private $modifier;
@@ -184,8 +202,11 @@ class OntoNamespace
      *      minMessage="Your root namespace prefix must be at least {{ limit }} characters long",
      *      maxMessage="Your root namespace prefix cannot be longer than {{ limit }} characters"
      *  )
+     *
      * @Assert\NotNull(groups={"RequirePrefix"})
+     *
      * @ORM\Column(type="text")
+     *
      * @Assert\Regex(
      *     pattern="/^[a-z0-9](-?[a-z0-9])*$/",
      *     match=true,
@@ -208,64 +229,78 @@ class OntoNamespace
 
     /**
      * @Assert\Valid()
+     *
      * @Assert\NotBlank()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\Label", mappedBy="namespace", cascade={"persist"})
+     *
      * @ORM\OrderBy({"languageIsoCode" = "ASC"})
      */
     private $labels;
 
     /**
      * @Assert\Valid()
+     *
      * @Assert\NotNull()
+     *
      * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="namespace", cascade={"persist"})
+     *
      * @ORM\OrderBy({"languageIsoCode" = "ASC"})
      */
     private $textProperties;
 
     /**
      * @ORM\ManyToMany(targetEntity="OntoClass", mappedBy="namespaces")
+     *
      * @ORM\OrderBy({"identifierInNamespace" = "ASC"})
      */
     private $classes;
 
     /**
      * @ORM\ManyToMany(targetEntity="Property", mappedBy="namespaces")
+     *
      * @ORM\OrderBy({"identifierInNamespace" = "ASC"})
      */
     private $properties;
 
     /**
      * @ORM\OneToMany(targetEntity="ClassAssociation", mappedBy="namespaceForVersion")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $classAssociations;
 
     /**
      * @ORM\OneToMany(targetEntity="EntityAssociation", mappedBy="namespaceForVersion")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $entityAssociations;
 
     /**
      * @ORM\OneToMany(targetEntity="PropertyAssociation", mappedBy="namespaceForVersion")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $propertyAssociations;
 
     /**
      * @ORM\ManyToMany(targetEntity="EntityUserProjectAssociation", mappedBy="namespace")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $namespaceUserProjectAssociation;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Profile", mappedBy="namespaces")
+     *
      * @ORM\OrderBy({"standardLabel" = "ASC"})
      */
     private $profiles;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Project", mappedBy="namespaces")
+     *
      * @ORM\OrderBy({"standardLabel" = "ASC"})
      */
     private $projects;
@@ -282,88 +317,67 @@ class OntoNamespace
 
     /**
      * @ORM\OneToMany(targetEntity="ReferencedNamespaceAssociation", mappedBy="namespace")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $referencedNamespaceAssociations;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\OntoClassVersion", mappedBy="namespaceForVersion")
+     *
      * @ORM\OrderBy({"creationTime" = "DESC"})
      */
     private $classVersions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PropertyVersion", mappedBy="namespaceForVersion")
+     *
      * @ORM\OrderBy({"creationTime" = "DESC"})
      */
     private $propertyVersions;
 
     /**
      * @ORM\ManyToMany(targetEntity="Container", mappedBy="namespaces")
+     *
      * @ORM\OrderBy({"id" = "ASC"})
      */
     private $containers;
 
-    /**
-     * @return mixed
-     */
     public function getCurrentClassNumber()
     {
         return $this->currentClassNumber;
     }
 
-    /**
-     * @param mixed $currentClassNumber
-     */
     public function setCurrentClassNumber($currentClassNumber)
     {
         $this->currentClassNumber = $currentClassNumber;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCurrentPropertyNumber()
     {
         return $this->currentPropertyNumber;
     }
 
-    /**
-     * @param mixed $currentPropertyNumber
-     */
     public function setCurrentPropertyNumber($currentPropertyNumber)
     {
         $this->currentPropertyNumber = $currentPropertyNumber;
     }
 
-
-    /**
-     * @return mixed
-     */
     public function getEntityAssociations()
     {
         return $this->entityAssociations;
     }
 
-    /**
-     * @param mixed $entityAssociations
-     */
     public function setEntityAssociations($entityAssociations)
     {
         $this->entityAssociations = $entityAssociations;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNamespaceUserProjectAssociation()
     {
         return $this->namespaceUserProjectAssociation;
     }
 
-    /**
-     * @param mixed $namespaceUserProjectAssociation
-     */
     public function setNamespaceUserProjectAssociation($namespaceUserProjectAssociation)
     {
         $this->namespaceUserProjectAssociation = $namespaceUserProjectAssociation;
@@ -377,9 +391,6 @@ class OntoNamespace
         return $this->isVisible;
     }
 
-    /**
-     * @param mixed $isVisible
-     */
     public function setIsVisible($isVisible)
     {
         $this->isVisible = $isVisible;
@@ -405,49 +416,31 @@ class OntoNamespace
         $this->containers = new ArrayCollection();
     }
 
-    /**
-     * @return mixed
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNamespaceURI()
     {
         return $this->namespaceURI;
     }
 
-    /**
-     * @return mixed
-     */
     public function getOriginalNamespaceURI()
     {
         return $this->originalNamespaceURI;
     }
 
-    /**
-     * @return mixed
-     */
     public function getClassPrefix()
     {
         return $this->classPrefix;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPropertyPrefix()
     {
         return $this->propertyPrefix;
     }
 
-    /**
-     * @return mixed
-     */
     public function getImporterInteger()
     {
         return $this->importerInteger;
@@ -469,17 +462,11 @@ class OntoNamespace
         return $this->topLevelNamespace;
     }
 
-    /**
-     * @return mixed
-     */
     public function getIsTopLevelNamespace()
     {
         return $this->isTopLevelNamespace;
     }
 
-    /**
-     * @return mixed
-     */
     public function getIsExternalNamespace()
     {
         return $this->isExternalNamespace;
@@ -509,25 +496,16 @@ class OntoNamespace
         return $this->projectForTopLevelNamespace;
     }
 
-    /**
-     * @return mixed
-     */
     public function getStandardLabel()
     {
         return $this->standardLabel;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPublishedAt()
     {
         return $this->publishedAt;
     }
 
-    /**
-     * @return mixed
-     */
     public function getDeprecatedAt()
     {
         return $this->deprecatedAt;
@@ -541,41 +519,26 @@ class OntoNamespace
         return $this->comments;
     }
 
-    /**
-     * @return mixed
-     */
     public function getNotes()
     {
         return $this->notes;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreator()
     {
         return $this->creator;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModifier()
     {
         return $this->modifier;
     }
 
-    /**
-     * @return mixed
-     */
     public function getCreationTime()
     {
         return $this->creationTime;
     }
 
-    /**
-     * @return mixed
-     */
     public function getModificationTime()
     {
         return $this->modificationTime;
@@ -597,9 +560,6 @@ class OntoNamespace
         return $this->properties;
     }
 
-    /**
-     * @return mixed
-     */
     public function getLabels()
     {
         return $this->labels;
@@ -621,9 +581,6 @@ class OntoNamespace
         return $this->classAssociations;
     }
 
-    /**
-     * @return mixed
-     */
     public function getPropertyAssociations()
     {
         return $this->propertyAssociations;
@@ -653,7 +610,8 @@ class OntoNamespace
         return $this->childVersions;
     }
 
-    public function getIdentifierInNamespace(){
+    public function getIdentifierInNamespace()
+    {
         return $this->namespaceURI;
     }
 
@@ -702,205 +660,144 @@ class OntoNamespace
      */
     public function getDirectReferencedNamespaces()
     {
-        $referencedNamespaces = new ArrayCollection;
-        foreach ($this->referencedNamespaceAssociations as $referencedNamespaceAssociation){
+        $referencedNamespaces = new ArrayCollection();
+        foreach ($this->referencedNamespaceAssociations as $referencedNamespaceAssociation) {
             $referencedNamespaces->add($referencedNamespaceAssociation->getReferencedNamespace());
         }
+
         return $referencedNamespaces;
     }
 
     /**
      * @return ArrayCollection|OntoNamespace[] Retourne TOUS les espaces de noms référencés directs ET indirects
      */
-    public function getAllReferencedNamespaces(ArrayCollection $allReferencedNamespaces=null){
-        if(is_null($allReferencedNamespaces)){$allReferencedNamespaces = new ArrayCollection;}
-        if($this->getDirectReferencedNamespaces()->isEmpty()){
-            return new ArrayCollection;
+    public function getAllReferencedNamespaces(?ArrayCollection $allReferencedNamespaces = null)
+    {
+        if (is_null($allReferencedNamespaces)) {
+            $allReferencedNamespaces = new ArrayCollection();
         }
-        else
-        {
-            foreach ($this->getDirectReferencedNamespaces() as $directReferencedNamespace){
-                if(!$allReferencedNamespaces->contains($directReferencedNamespace)){
-                    $allReferencedNamespaces->add($directReferencedNamespace);
-                    foreach($directReferencedNamespace->getAllReferencedNamespaces($allReferencedNamespaces) as $ns){
-                        if(!$allReferencedNamespaces->contains($ns)){
-                            $allReferencedNamespaces->add($ns);
-                        }
+        if ($this->getDirectReferencedNamespaces()->isEmpty()) {
+            return new ArrayCollection();
+        }
+
+        foreach ($this->getDirectReferencedNamespaces() as $directReferencedNamespace) {
+            if (!$allReferencedNamespaces->contains($directReferencedNamespace)) {
+                $allReferencedNamespaces->add($directReferencedNamespace);
+                foreach ($directReferencedNamespace->getAllReferencedNamespaces($allReferencedNamespaces) as $ns) {
+                    if (!$allReferencedNamespaces->contains($ns)) {
+                        $allReferencedNamespaces->add($ns);
                     }
                 }
             }
-            return $allReferencedNamespaces;
         }
+
+        return $allReferencedNamespaces;
     }
 
-    /**
-     * @return mixed
-     */
     public function getRootNamespacePrefix()
     {
-        if($this->isTopLevelNamespace){
+        if ($this->isTopLevelNamespace) {
             return $this->rootNamespacePrefix;
         }
-        else{
-            return false;
-        }
+
+        return false;
     }
 
-    /**
-     * @param mixed $rootNamespacePrefix
-     */
     public function setRootNamespacePrefix($rootNamespacePrefix)
     {
         $this->rootNamespacePrefix = $rootNamespacePrefix;
     }
 
-    /**
-     * @param mixed $namespaceURI
-     */
     public function setNamespaceURI($namespaceURI)
     {
         $this->namespaceURI = $namespaceURI;
     }
 
-    /**
-     * @param mixed $isExternalNamespace
-     */
     public function setIsExternalNamespace($isExternalNamespace)
     {
         $this->isExternalNamespace = $isExternalNamespace;
     }
 
-    /**
-     * @param mixed $standardLabel
-     */
     public function setStandardLabel($standardLabel)
     {
         $this->standardLabel = $standardLabel;
     }
 
-    /**
-     * @param mixed $originalNamespaceURI
-     */
     public function setOriginalNamespaceURI($originalNamespaceURI)
     {
         $this->originalNamespaceURI = $originalNamespaceURI;
     }
 
-    /**
-     * @param mixed $classPrefix
-     */
     public function setClassPrefix($classPrefix)
     {
         $this->classPrefix = $classPrefix;
     }
 
-    /**
-     * @param mixed $propertyPrefix
-     */
     public function setPropertyPrefix($propertyPrefix)
     {
         $this->propertyPrefix = $propertyPrefix;
     }
 
-    /**
-     * @param mixed $referencedVersion
-     */
     public function setReferencedVersion($referencedVersion)
     {
         $this->referencedVersion = $referencedVersion;
     }
 
-    /**
-     * @param mixed $topLevelNamespace
-     */
     public function setTopLevelNamespace($topLevelNamespace)
     {
         $this->topLevelNamespace = $topLevelNamespace;
     }
 
-    /**
-     * @param mixed $isTopLevelNamespace
-     */
     public function setIsTopLevelNamespace($isTopLevelNamespace)
     {
         $this->isTopLevelNamespace = $isTopLevelNamespace;
     }
 
-    /**
-     * @param mixed $isOngoing
-     */
     public function setIsOngoing($isOngoing)
     {
         $this->isOngoing = $isOngoing;
     }
 
-    /**
-     * @param mixed $hasPublication
-     */
     public function setHasPublication($hasPublication)
     {
         $this->hasPublication = $hasPublication;
     }
 
-    /**
-     * @param mixed $projectForTopLevelNamespace
-     */
     public function setProjectForTopLevelNamespace($projectForTopLevelNamespace)
     {
         $this->projectForTopLevelNamespace = $projectForTopLevelNamespace;
     }
 
-    /**
-     * @param mixed $publishedAt
-     */
     public function setPublishedAt($publishedAt)
     {
         $this->publishedAt = $publishedAt;
     }
 
-    /**
-     * @param mixed $deprecatedAt
-     */
     public function setDeprecatedAt($deprecatedAt)
     {
         $this->deprecatedAt = $deprecatedAt;
     }
 
-    /**
-     * @param mixed $creator
-     */
     public function setCreator($creator)
     {
         $this->creator = $creator;
     }
 
-    /**
-     * @param mixed $modifier
-     */
     public function setModifier($modifier)
     {
         $this->modifier = $modifier;
     }
 
-    /**
-     * @param mixed $creationTime
-     */
     public function setCreationTime($creationTime)
     {
         $this->creationTime = $creationTime;
     }
 
-    /**
-     * @param mixed $modificationTime
-     */
     public function setModificationTime($modificationTime)
     {
         $this->modificationTime = $modificationTime;
     }
 
-    /**
-     * @param mixed $referencedNamespaceAssociations
-     */
     public function setReferencedNamespaceAssociations($referencedNamespaceAssociations)
     {
         $this->referencedNamespaceAssociations = $referencedNamespaceAssociations;
@@ -921,7 +818,6 @@ class OntoNamespace
     {
         $this->textProperties = $textProperties;
     }
-
 
     public function addClassAssociation(ClassAssociation $classAssociation)
     {
@@ -955,7 +851,8 @@ class OntoNamespace
         $this->referencedNamespaceAssociations[] = $referencedNamespaceAssociation;
     }
 
-    public function addClassVersion(OntoClassVersion $classVersion){
+    public function addClassVersion(OntoClassVersion $classVersion)
+    {
         if ($this->classVersions->contains($classVersion)) {
             return;
         }
@@ -966,7 +863,8 @@ class OntoNamespace
         }
     }
 
-    public function addPropertyVersion(PropertyVersion $propertyVersion){
+    public function addPropertyVersion(PropertyVersion $propertyVersion)
+    {
         if ($this->propertyVersions->contains($propertyVersion)) {
             return;
         }
@@ -1010,7 +908,10 @@ class OntoNamespace
     public function __toString()
     {
         $s = $this->getStandardLabel();
-        if(empty($s)) $s = $this->namespaceURI;
+        if (empty($s)) {
+            $s = $this->namespaceURI;
+        }
+
         return (string) $s;
     }
 
@@ -1019,34 +920,34 @@ class OntoNamespace
      */
     public function getDisplayURI()
     {
-        $s ='';
-        if(!empty($this->namespaceURI)){
+        $s = '';
+        if (!empty($this->namespaceURI)) {
             $s = $this->namespaceURI;
+        } else {
+            $s = $this->getTopLevelNamespace()->getNamespaceURI();
         }
-        else $s =$this->getTopLevelNamespace()->getNamespaceURI();
+
         return $s;
     }
 
     /**
      * @return array
-     * Utilisé pour le dropdown sélection espace de noms sur une classe / propriété / etc
-     * Peut être réutilisé sur une fonctionnalité similaire
+     *               Utilisé pour le dropdown sélection espace de noms sur une classe / propriété / etc
+     *               Peut être réutilisé sur une fonctionnalité similaire
      */
     public function getStatus()
     {
-        if($this->getIsOngoing()){
-            return ["classCss"=>"warning", "label"=>"Ongoing"];
+        if ($this->getIsOngoing()) {
+            return ['classCss' => 'warning', 'label' => 'Ongoing'];
+        } elseif (is_null($this->getDeprecatedAt())) {
+            return ['classCss' => 'success', 'label' => 'Published'];
         }
-        elseif(is_null($this->getDeprecatedAt())){
-            return ["classCss"=>"success", "label"=>"Published"];
-        }
-        else{
-            return ["classCss"=>"danger", "label"=>"Deprecated"];
-        }
+
+        return ['classCss' => 'danger', 'label' => 'Deprecated'];
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getUriParameter()
     {
@@ -1054,7 +955,7 @@ class OntoNamespace
     }
 
     /**
-     * @param integer $uriParameter
+     * @param int $uriParameter
      */
     public function setUriParameter($uriParameter)
     {
@@ -1063,7 +964,7 @@ class OntoNamespace
 
     /**
      * @return array
-     * Retourne un tableau des id de ces namespaces suivants : ce namespace (this) et ses namespaces référencés, parents y compris.
+     *               Retourne un tableau des id de ces namespaces suivants : ce namespace (this) et ses namespaces référencés, parents y compris
      */
     public function getSelectedNamespacesId()
     {
@@ -1071,7 +972,7 @@ class OntoNamespace
         $arrayIds[] = 4;
 
         $arrayIds[] = $this->getId();
-        foreach($this->getAllReferencedNamespaces() as $referencedNamespace){
+        foreach ($this->getAllReferencedNamespaces() as $referencedNamespace) {
             $arrayIds[] = $referencedNamespace->getId();
         }
 
@@ -1081,8 +982,8 @@ class OntoNamespace
 
     /**
      * @return array
-     * Retourne un tableau des id de ces namespaces suivants : tous les namespaces dans le même root que ce namespace (this) et tous les namespaces dans le même root de ses namespaces référencés.
-     * Utilisé notamment pour répérer les entités qui n'existent pas dans une version mais dans une autre du même root
+     *               Retourne un tableau des id de ces namespaces suivants : tous les namespaces dans le même root que ce namespace (this) et tous les namespaces dans le même root de ses namespaces référencés.
+     *               Utilisé notamment pour répérer les entités qui n'existent pas dans une version mais dans une autre du même root
      */
     public function getLargeSelectedNamespacesId()
     {
@@ -1090,14 +991,12 @@ class OntoNamespace
         $arrayIds[] = 4;
 
         // Boucle sur le root du namespace d'origine :
-        foreach ($this->getTopLevelNamespace()->getChildVersions() as $ns)
-        {
+        foreach ($this->getTopLevelNamespace()->getChildVersions() as $ns) {
             $arrayIds[] = $ns->getId();
         }
 
-        foreach($this->getReferencedNamespaceAssociations() as $referencedNamespaceAssociation){
-            foreach ($referencedNamespaceAssociation->getReferencedNamespace()->getTopLevelNamespace()->getChildVersions() as $ns)
-            {
+        foreach ($this->getReferencedNamespaceAssociations() as $referencedNamespaceAssociation) {
+            foreach ($referencedNamespaceAssociation->getReferencedNamespace()->getTopLevelNamespace()->getChildVersions() as $ns) {
                 $arrayIds[] = $ns->getId();
             }
         }
@@ -1107,28 +1006,30 @@ class OntoNamespace
     }
 
     /**
-     * @return Array
-     * Retourne un string pour indiquer le paramètre
+     * @return array
+     *               Retourne un string pour indiquer le paramètre
      */
-    public function getUriParameterStrings(){
-            switch ($this->getUriParameter()){
-                case 0:
-                    $arrStr = array('label' => 'Entity identifier', 'classExample' => 'C1', 'propertyExample' => 'P1');
-                    break;
-                case 1:
-                    $arrStr = array('label' => 'Entity identifier + label', 'classExample' => 'C1_Class_Label', 'propertyExample' => 'P1_Property_Label');
-                    break;
-                case 2:
-                    $arrStr = array('label' => 'camelCase label', 'classExample' => 'classLabel', 'propertyExample' => 'propertyLabel');
-                    break;
-                case 3:
-                    $arrStr = array('label' => 'No parameter', 'classExample' => 'user_choice', 'propertyExample' => 'user_choice');
-                    break;
-                default:
-                    $arrStr = array('label' => 'Unknown parameter', 'classExample' => 'Unknown parameter', 'propertyExample' => 'Unknown parameter');
-                    break;
-            }
-            return $arrStr;
+    public function getUriParameterStrings()
+    {
+        switch ($this->getUriParameter()) {
+            case 0:
+                $arrStr = ['label' => 'Entity identifier', 'classExample' => 'C1', 'propertyExample' => 'P1'];
+                break;
+            case 1:
+                $arrStr = ['label' => 'Entity identifier + label', 'classExample' => 'C1_Class_Label', 'propertyExample' => 'P1_Property_Label'];
+                break;
+            case 2:
+                $arrStr = ['label' => 'camelCase label', 'classExample' => 'classLabel', 'propertyExample' => 'propertyLabel'];
+                break;
+            case 3:
+                $arrStr = ['label' => 'No parameter', 'classExample' => 'user_choice', 'propertyExample' => 'user_choice'];
+                break;
+            default:
+                $arrStr = ['label' => 'Unknown parameter', 'classExample' => 'Unknown parameter', 'propertyExample' => 'Unknown parameter'];
+                break;
+        }
+
+        return $arrStr;
     }
 
     public function addContainer(Container $container)

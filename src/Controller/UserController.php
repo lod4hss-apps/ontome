@@ -1,42 +1,43 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 20/04/2017
- * Time: 10:57
+ * Time: 10:57.
  */
 
 namespace App\Controller;
 
-use App\Repository\ProjectRepository;
 use App\Entity\EntityUserProjectAssociation;
 use App\Entity\OntoNamespace;
 use App\Entity\Profile;
 use App\Entity\Project;
+use App\Entity\SystemType;
 use App\Entity\User;
 use App\Entity\UserProjectAssociation;
-use App\Entity\SystemType;
 use App\Form\UserEditForm;
 use App\Form\UserRegistrationForm;
 use App\Form\UserRequestPasswordForm;
 use App\Form\UserResetPasswordForm;
 use App\Form\UserSelfEditForm;
-use App\Security\LoginFormAuthenticator;
 use App\Repository\NamespaceRepository;
 use App\Repository\ProfileRepository;
+use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
+use App\Security\LoginFormAuthenticator;
 use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
-use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
 class UserController extends AbstractController
 {
@@ -45,7 +46,6 @@ class UserController extends AbstractController
 
     /**
      * UserController constructor.
-     * @param $recaptchaSecret
      */
     public function __construct(ManagerRegistry $doctrine, $recaptchaSecret)
     {
@@ -54,9 +54,6 @@ class UserController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @return mixed
-     */
     public function getRecaptchaSecret()
     {
         return $this->recaptchaSecret;
@@ -64,7 +61,7 @@ class UserController extends AbstractController
 
     /**
      * @Route("/register", name="user_register")
-     * @param Request $request
+     *
      * @return Response a response instance
      */
     public function registerAction(Request $request, LoginFormAuthenticator $authenticator, MailerInterface $mailer, UserAuthenticatorInterface $userAuthenticator, ProjectRepository $projectRepository)
@@ -73,8 +70,7 @@ class UserController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid() && $this->captchaVerify($request->get('g-recaptcha-response'))){
-
+        if ($form->isSubmitted() && $form->isValid() && $this->captchaVerify($request->get('g-recaptcha-response'))) {
             /** @var User $user */
             $user = $form->getData();
             $user->setStatus(true);
@@ -87,7 +83,7 @@ class UserController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            //send Welcome e-mail
+            // send Welcome e-mail
             $email = (new Email())
                 ->subject('[OntoME] Welcome to OntoME!')
                 ->from('ontome@dataforhistory.org')
@@ -95,12 +91,11 @@ class UserController extends AbstractController
                 ->html(
                     $this->renderView(
                         'email/registration.html.twig',
-                        array('user' => $user)
+                        ['user' => $user]
                     )
                 );
 
             $mailer->send($email);
-
 
             $this->addFlash('success', 'Welcome '.$user->getFullName());
 
@@ -111,8 +106,7 @@ class UserController extends AbstractController
             );
         }
 
-        if($form->isSubmitted() && $form->isValid() && !$this->captchaVerify($request->get('g-recaptcha-response'))){
-
+        if ($form->isSubmitted() && $form->isValid() && !$this->captchaVerify($request->get('g-recaptcha-response'))) {
             $this->addFlash(
                 'error',
                 'Are you a human or a machine?'
@@ -120,13 +114,13 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/register.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(),
         ]);
     }
 
     /**
      * @Route("/request-password", name="user_request_password")
-     * @param Request $request
+     *
      * @return Response a response instance
      */
     public function requestPasswordAction(Request $request, MailerInterface $mailer, UserRepository $userRepository)
@@ -140,8 +134,8 @@ class UserController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $tmpUser = $form->getData();
-            $user = $userRepository->findOneBy(['email'=>$tmpUser['email']]);
-            if($user){
+            $user = $userRepository->findOneBy(['email' => $tmpUser['email']]);
+            if ($user) {
                 $token = md5(random_bytes(10));
                 $user->setToken($token);
                 $user->setTokenDate(new \DateTime());
@@ -155,22 +149,21 @@ class UserController extends AbstractController
                     ->html(
                         $this->renderView(
                             'email/requestPassword.html.twig',
-                            array('user' => $user)
+                            ['user' => $user]
                         )
                     );
                 $mailer->send($email);
                 $this->addFlash('success', 'An e-mail has been sent.');
 
-                return $this->redirectToRoute("home");
+                return $this->redirectToRoute('home');
             }
-            else {
-                return $this->redirectToRoute("user_request_password") ;
-            }
-        }
-        return $this->render('security/requestPassword.html.twig', array(
-            'form' => $form->createView()
-        ));
 
+            return $this->redirectToRoute('user_request_password');
+        }
+
+        return $this->render('security/requestPassword.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
     /**
@@ -179,52 +172,47 @@ class UserController extends AbstractController
     public function resetPasswordAction(Request $request, $token, UserRepository $userRepository)
     {
         $em = $this->doctrine->getManager();
-        $tmpUser = $userRepository->findOneBy(['token'=>$token]);
+        $tmpUser = $userRepository->findOneBy(['token' => $token]);
         $formView = null;
 
-        if($tmpUser){
+        if ($tmpUser) {
             $now = new \DateTime('now');
             $tokenDate = $tmpUser->getTokenDate();
             $diff = $tokenDate->diff($now);
-            if($diff->format('%a') > 1){
+            if ($diff->format('%a') > 1) {
                 $this->addFlash(
                     'error',
                     'The token has expired. Please make a new password request.'
                 );
-            }
-            else {
-
+            } else {
                 $user = $tmpUser;
                 $form = $this->createForm(UserResetPasswordForm::class, $user);
                 $form->handleRequest($request);
                 $formView = $form->createView();
                 if ($form->isSubmitted() && $form->isValid()) {
-                    $user->setToken(null); //token remis à null
-                    $user->setTokenDate(null); //date du token remise à null
+                    $user->setToken(null); // token remis à null
+                    $user->setTokenDate(null); // date du token remise à null
                     $em->persist($user);
                     $em->flush();
 
                     $this->addFlash('success', 'Password updated!');
 
                     return $this->redirectToRoute('user_show', [
-                        'id' => $user->getId()
+                        'id' => $user->getId(),
                     ]);
                 }
             }
-        }
-        else {
+        } else {
             $this->addFlash(
                 'error',
                 'This token does not exist. Please make a new password request.'
             );
         }
 
-        return $this->render('user/resetPassword.html.twig', array(
+        return $this->render('user/resetPassword.html.twig', [
             'form' => $formView,
-            'user' => $tmpUser
-        ));
-
-
+            'user' => $tmpUser,
+        ]);
     }
 
     /**
@@ -233,7 +221,7 @@ class UserController extends AbstractController
     public function testMailAction(MailerInterface $mailer): Response
     {
         $user = $this->getUser();
-        //send Welcome e-mail
+        // send Welcome e-mail
         $email = (new Email())
             ->subject('[OntoME] Welcome to OntoME!')
             ->from('ontome@dataforhistory.org')
@@ -241,13 +229,13 @@ class UserController extends AbstractController
             ->html(
                 $this->renderView(
                     'email/registration.html.twig',
-                    array('user' => $user)
+                    ['user' => $user]
                 )
             );
 
         $mailer->send($email);
-        return $this->render('main/homepage.html.twig');
 
+        return $this->render('main/homepage.html.twig');
     }
 
     /**
@@ -262,21 +250,20 @@ class UserController extends AbstractController
         $users = $userRepository->findAll();
 
         return $this->render('user/list.html.twig', [
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
     /**
      * @Route("/user/{id}", name="user_show", requirements={"id"="^[0-9]+$"})
+     *
      * @param $user User
-     * @return Response
      */
     public function showAction(User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
-        }
-        else if ($user != $this->getUser() && !$authorizationChecker->isGranted('ROLE_ADMIN')) {
+        } elseif ($user != $this->getUser() && !$authorizationChecker->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
         }
 
@@ -287,18 +274,18 @@ class UserController extends AbstractController
         // On récupère tous les userProjectAssociations de l'utilisateur dans un ArrayCollection
         $em = $this->doctrine->getManager();
         $userProjectAssociations = new ArrayCollection($em->getRepository(UserProjectAssociation::class)
-            ->findBy(array('user' => $user->getId())));
+            ->findBy(['user' => $user->getId()]));
 
         // Rajouter le projet public dans la liste des projets associés à l'utilisateur par le biais d'un userProjectAssociation FICTIF. Vérifier d'abord si on en est déjà pas participant
         $publicProjectParticipant = false;
-        foreach ($userProjectAssociations as $userProjectAssociation){
-            if($userProjectAssociation->getProject() == $publicProject){
+        foreach ($userProjectAssociations as $userProjectAssociation) {
+            if ($userProjectAssociation->getProject() == $publicProject) {
                 $publicProjectParticipant = true;
                 break;
             }
         }
 
-        if(!$publicProjectParticipant){
+        if (!$publicProjectParticipant) {
             $userProjectPublicAssociation = new UserProjectAssociation();
             $userProjectPublicAssociation->setUser($user);
             $userProjectPublicAssociation->setProject($publicProject);
@@ -309,10 +296,10 @@ class UserController extends AbstractController
         $activeProject = $user->getCurrentActiveProject();
 
         // S'il s'agit du projet public : il n'est pas nécessaire de chercher. On sait déjà ce qu'il faut afficher, et ce n'est PAS modifiable.
-        if($activeProject != $publicProject){
+        if ($activeProject != $publicProject) {
             // Retrouver l'userProjectAssociation (User <-> Projet actif)
             $userActiveProjectAssociation = $em->getRepository(UserProjectAssociation::class)
-                ->findOneBy(array('user' => $user, 'project' => $activeProject));
+                ->findOneBy(['user' => $user, 'project' => $activeProject]);
 
             // Pour l'onglet My Current Namespaces
             // L'espace de nom géré par le projet - il est unique
@@ -331,23 +318,23 @@ class UserController extends AbstractController
             $additionalNamespaces = new ArrayCollection($namespaceRepository->findAdditionalNamespacesForUser($user));
 
             // On retire le namespace géré par le projet des additionals.
-            if($additionalNamespaces->contains($defaultNamespace)) {
+            if ($additionalNamespaces->contains($defaultNamespace)) {
                 $additionalNamespaces->removeElement($defaultNamespace);
             }
 
             // On retire les namespaces des profils actifs
-            foreach($profilesUserProject as $profile) {
-                foreach($profile->getNamespaces() as $profilNamespace){
-                    if($additionalNamespaces->contains($profilNamespace)){
+            foreach ($profilesUserProject as $profile) {
+                foreach ($profile->getNamespaces() as $profilNamespace) {
+                    if ($additionalNamespaces->contains($profilNamespace)) {
                         $additionalNamespaces->removeElement($profilNamespace);
                     }
                 }
             }
 
-            $rootNamespaces = $namespaceRepository->findBy(array('isTopLevelNamespace' => true));
-            $rootNamespaces = array_filter($rootNamespaces, function($v){return $v->getId() != 5;});
+            $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
+            $rootNamespaces = array_filter($rootNamespaces, function ($v) {return $v->getId() != 5; });
 
-            return $this->render('user/show.html.twig', array(
+            return $this->render('user/show.html.twig', [
                 'userProjectAssociations' => $userProjectAssociations,
                 'userActiveProjectAssociation' => $userActiveProjectAssociation,
                 'defaultNamespace' => $defaultNamespace,
@@ -355,34 +342,35 @@ class UserController extends AbstractController
                 'activeNamespaces' => $activeNamespaces,
                 'activeProfiles' => $activeProfiles,
                 'rootNamespaces' => $rootNamespaces,
-                'user' => $user
-            ));
+                'user' => $user,
+            ]);
         }
-        else{
-            // On est dans le cas du projet public
-            $userProjectPublicAssociation = new UserProjectAssociation(); // Fictif, à ne pas persister
-            $userProjectPublicAssociation->setUser($user);
-            $userProjectPublicAssociation->setProject($publicProject);
 
-            $displayedNamespaces = new ArrayCollection();
-            foreach ($publicProject->getProjectAssociations() as $projectAssociation){
-                if($projectAssociation->getSystemType()->getId() == 17){
-                    $displayedNamespaces->add($projectAssociation->getNamespace());
-                }
+        // On est dans le cas du projet public
+        $userProjectPublicAssociation = new UserProjectAssociation(); // Fictif, à ne pas persister
+        $userProjectPublicAssociation->setUser($user);
+        $userProjectPublicAssociation->setProject($publicProject);
+
+        $displayedNamespaces = new ArrayCollection();
+        foreach ($publicProject->getProjectAssociations() as $projectAssociation) {
+            if ($projectAssociation->getSystemType()->getId() == 17) {
+                $displayedNamespaces->add($projectAssociation->getNamespace());
             }
-
-            return $this->render('user/show.html.twig', array(
-                'userProjectAssociations' => $userProjectAssociations,
-                'userActiveProjectAssociation' => $userProjectPublicAssociation,
-                'displayedNamespaces' => $displayedNamespaces,
-                'user' => $user
-            ));
         }
+
+        return $this->render('user/show.html.twig', [
+            'userProjectAssociations' => $userProjectAssociations,
+            'userActiveProjectAssociation' => $userProjectPublicAssociation,
+            'displayedNamespaces' => $displayedNamespaces,
+            'user' => $user,
+        ]);
     }
 
     /**
      * @Route("/user/editCurrentActiveProject/{project}", name="user_edit_current_active_project", requirements={"project"="^[0-9]+$"})
+     *
      * @param $project Project
+     *
      * @return Response
      */
     public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
@@ -397,9 +385,8 @@ class UserController extends AbstractController
 
         // Vérifier si le projet peut lui être attribué, autre que 21.
         $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
-            ->findOneBy(array('user' => $user, 'project' => $project));
-        if(is_null($userProjectAssociation) && $project->getId() != 21) // Si null : il en a pas les droits, sauf pour le projet public
-        {
+            ->findOneBy(['user' => $user, 'project' => $project]);
+        if (is_null($userProjectAssociation) && $project->getId() != 21) { // Si null : il en a pas les droits, sauf pour le projet public
             throw $this->createAccessDeniedException();
         }
         $user->setCurrentActiveProject($project);
@@ -407,24 +394,23 @@ class UserController extends AbstractController
         $em->flush();
 
         // Si le projet est public, il n'y a rien à faire, il est géré automatiquement
-        if($project != $publicProject){
+        if ($project != $publicProject) {
             // Retrouver le userProjectAssociation
             $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
-                ->findOneBy(array('user' => $user, 'project' => $project));
+                ->findOneBy(['user' => $user, 'project' => $project]);
 
             // Le namespace par défaut du projet
             $defaultNamespace = $namespaceRepository->findDefaultNamespaceForProject($project);
 
-            if(!is_null($defaultNamespace))
-            {
+            if (!is_null($defaultNamespace)) {
                 // Est-ce que la vue sur defaultNamespace a déjà été initialisée ?
                 $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                    ->findOneBy(array('namespace' => $defaultNamespace->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()));
+                    ->findOneBy(['namespace' => $defaultNamespace->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()]);
 
                 // Il n'existe aucune vue sur defaultNamespace. En créer 1
                 if (is_null($eupa)) {
                     $eupa = new EntityUserProjectAssociation();
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                     $eupa->setNamespace($defaultNamespace);
                     $eupa->setUserProjectAssociation($userProjectAssociation);
                     $eupa->setSystemType($systemTypeSelected);
@@ -443,11 +429,11 @@ class UserController extends AbstractController
             foreach ($project->getOwnedProfiles() as $profile) {
                 // Vérifier si on a déjà pas un eupa sur ce profile
                 $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                    ->findOneBy(array('profile' => $profile->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()));
+                    ->findOneBy(['profile' => $profile->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()]);
 
-                if(is_null($eupa)){
+                if (is_null($eupa)) {
                     $eupa = new EntityUserProjectAssociation();
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                     $eupa->setProfile($profile);
                     $eupa->setUserProjectAssociation($userProjectAssociation);
                     $eupa->setSystemType($systemTypeSelected);
@@ -459,14 +445,14 @@ class UserController extends AbstractController
                     $em->flush();
                 }
 
-                foreach($profile->getNamespaces() as $namespace){
+                foreach ($profile->getNamespaces() as $namespace) {
                     // Vérifier si un eupa identique n'a pas déjà etre crée avec un autre profil plus tot:
                     $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                        ->findOneBy(array('namespace' => $namespace->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()));
+                        ->findOneBy(['namespace' => $namespace->getId(), 'userProjectAssociation' => $userProjectAssociation->getId()]);
 
                     if (is_null($eupa)) {
                         $eupa = new EntityUserProjectAssociation();
-                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                         $eupa->setNamespace($namespace);
                         $eupa->setUserProjectAssociation($userProjectAssociation);
                         $eupa->setSystemType($systemTypeSelected);
@@ -483,7 +469,7 @@ class UserController extends AbstractController
 
         return $this->redirectToRoute('user_show', [
             'id' => $user->getId(),
-            '_fragment' => 'my-projects'
+            '_fragment' => 'my-projects',
         ]);
     }
 
@@ -511,29 +497,31 @@ class UserController extends AbstractController
             $this->addFlash('success', 'User Updated!');
 
             return $this->redirectToRoute('user_show', [
-                'id' => $user->getId()
+                'id' => $user->getId(),
             ]);
         }
         if ($authorizationChecker->isGranted('ROLE_ADMIN')) {
             return $this->render('user/edit.html.twig', [
                 'userForm' => $form->createView(),
-                'user' => $user
+                'user' => $user,
             ]);
         }
-        else return $this->render('user/selfEdit.html.twig', [
+
+        return $this->render('user/selfEdit.html.twig', [
             'userForm' => $form->createView(),
-            'user' => $user
+            'user' => $user,
         ]);
-
-
     }
 
     /**
      * @Route("/user/{userProjectAssociation}/namespace/{namespace}/add", name="user_project_namespace_association", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     * @param OntoNamespace  $namespace    The namespace to be associated with an userProjectAssociation
-     * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be associated with a namespace
-     * @throws \Exception in case of unsuccessful association
+     *
+     * @param OntoNamespace          $namespace              The namespace to be associated with an userProjectAssociation
+     * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be associated with a namespace
+     *
      * @return JsonResponse a Json formatted namespaces list
+     *
+     * @throws \Exception in case of unsuccessful association
      */
     public function newUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
@@ -541,29 +529,27 @@ class UserController extends AbstractController
 
         // 1 Vérifier que le namespace n'est pas top level
         // 2 Vérifier qu'une association namespace - userproject identique n'existe pas
-            // Si oui : remettre le system type à 25
-            // Si non : créer l'association
+        // Si oui : remettre le system type à 25
+        // Si non : créer l'association
 
         $em = $this->doctrine->getManager();
 
         $eupa = null;
-        if($namespace->getIsTopLevelNamespace()) {
+        if ($namespace->getIsTopLevelNamespace()) {
             $status = 'Error';
             $message = 'This namespace is not valid';
-        }
-        else {
-            foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-                if($eupa->getNamespace() == $namespace) {
+        } else {
+            foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+                if ($eupa->getNamespace() == $namespace) {
                     // Il existe déjà une association mais est-ce Selected ?
-                    if($eupa->getSystemType()->getId() == 25) {
+                    if ($eupa->getSystemType()->getId() == 25) {
                         // On ne fait rien : l'association existe déjà et est selected.
                         $status = 'Error';
                         $message = 'This namespace is already used';
                         break;
-                    }
-                    elseif ($eupa->getSystemType()->getId() == 29) {
+                    } elseif ($eupa->getSystemType()->getId() == 29) {
                         // L'association existe déjà, et l'utilisateur veut remettre à selected.
-                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                         $eupa->setSystemType($systemTypeSelected);
                         $status = 'Success';
                         $message = 'Namespace successfully associated';
@@ -575,9 +561,9 @@ class UserController extends AbstractController
                 $eupa = null;
             }
 
-            if(is_null($eupa)) {
+            if (is_null($eupa)) {
                 $eupa = new EntityUserProjectAssociation();
-                $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                 $eupa->setNamespace($namespace);
                 $eupa->setUserProjectAssociation($userProjectAssociation);
                 $eupa->setSystemType($systemTypeSelected);
@@ -592,25 +578,27 @@ class UserController extends AbstractController
             }
         }
 
-        $referencedNamespaces = array();
+        $referencedNamespaces = [];
 
         foreach ($eupa->getNamespace()->getReferencedNamespaceAssociations() as $referencedNamespacesAssociations) {
-            $referencedNamespaces[] = array('id'=>$referencedNamespacesAssociations->getReferencedNamespace()->getId(),'standardLabel'=>$referencedNamespacesAssociations->getReferencedNamespace()->getStandardLabel());
+            $referencedNamespaces[] = ['id' => $referencedNamespacesAssociations->getReferencedNamespace()->getId(), 'standardLabel' => $referencedNamespacesAssociations->getReferencedNamespace()->getStandardLabel()];
         }
 
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'referencedNamespaces' => $referencedNamespaces
-        );
+            'referencedNamespaces' => $referencedNamespaces,
+        ];
 
         return new JsonResponse($response);
     }
 
     /**
      * @Route("/user/{userProjectAssociation}/namespace/{namespace}/delete", name="user_project_namespace_disassociation", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     * @param OntoNamespace  $namespace    The namespace to be disassociated from a userProjectAssociation
-     * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be disassociated from a namespace
+     *
+     * @param OntoNamespace          $namespace              The namespace to be disassociated from a userProjectAssociation
+     * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be disassociated from a namespace
+     *
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
@@ -621,18 +609,17 @@ class UserController extends AbstractController
 
         $eupa = null;
 
-        foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-            if($eupa->getNamespace() == $namespace) {
+        foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+            if ($eupa->getNamespace() == $namespace) {
                 // Il existe déjà une association mais est-ce Selected ?
-                if($eupa->getSystemType()->getId() == 29) {
+                if ($eupa->getSystemType()->getId() == 29) {
                     // On ne fait rien : l'association existe et est déjà rejected.
                     $status = 'Error';
                     $message = 'This namespace is already rejected';
                     break;
-                }
-                elseif ($eupa->getSystemType()->getId() == 25) {
+                } elseif ($eupa->getSystemType()->getId() == 25) {
                     // L'association existe déjà, et l'utilisateur veut mettre à rejected
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 29 = Rejected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); // systemType 29 = Rejected namespace for user preference
                     $eupa->setSystemType($systemTypeSelected);
                     $status = 'Success';
                     $message = 'Namespace successfully rejected';
@@ -644,9 +631,9 @@ class UserController extends AbstractController
             $eupa = null;
         }
 
-        if(is_null($eupa)) {
+        if (is_null($eupa)) {
             $eupa = new EntityUserProjectAssociation();
-            $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 25 = Selected namespace for user preference
+            $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); // systemType 25 = Selected namespace for user preference
             $eupa->setNamespace($namespace);
             $eupa->setUserProjectAssociation($userProjectAssociation);
             $eupa->setSystemType($systemTypeSelected);
@@ -660,20 +647,23 @@ class UserController extends AbstractController
             $message = 'Namespace successfully rejected';
         }
 
-        if(!is_null($eupa))
+        if (!is_null($eupa)) {
             $em->persist($eupa);
+        }
         $em->flush();
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
-
     }
 
     /**
      * @Route("/user/{userProjectAssociation}/profile/{profile}/add", name="user_project_profile_association", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "profile"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     * @param Profile $profile The profile to be associated with an userProjectAssociation
-     * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be associated with a profile
-     * @throws \Exception in case of unsuccessful association
+     *
+     * @param Profile                $profile                The profile to be associated with an userProjectAssociation
+     * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be associated with a profile
+     *
      * @return JsonResponse a Json formatted profile list
+     *
+     * @throws \Exception in case of unsuccessful association
      */
     public function newUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
@@ -688,18 +678,17 @@ class UserController extends AbstractController
 
         $eupa = null;
 
-        foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-            if($eupa->getProfile() == $profile) {
+        foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+            if ($eupa->getProfile() == $profile) {
                 // Il existe déjà une association mais est-ce Selected ?
-                if($eupa->getSystemType()->getId() == 25) {
+                if ($eupa->getSystemType()->getId() == 25) {
                     // On ne fait rien : l'association existe déjà et est selected.
                     $status = 'Error';
                     $message = 'This profile is already used';
                     break;
-                }
-                elseif ($eupa->getSystemType()->getId() == 29) {
+                } elseif ($eupa->getSystemType()->getId() == 29) {
                     // L'association existe déjà, et l'utilisateur veut remettre à selected.
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                     $eupa->setSystemType($systemTypeSelected);
                     $status = 'Success';
                     $message = 'Profile successfully associated';
@@ -711,9 +700,9 @@ class UserController extends AbstractController
             $eupa = null;
         }
 
-        if(is_null($eupa)) {
+        if (is_null($eupa)) {
             $eupa = new EntityUserProjectAssociation();
-            $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+            $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
             $eupa->setProfile($profile);
             $eupa->setUserProjectAssociation($userProjectAssociation);
             $eupa->setSystemType($systemTypeSelected);
@@ -728,28 +717,26 @@ class UserController extends AbstractController
         }
 
         // Pour chaque namespace du profil mettre à 29
-        $arrayNamespaces = array();
-        foreach($profile->getNamespaces() as $namespace) {
+        $arrayNamespaces = [];
+        foreach ($profile->getNamespaces() as $namespace) {
             $arrayNamespaces[] = $namespace->getId();
 
             $eupa = null;
-            if($namespace->getIsTopLevelNamespace()) {
+            if ($namespace->getIsTopLevelNamespace()) {
                 $status = 'Error';
                 $message = 'This namespace is not valid';
-            }
-            else {
-                foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-                    if($eupa->getNamespace() == $namespace) {
+            } else {
+                foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+                    if ($eupa->getNamespace() == $namespace) {
                         // Il existe déjà une association mais est-ce Selected ?
-                        if($eupa->getSystemType()->getId() == 25) {
+                        if ($eupa->getSystemType()->getId() == 25) {
                             // On ne fait rien : l'association existe déjà et est selected.
                             $status = 'Error';
                             $message = 'This namespace is already used';
                             break;
-                        }
-                        elseif ($eupa->getSystemType()->getId() == 29) {
+                        } elseif ($eupa->getSystemType()->getId() == 29) {
                             // L'association existe déjà, et l'utilisateur veut remettre à selected.
-                            $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                            $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                             $eupa->setSystemType($systemTypeSelected);
                             $status = 'Success';
                             $message = 'Namespace successfully associated';
@@ -761,9 +748,9 @@ class UserController extends AbstractController
                     $eupa = null;
                 }
 
-                if(is_null($eupa)) {
+                if (is_null($eupa)) {
                     $eupa = new EntityUserProjectAssociation();
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                     $eupa->setNamespace($namespace);
                     $eupa->setUserProjectAssociation($userProjectAssociation);
                     $eupa->setSystemType($systemTypeSelected);
@@ -778,24 +765,27 @@ class UserController extends AbstractController
                 }
             }
 
-            if(!is_null($eupa))
+            if (!is_null($eupa)) {
                 $em->persist($eupa);
+            }
             $em->flush();
         }
 
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'namespacesSelected' => $arrayNamespaces
-        );
+            'namespacesSelected' => $arrayNamespaces,
+        ];
 
         return new JsonResponse($response);
     }
 
     /**
      * @Route("/user/{userProjectAssociation}/profile/{profile}/delete", name="user_project_profile_disassociation", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "profile"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     * @param Profile  $profile    The profile to be disassociated from a userProjectAssociation
-     * @param UserProjectAssociation  $userProjectAssociation    The userProjectAssociation to be disassociated from a profile
+     *
+     * @param Profile                $profile                The profile to be disassociated from a userProjectAssociation
+     * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be disassociated from a profile
+     *
      * @return JsonResponse a Json 204 HTTP response
      */
     public function deleteUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
@@ -806,18 +796,17 @@ class UserController extends AbstractController
 
         $eupa = null;
 
-        foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-            if($eupa->getProfile() == $profile) {
+        foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+            if ($eupa->getProfile() == $profile) {
                 // Il existe déjà une association mais est-ce Selected ?
-                if($eupa->getSystemType()->getId() == 29) {
+                if ($eupa->getSystemType()->getId() == 29) {
                     // On ne fait rien : l'association existe et est déjà rejected.
                     $status = 'Error';
                     $message = 'This profile is already rejected';
                     break;
-                }
-                elseif ($eupa->getSystemType()->getId() == 25) {
+                } elseif ($eupa->getSystemType()->getId() == 25) {
                     // L'association existe déjà, et l'utilisateur veut mettre à rejected
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 29 = Rejected profile for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); // systemType 29 = Rejected profile for user preference
                     $eupa->setSystemType($systemTypeSelected);
                     $status = 'Success';
                     $message = 'Profile successfully rejected';
@@ -829,7 +818,7 @@ class UserController extends AbstractController
             $eupa = null;
         }
 
-        if(is_null($eupa)) {
+        if (is_null($eupa)) {
             $eupa = new EntityUserProjectAssociation();
             $systemTypeSelected = $em->getRepository(SystemType::class)->find(29);
             $eupa->setProfile($profile);
@@ -848,22 +837,21 @@ class UserController extends AbstractController
         $em->persist($eupa);
         $em->flush();
 
-        $arrayNamespaces = array();
-        foreach($profile->getNamespaces() as $namespace) {
+        $arrayNamespaces = [];
+        foreach ($profile->getNamespaces() as $namespace) {
             $arrayNamespaces[] = $namespace->getId();
 
-            foreach($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
-                if($eupa->getNamespace() == $namespace) {
+            foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
+                if ($eupa->getNamespace() == $namespace) {
                     // Il existe déjà une association mais est-ce Selected ?
-                    if($eupa->getSystemType()->getId() == 29) {
+                    if ($eupa->getSystemType()->getId() == 29) {
                         // On ne fait rien : l'association existe et est déjà rejected.
                         $status = 'Error';
                         $message = 'This namespace is already rejected';
                         break;
-                    }
-                    elseif ($eupa->getSystemType()->getId() == 25) {
+                    } elseif ($eupa->getSystemType()->getId() == 25) {
                         // L'association existe déjà, et l'utilisateur veut mettre à rejected
-                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 29 = Rejected namespace for user preference
+                        $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); // systemType 29 = Rejected namespace for user preference
                         $eupa->setSystemType($systemTypeSelected);
                         $status = 'Success';
                         $message = 'Namespace successfully rejected';
@@ -875,9 +863,9 @@ class UserController extends AbstractController
                 $eupa = null;
             }
 
-            if(is_null($eupa)) {
+            if (is_null($eupa)) {
                 $eupa = new EntityUserProjectAssociation();
-                $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); //systemType 25 = Selected namespace for user preference
+                $systemTypeSelected = $em->getRepository(SystemType::class)->find(29); // systemType 25 = Selected namespace for user preference
                 $eupa->setNamespace($namespace);
                 $eupa->setUserProjectAssociation($userProjectAssociation);
                 $eupa->setSystemType($systemTypeSelected);
@@ -891,22 +879,25 @@ class UserController extends AbstractController
                 $message = 'Namespace successfully rejected';
             }
 
-            if(!is_null($eupa))
+            if (!is_null($eupa)) {
                 $em->persist($eupa);
+            }
             $em->flush();
         }
 
-        $response = array(
+        $response = [
             'status' => $status,
             'message' => $message,
-            'namespacesRejected' => $arrayNamespaces);
+            'namespacesRejected' => $arrayNamespaces];
 
         return new JsonResponse($response);
-
     }
+
     /**
      * @Route("/user/{id}/reinitialization", name="user_reinitialization", requirements={"id"="^[0-9]+$"})
+     *
      * @param $user User
+     *
      * @return Response
      */
     public function reinitialization(User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
@@ -915,15 +906,14 @@ class UserController extends AbstractController
 
         // récupérer l'id du projet actif
         $currentProject = $user->getCurrentActiveProject();
-        if($currentProject->getId() != 21) {
+        if ($currentProject->getId() != 21) {
             $em = $this->doctrine->getManager();
             $upa = $em->getRepository(UserProjectAssociation::class)
-                ->findOneBy(array("user" => $user, "project" => $currentProject));
-
+                ->findOneBy(['user' => $user, 'project' => $currentProject]);
 
             // mettre tout à 29 (désactivation)
             $eupas = $em->getRepository(EntityUserProjectAssociation::class)
-                ->findBy(array("userProjectAssociation" => $upa));
+                ->findBy(['userProjectAssociation' => $upa]);
 
             foreach ($eupas as $eupa) {
                 $systemTypeUnselected = $em->getRepository(SystemType::class)->find(29);
@@ -936,9 +926,9 @@ class UserController extends AbstractController
 
             // userProjectAssociation with current active project
             $userCurrentActiveProjectAssociation = $em->getRepository(UserProjectAssociation::class)
-                ->findOneBy(array(
-                        'user' => $user->getId(),
-                        'project' => $user->getCurrentActiveProject()->getId())
+                ->findOneBy([
+                    'user' => $user->getId(),
+                    'project' => $user->getCurrentActiveProject()->getId()]
                 );
 
             if ($currentProject->getId() != 21) {
@@ -946,15 +936,15 @@ class UserController extends AbstractController
 
                 $defaultNamespace = $namespaceRepository->findDefaultNamespaceForProject($user->getCurrentActiveProject());
 
-                if(!is_null($defaultNamespace)) {
+                if (!is_null($defaultNamespace)) {
                     $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                        ->findOneBy(array(
-                                'namespace' => $defaultNamespace->getId(),
-                                'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId()
-                            )
+                        ->findOneBy([
+                            'namespace' => $defaultNamespace->getId(),
+                            'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId(),
+                        ]
                         );
 
-                    if(is_null($eupa)){
+                    if (is_null($eupa)) {
                         $eupa = new EntityUserProjectAssociation();
                         $eupa->setNamespace($defaultNamespace);
                         $eupa->setCreationTime(new \DateTime('now'));
@@ -973,20 +963,20 @@ class UserController extends AbstractController
                 // On vérifie s'il existe déjà un userProjectAssociation lié avec le projet public
                 foreach ($userCurrentActiveProjectAssociation->getProject()->getNamespaces() as $namespace) {
                     $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                        ->findOneBy(array(
-                                'namespace' => $namespace,
-                                'userProjectAssociation' => $userCurrentActiveProjectAssociation
-                            )
+                        ->findOneBy([
+                            'namespace' => $namespace,
+                            'userProjectAssociation' => $userCurrentActiveProjectAssociation,
+                        ]
                         );
 
-                    if(is_null($eupa)){
+                    if (is_null($eupa)) {
                         $eupa = new EntityUserProjectAssociation();
                         $eupa->setNamespace($namespace);
                         $eupa->setCreationTime(new \DateTime('now'));
                         $eupa->setUserProjectAssociation($userCurrentActiveProjectAssociation);
                     }
 
-                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); //systemType 25 = Selected namespace for user preference
+                    $systemTypeSelected = $em->getRepository(SystemType::class)->find(25); // systemType 25 = Selected namespace for user preference
                     $eupa->setSystemType($systemTypeSelected);
                     $eupa->setModifier($this->getUser());
                     $eupa->setModificationTime(new \DateTime('now'));
@@ -997,15 +987,14 @@ class UserController extends AbstractController
 
             $profilesUserProject = new ArrayCollection($profileRepository->findAllProfilesForUser($user));
 
-
             foreach ($profilesUserProject as $profile) {
                 $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                    ->findOneBy(array(
-                            'profile' => $profile->getId(),
-                            'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId()
-                        )
+                    ->findOneBy([
+                        'profile' => $profile->getId(),
+                        'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId(),
+                    ]
                     );
-                if(is_null($eupa)){
+                if (is_null($eupa)) {
                     $eupa = new EntityUserProjectAssociation();
                     $eupa->setProfile($profile);
                     $eupa->setCreationTime(new \DateTime('now'));
@@ -1021,13 +1010,13 @@ class UserController extends AbstractController
 
                 foreach ($profile->getNamespaces() as $namespace) {
                     $eupa = $em->getRepository(EntityUserProjectAssociation::class)
-                        ->findOneBy(array(
-                                'namespace' => $namespace->getId(),
-                                'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId()
-                            )
+                        ->findOneBy([
+                            'namespace' => $namespace->getId(),
+                            'userProjectAssociation' => $userCurrentActiveProjectAssociation->getId(),
+                        ]
                         );
 
-                    if(is_null($eupa)){
+                    if (is_null($eupa)) {
                         $eupa = new EntityUserProjectAssociation();
                         $eupa->setNamespace($namespace);
                         $eupa->setCreationTime(new \DateTime('now'));
@@ -1047,19 +1036,20 @@ class UserController extends AbstractController
         // rediriger sur la page showAction
         return $this->redirectToRoute('user_show', [
             'id' => $user->getId(),
-            '_fragment' => 'my-current-namespaces'
+            '_fragment' => 'my-current-namespaces',
         ]);
     }
 
-    function captchaVerify($recaptcha){
-        $url = "https://www.google.com/recaptcha/api/siteverify";
+    public function captchaVerify($recaptcha)
+    {
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, array(
-            "secret"=>"6Lf77VMbAAAAAJYqEse3tKhFOZRBjlgmLV1zKA4Z","response"=>$recaptcha));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'secret' => '6Lf77VMbAAAAAJYqEse3tKhFOZRBjlgmLV1zKA4Z', 'response' => $recaptcha]);
         $response = curl_exec($ch);
         curl_close($ch);
         $data = json_decode($response);

@@ -13,7 +13,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class NamespaceUriParameterForm extends AbstractType
 {
-
     private $transformer;
     private $tokenStorage;
     private $em;
@@ -27,13 +26,11 @@ class NamespaceUriParameterForm extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $userID =$this->tokenStorage->getToken()->getUser()->getId();
+        $userID = $this->tokenStorage->getToken()->getUser()->getId();
         $user = $this->em->getRepository(User::class)->find($userID);
 
         if (!$user) {
-            throw new \LogicException(
-                'The NamespaceUriParameterForm cannot be used without an authenticated user!'
-            );
+            throw new \LogicException('The NamespaceUriParameterForm cannot be used without an authenticated user!');
         }
 
         /*
@@ -42,21 +39,21 @@ class NamespaceUriParameterForm extends AbstractType
          * 2: camelCase
          * 3: No parameter
          */
-        $choices = array('Entity identifier' => 0, 'Entity identifier + label' => 1, 'camelCase' => 2, 'No parameter' => 3);
+        $choices = ['Entity identifier' => 0, 'Entity identifier + label' => 1, 'camelCase' => 2, 'No parameter' => 3];
         $builder
-            ->add('uriParameter', ChoiceType::class, array(
+            ->add('uriParameter', ChoiceType::class, [
                 'choices' => $choices,
                 'label' => false,
-                'data' => $options['default_choice']
-            ));
+                'data' => $options['default_choice'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => OntoNamespace::class,
-            "allow_extra_fields" => true,
-            'default_choice' => 0
+            'allow_extra_fields' => true,
+            'default_choice' => 0,
         ]);
     }
 }

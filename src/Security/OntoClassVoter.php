@@ -1,28 +1,28 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Djamel
  * Date: 16/04/2018
- * Time: 22:43
+ * Time: 22:43.
  */
 
 namespace App\Security;
 
 use App\Entity\OntoClass;
 use App\Entity\User;
-use LogicException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class OntoClassVoter extends Voter
 {
-    const EDIT = 'edit';
-    const EDITMANAGER = 'edit_manager';
+    public const EDIT = 'edit';
+    public const EDITMANAGER = 'edit_manager';
 
     protected function supports($attribute, $subject): bool
     {
         // if the attribute isn't one we support, return false
-        if (!in_array($attribute, array(self::EDIT))) {
+        if (!in_array($attribute, [self::EDIT])) {
             return false;
         }
 
@@ -53,49 +53,46 @@ class OntoClassVoter extends Voter
                 return $this->canEditManager($class, $user);
         }
 
-        throw new LogicException('This code should not be reached!');
+        throw new \LogicException('This code should not be reached!');
     }
 
     /**
-     * @param OntoClass $class
-     * @param User $user
      * @return bool TRUE if $user and $class have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEdit(OntoClass $class, User $user)
     {
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // On ne peut éditer une classe que si elle dispose d'une seule version
-            if(!$class->getClassVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($class->getClassVersions()) > 1) {
+            if (!$class->getClassVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($class->getClassVersions()) > 1) {
                 return false;
             }
 
-            if($userProjectAssociation->getProject() === $class->getClassVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 3){
+            if ($userProjectAssociation->getProject() === $class->getClassVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 3) {
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * @param OntoClass $class
-     * @param User $user
      * @return bool TRUE if $user is the administrator or a manager of $class project and $user and $class have matching namespace (thanks to the $userProjectAssociation)
      */
     private function canEditManager(OntoClass $class, User $user)
     {
-        foreach($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
+        foreach ($user->getUserProjectAssociations()->getIterator() as $i => $userProjectAssociation) {
             // On ne peut éditer une classe que si elle dispose d'une seule version
-            if(!$class->getClassVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($class->getClassVersions()) > 1) {
+            if (!$class->getClassVersionForDisplay()->getNamespaceForVersion()->getIsOngoing() || count($class->getClassVersions()) > 1) {
                 return false;
             }
 
-            if($userProjectAssociation->getProject() === $class->getClassVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
-                && $userProjectAssociation->getPermission() <= 2){
+            if ($userProjectAssociation->getProject() === $class->getClassVersionForDisplay()->getNamespaceForVersion()->getProjectForTopLevelNamespace()
+                && $userProjectAssociation->getPermission() <= 2) {
                 return true;
             }
         }
+
         return false;
     }
-
 }
