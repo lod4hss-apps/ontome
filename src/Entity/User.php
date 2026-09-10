@@ -345,9 +345,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getCurrentOngoingNamespace()
     {
-        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(function (OntoNamespace $namespace) {
-            return $namespace->getIsOngoing();
-        });
+        $namespaces = $this->getCurrentActiveProject()->getManagedNamespaces()->filter(fn(OntoNamespace $namespace) => $namespace->getIsOngoing());
 
         if ($namespaces->first()) {
             return $namespaces->first();
@@ -379,9 +377,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __toString()
     {
         $s = $this->getFullName();
-        if (is_null($s)) {
-            $s = 'Anonymous';
-        }
+        $s ??= 'Anonymous';
 
         return (string) $s;
     }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\Set\ValueObject\LevelSetList;
 use Rector\Symfony\Set\SymfonySetList;
 
 // return RectorConfig::configure()
@@ -17,6 +18,6 @@ use Rector\Symfony\Set\SymfonySetList;
 
 return RectorConfig::configure()
     ->withSets([
-        SymfonySetList::SYMFONY_CODE_QUALITY,
+        LevelSetList::UP_TO_PHP_84,
     ])
     ->withSymfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml');

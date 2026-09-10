@@ -673,9 +673,7 @@ class OntoNamespace
      */
     public function getAllReferencedNamespaces(?ArrayCollection $allReferencedNamespaces = null)
     {
-        if (is_null($allReferencedNamespaces)) {
-            $allReferencedNamespaces = new ArrayCollection();
-        }
+        $allReferencedNamespaces ??= new ArrayCollection();
         if ($this->getDirectReferencedNamespaces()->isEmpty()) {
             return new ArrayCollection();
         }

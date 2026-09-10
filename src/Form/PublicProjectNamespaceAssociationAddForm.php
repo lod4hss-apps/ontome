@@ -42,9 +42,7 @@ class PublicProjectNamespaceAssociationAddForm extends AbstractType
                 [
                     'class' => OntoNamespace::class,
                     'label' => 'Namespace',
-                    'query_builder' => function (NamespaceRepository $repo) {
-                        return $repo->findAvailableNamespacesForPublicProjectAssociation();
-                    },
+                    'query_builder' => fn(NamespaceRepository $repo) => $repo->findAvailableNamespacesForPublicProjectAssociation(),
                 ]
             )
             ->add('creator', HiddenType::class)

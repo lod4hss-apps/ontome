@@ -559,14 +559,10 @@ class Property
     {
         $pvCollection = $this->getPropertyVersions();
         if (!is_null($namespace)) {
-            $pvCollection = $this->getPropertyVersions()->filter(function (PropertyVersion $propertyVersion) use ($namespace) {
-                return $propertyVersion->getNamespaceForVersion() === $namespace;
-            });
+            $pvCollection = $this->getPropertyVersions()->filter(fn(PropertyVersion $propertyVersion) => $propertyVersion->getNamespaceForVersion() === $namespace);
         } else {
             if ($pvCollection->count() > 1) {
-                $pvCollection = $this->getPropertyVersions()->filter(function (PropertyVersion $propertyVersion) {
-                    return $propertyVersion->getNamespaceForVersion()->getIsOngoing();
-                });
+                $pvCollection = $this->getPropertyVersions()->filter(fn(PropertyVersion $propertyVersion) => $propertyVersion->getNamespaceForVersion()->getIsOngoing());
             }
         }
 
@@ -578,13 +574,9 @@ class Property
         // Avec le filtre IsOngoing ci dessus, si un NS root n'en possède pas, cvCollection est maintenant vide, il faut donc le réinitialiser
         $pvCollection = $this->getPropertyVersions();
         // filtrer que les NS qui ont bien published_at rempli
-        $pvCollection = $pvCollection->filter(function (PropertyVersion $propertyVersion) {
-            return !is_null($propertyVersion->getNamespaceForVersion()->getPublishedAt());
-        });
+        $pvCollection = $pvCollection->filter(fn(PropertyVersion $propertyVersion) => !is_null($propertyVersion->getNamespaceForVersion()->getPublishedAt()));
         $iterator = $pvCollection->getIterator();
-        $iterator->uasort(function ($a, $b) {
-            return ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1;
-        });
+        $iterator->uasort(fn($a, $b) => ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1);
         $collection = new ArrayCollection(iterator_to_array($iterator));
 
         return $collection->first();
@@ -595,14 +587,12 @@ class Property
      */
     public function getHierarchicalTreeProperties($namespace, ?ArrayCollection $tree = null, $depth = 1)
     {
-        if (is_null($tree)) {
-            $tree = new ArrayCollection();
-        }
-        if ($this->getParentPropertyAssociations()->filter(function ($v) use ($namespace) {return $v->getNamespaceForVersion() == $namespace; })->isEmpty()) {
+        $tree ??= new ArrayCollection();
+        if ($this->getParentPropertyAssociations()->filter(fn($v) => $v->getNamespaceForVersion() == $namespace)->isEmpty()) {
             return $tree;
         }
 
-        $parentPropertyAssociations = $this->getParentPropertyAssociations()->filter(function ($v) use ($namespace) {return $v->getNamespaceForVersion() == $namespace; });
+        $parentPropertyAssociations = $this->getParentPropertyAssociations()->filter(fn($v) => $v->getNamespaceForVersion() == $namespace);
 
         // Trier d'abord CRM les autres puis par identifier
         $iterator = $parentPropertyAssociations->getIterator();
@@ -646,14 +636,14 @@ class Property
                 $this->setIdentifierInURI($this->getIdentifierInNamespace());
                 break;
             case 1: // Entity identifier + label
-                $label = $this->getLabels()->filter(function ($v) {return $v->getIsStandardLabelForLanguage(); })->first();
+                $label = $this->getLabels()->filter(fn($v) => $v->getIsStandardLabelForLanguage())->first();
                 $label = StringUtils::deleteAccents($label);
                 $label = str_replace(['"', "'"], '', $label);
                 $newIdentifierInUri = str_replace(' ', '_', $this->getIdentifierInNamespace().' '.$label);
                 $this->setIdentifierInURI($newIdentifierInUri);
                 break;
             case 2: // Camel Case
-                $label = $this->getLabels()->filter(function ($v) {return $v->getIsStandardLabelForLanguage(); })->first();
+                $label = $this->getLabels()->filter(fn($v) => $v->getIsStandardLabelForLanguage())->first();
                 $label = StringUtils::deleteAccents($label);
                 $label = str_replace(['"', "'"], '', $label);
                 $words = preg_split('/[^a-zA-Z0-9]+/', $label);

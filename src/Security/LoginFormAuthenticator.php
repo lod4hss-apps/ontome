@@ -118,9 +118,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             }
         }
 
-        if (is_null($targetPath)) {
-            $targetPath = $this->router->generate('home');
-        }
+        $targetPath ??= $this->router->generate('home');
 
         return new RedirectResponse($targetPath);
     }

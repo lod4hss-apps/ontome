@@ -69,9 +69,7 @@ class ProjectController extends AbstractController
         $projects = $projectRepository->findAll();
 
         if ($displayDomains) {
-            $projects = array_filter($projects, function ($project) {
-                return in_array('domain', (array) $project->getProjectTypes(), true);
-            });
+            $projects = array_filter($projects, fn($project) => in_array('domain', (array) $project->getProjectTypes(), true));
         }
 
         return $this->render('project/list.html.twig', [
@@ -303,9 +301,7 @@ class ProjectController extends AbstractController
 
                 // Vérifier si le namespace root existe sinon on arrête tout.
                 $namespaceRoot = $project->getManagedNamespaces()
-                    ->filter(function ($v) {
-                        return $v->getIsTopLevelNamespace();
-                    })->first();
+                    ->filter(fn($v) => $v->getIsTopLevelNamespace())->first();
                 if (!$namespaceRoot) {
                     $this->addFlash('error', 'You must create a root namespace for this project before importing namespaces.');
 
@@ -681,9 +677,7 @@ class ProjectController extends AbstractController
                         if (is_null($defaultStandardLabelFr) || $classLabel->getLanguageIsoCode() == 'fr') {
                             $defaultStandardLabelFr = (string) $nodeXmlLabel;
                         }
-                        if (is_null($defaultStandardLabel)) {
-                            $defaultStandardLabel = (string) $nodeXmlLabel;
-                        }
+                        $defaultStandardLabel ??= (string) $nodeXmlLabel;
                     }
                     if (!is_null($defaultStandardLabelEn)) {
                         $newClassVersion->setStandardLabel($defaultStandardLabelEn);
@@ -758,9 +752,7 @@ class ProjectController extends AbstractController
                             $domain = $tempClass;
 
                             // Ajouter ClassVersion dans $domain, nous en avons besoin pour le preview
-                            $domain->addClassVersion($domainNamespace->getClassVersions()->filter(function ($cv) use ($domain) {
-                                return $cv->getClass() === $domain;
-                            })->first());
+                            $domain->addClassVersion($domainNamespace->getClassVersions()->filter(fn($cv) => $cv->getClass() === $domain)->first());
                             break;
                         }
                     }
@@ -793,9 +785,7 @@ class ProjectController extends AbstractController
                             $range = $tempClass;
 
                             // Ajouter ClassVersion dans $range, nous en avons besoin pour le preview
-                            $range->addClassVersion($rangeNamespace->getClassVersions()->filter(function ($cv) use ($range) {
-                                return $cv->getClass() === $range;
-                            })->first());
+                            $range->addClassVersion($rangeNamespace->getClassVersions()->filter(fn($cv) => $cv->getClass() === $range)->first());
                             break;
                         }
                     }
@@ -1491,9 +1481,7 @@ class ProjectController extends AbstractController
         }
 
         $rootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
-        $rootNamespaces = array_filter($rootNamespaces, function ($v) {
-            return $v->getId() != 5;
-        });
+        $rootNamespaces = array_filter($rootNamespaces, fn($v) => $v->getId() != 5);
 
         return $this->render('project/edit.html.twig', [
             'project' => $project,
@@ -1987,7 +1975,7 @@ class ProjectController extends AbstractController
                 // Vérifier si l'URL est valide et est dans la liste blanche des domaines autorisées
                 $allowedDomains = ['lod4hss.cloud', 'wisski.cloud'];
                 $parsedUrl = parse_url($pathbuilderUrl);
-                $host = isset($parsedUrl['host']) ? $parsedUrl['host'] : '';
+                $host = $parsedUrl['host'] ?? '';
 
                 $isAllowed = false;
                 foreach ($allowedDomains as $domain) {

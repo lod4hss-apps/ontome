@@ -149,11 +149,7 @@ class NamespaceRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
 
-        if (isset($defaultNamespace[0])) {
-            return $defaultNamespace[0];
-        }
-
-        return null;
+        return $defaultNamespace[0] ?? null;
     }
 
     /**
@@ -202,7 +198,7 @@ class NamespaceRepository extends ServiceEntityRepository
         }
         // Autre cas
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-        $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
+        $rsm->addRootEntityFromClassMetadata(\App\Entity\OntoNamespace::class, 'ns');
 
         $sql = '  SELECT ns.* FROM che.namespace ns
                       LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
@@ -256,7 +252,7 @@ class NamespaceRepository extends ServiceEntityRepository
         }
         // Autre cas
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-        $rsm->addRootEntityFromClassMetadata('App\Entity\OntoNamespace', 'ns');
+        $rsm->addRootEntityFromClassMetadata(\App\Entity\OntoNamespace::class, 'ns');
 
         $sql = '  SELECT ns.* FROM che.namespace ns
                       LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 

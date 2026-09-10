@@ -79,14 +79,14 @@ class LabelController extends AbstractController
             $redirectToRouteFragment = 'identification';
             $t = 'profile';
             $allEntities = $profileRepository->findAll();
-            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getProfile(); });
+            $allEntities = array_filter($allEntities, fn($v) => $v != $label->getProfile());
         } elseif (!is_null($label->getProject())) {
             $object = $label->getProject();
             $redirectToRoute = 'project_edit';
             $redirectToRouteFragment = 'identification';
             $t = 'project';
             $allEntities = $projectRepository->findAll();
-            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getProject(); });
+            $allEntities = array_filter($allEntities, fn($v) => $v != $label->getProject());
         } elseif (!is_null($label->getNamespace())) {
             $object = $label->getNamespace();
             if ($label->getNamespace()->getIsOngoing()) {
@@ -96,7 +96,7 @@ class LabelController extends AbstractController
             $redirectToRouteFragment = 'identification';
             $t = 'namespace';
             $allEntities = $namespaceRepository->findAll();
-            $allEntities = array_filter($allEntities, function ($v) use ($label) { return $v != $label->getNamespace(); });
+            $allEntities = array_filter($allEntities, fn($v) => $v != $label->getNamespace());
         } else {
             throw $this->createNotFoundException('The related object for the label n° '.$label->getId().' does not exist. Please contact an administrator.');
         }

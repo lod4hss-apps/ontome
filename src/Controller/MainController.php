@@ -47,7 +47,7 @@ class MainController extends AbstractController
      *
      * @param string $query
      */
-    public function searchAction($query = '', TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository): Response
+    public function searchAction($query = '', ?TextPropertyRepository $textPropertyRepository = null, ?LabelRepository $labelRepository = null): Response
     {
         // Sécurité anti-injection SQL...
         $query_sanitized = filter_var($query, FILTER_SANITIZE_STRING);

@@ -400,9 +400,7 @@ class Profile
      */
     public function getAllReferencedNamespaces(?ArrayCollection $allReferencedNamespaces = null)
     {
-        if (is_null($allReferencedNamespaces)) {
-            $allReferencedNamespaces = new ArrayCollection();
-        }
+        $allReferencedNamespaces ??= new ArrayCollection();
         if ($this->getNamespaces()->isEmpty()) {
             return new ArrayCollection();
         }

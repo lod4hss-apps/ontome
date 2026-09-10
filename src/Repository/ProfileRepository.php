@@ -27,7 +27,7 @@ class ProfileRepository extends ServiceEntityRepository
     public function findAllActiveProfilesForUser(User $user)
     {
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-        $rsm->addRootEntityFromClassMetadata('App\Entity\Profile', 'prf');
+        $rsm->addRootEntityFromClassMetadata(Profile::class, 'prf');
 
         $sql = '
           SELECT prf.* FROM che.profile prf
@@ -49,7 +49,7 @@ class ProfileRepository extends ServiceEntityRepository
     public function findAllProfilesForUser(User $user)
     {
         $rsm = new ResultSetMappingBuilder($this->getEntityManager());
-        $rsm->addRootEntityFromClassMetadata('App\Entity\Profile', 'prf');
+        $rsm->addRootEntityFromClassMetadata(Profile::class, 'prf');
 
         $sql = '
           SELECT prf.* FROM che.profile prf

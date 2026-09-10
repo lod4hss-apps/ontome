@@ -57,9 +57,7 @@ class ProfileEditForm extends AbstractType
                     [
                         'class' => Project::class,
                         'label' => 'Project of belonging',
-                        'query_builder' => function (ProjectRepository $repo) use ($user) {
-                            return $repo->findAvailableProjectByAdminId($user);
-                        },
+                        'query_builder' => fn(ProjectRepository $repo) => $repo->findAvailableProjectByAdminId($user),
                     ]
                 );
                 $form->add('isForcedPublication', HiddenType::class);

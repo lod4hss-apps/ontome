@@ -534,14 +534,10 @@ class OntoClass
         $cvCollection = $this->getClassVersions();
 
         if (!is_null($namespace)) {
-            $cvCollection = $this->getClassVersions()->filter(function (OntoClassVersion $classVersion) use ($namespace) {
-                return $classVersion->getNamespaceForVersion() === $namespace;
-            });
+            $cvCollection = $this->getClassVersions()->filter(fn(OntoClassVersion $classVersion) => $classVersion->getNamespaceForVersion() === $namespace);
         } else {
             if ($cvCollection->count() > 1) {
-                $cvCollection = $this->getClassVersions()->filter(function (OntoClassVersion $classVersion) {
-                    return $classVersion->getNamespaceForVersion()->getIsOngoing();
-                });
+                $cvCollection = $this->getClassVersions()->filter(fn(OntoClassVersion $classVersion) => $classVersion->getNamespaceForVersion()->getIsOngoing());
             }
         }
 
@@ -553,13 +549,9 @@ class OntoClass
         // Avec le filtre IsOngoing ci dessus, si un NS root n'en possède pas, cvCollection est maintenant vide, il faut donc le réinitialiser
         $cvCollection = $this->getClassVersions();
         // filtrer que les NS qui ont bien published_at rempli
-        $cvCollection = $cvCollection->filter(function (OntoClassVersion $classVersion) {
-            return !is_null($classVersion->getNamespaceForVersion()->getPublishedAt());
-        });
+        $cvCollection = $cvCollection->filter(fn(OntoClassVersion $classVersion) => !is_null($classVersion->getNamespaceForVersion()->getPublishedAt()));
         $iterator = $cvCollection->getIterator();
-        $iterator->uasort(function ($a, $b) {
-            return ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1;
-        });
+        $iterator->uasort(fn($a, $b) => ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1);
         $collection = new ArrayCollection(iterator_to_array($iterator));
 
         return $collection->first();
@@ -570,16 +562,14 @@ class OntoClass
      */
     public function getHierarchicalTreeClasses($namespace, ?ArrayCollection $tree = null, $depth = 1)
     {
-        if (is_null($tree)) {
-            $tree = new ArrayCollection();
-        }
+        $tree ??= new ArrayCollection();
         $nsRef = $namespace->getAllReferencedNamespaces();
         $nsRef->add($namespace);
-        if ($this->getParentClassAssociations()->filter(function ($v) use ($namespace) {return $namespace == $v->getNamespaceForVersion(); })->isEmpty()) {
+        if ($this->getParentClassAssociations()->filter(fn($v) => $namespace == $v->getNamespaceForVersion())->isEmpty()) {
             return $tree;
         }
 
-        foreach ($this->getParentClassAssociations()->filter(function ($v) use ($namespace) {return $namespace == $v->getNamespaceForVersion(); }) as $parentClassAssociation) {
+        foreach ($this->getParentClassAssociations()->filter(fn($v) => $namespace == $v->getNamespaceForVersion()) as $parentClassAssociation) {
             $tree->add([$parentClassAssociation->getChildClass(), $depth, $parentClassAssociation->getChildClassNamespace()]);
             $tree = $parentClassAssociation->getChildClass()->getHierarchicalTreeClasses($namespace, $tree, $depth + 1);
         }
