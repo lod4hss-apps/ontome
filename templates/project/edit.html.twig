@@ -51,7 +51,7 @@
                             {% endfor %}
 
                             {% if description is not null %}
-                                {{ description|striptags }}
+                                {{ description|raw }}
                             {% else %}
                                 <p><i>No description yet.</i></p>
                             {% endif %}
