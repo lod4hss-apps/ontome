@@ -84,16 +84,14 @@ class UserController extends AbstractController
             $em->flush();
 
             // send Welcome e-mail
+            $htmlBody = $this->renderView('email/registration.html.twig', ['user' => $user]);
+            
             $email = (new Email())
                 ->subject('[OntoME] Welcome to OntoME!')
-                ->from('ontome@dataforhistory.org')
+                ->from('no-reply@ontome.net')
                 ->to($user->getEmail())
-                ->html(
-                    $this->renderView(
-                        'email/registration.html.twig',
-                        ['user' => $user]
-                    )
-                );
+                ->html($htmlBody)
+                ->text(strip_tags($htmlBody));
 
             $mailer->send($email);
 
@@ -142,16 +140,15 @@ class UserController extends AbstractController
                 $em->persist($user);
                 $em->flush();
 
+                $htmlBody = $this->renderView('email/requestPassword.html.twig', ['user' => $user]);
+
                 $email = (new Email())
                     ->subject('[OntoME] Reset password request')
-                    ->from('ontome@dataforhistory.org')
+                    ->from('no-reply@ontome.net')
                     ->to($user->getEmail())
-                    ->html(
-                        $this->renderView(
-                            'email/requestPassword.html.twig',
-                            ['user' => $user]
-                        )
-                    );
+                    ->html($htmlBody)
+                    ->text(strip_tags($htmlBody));
+
                 $mailer->send($email);
                 $this->addFlash('success', 'An e-mail has been sent.');
 
@@ -222,16 +219,14 @@ class UserController extends AbstractController
     {
         $user = $this->getUser();
         // send Welcome e-mail
+        $htmlBody = $this->renderView('email/registration.html.twig', ['user' => $user]); 
+
         $email = (new Email())
             ->subject('[OntoME] Welcome to OntoME!')
-            ->from('ontome@dataforhistory.org')
+            ->from('no-reply@ontome.net')
             ->to($user->getEmail())
-            ->html(
-                $this->renderView(
-                    'email/registration.html.twig',
-                    ['user' => $user]
-                )
-            );
+            ->html($htmlBody)
+            ->text(strip_tags($htmlBody));
 
         $mailer->send($email);
 
