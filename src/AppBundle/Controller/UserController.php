@@ -75,29 +75,14 @@ class UserController extends Controller
 
             $em->persist($user);
             $em->flush();
+            
+            $htmlBody = $this->renderView('email/registration.html.twig', array('user' => $user));
 
-            //send Welcome e-mail
-            $message = (new \Swift_Message('[OntoME] Welcome to OntoME!'))
-                ->setFrom('ontome@dataforhistory.org')
-                ->setTo($user->getEmail())
-                ->setBody(
-                    $this->renderView(
-                        'email/registration.html.twig',
-                        array('user' => $user)
-                    ),
-                    'text/html'
-                )
-                /*
-                 * If you also want to include a plaintext version of the message
-                ->addPart(
-                    $this->renderView(
-                        'Emails/registration.txt.twig',
-                        array('name' => $name)
-                    ),
-                    'text/plain'
-                )
-                */
-            ;
+	        $message = (new \Swift_Message('[OntoME] Welcome to OntoME!'))
+    		->setFrom('no-reply@ontome.net', 'OntoME')
+    		->setTo($user->getEmail())
+    		->setBody($htmlBody, 'text/html')
+    		->addPart(strip_tags($htmlBody), 'text/plain'); // <-- Ajoute la version texte automatiquement
 
             $mailer->send($message);
 
@@ -150,16 +135,16 @@ class UserController extends Controller
                 $em->persist($user);
                 $em->flush();
 
+                $htmlBody = $this->renderView(
+                    'email/requestPassword.html.twig',
+                    array('user' => $user)
+                );
+
                 $message = (new \Swift_Message('[OntoME] Reset password request'))
-                    ->setFrom('ontome@dataforhistory.org')
+                    ->setFrom('no-reply@ontome.net', 'OntoME')
                     ->setTo($user->getEmail())
-                    ->setBody(
-                        $this->renderView(
-                            'email/requestPassword.html.twig',
-                            array('user' => $user)
-                        ),
-                        'text/html'
-                    )
+                    ->setBody($htmlBody, 'text/html')
+                    ->addPart(strip_tags($htmlBody), 'text/plain'); // <-- Ajoute la version texte automatiquement
                 ;
                 $mailer->send($message);
                 $this->addFlash('success', 'An e-mail has been sent.');
@@ -237,26 +222,17 @@ class UserController extends Controller
     {
         $user = $this->getUser();
         //send Welcome e-mail
+
+        $htmlBody = $this->renderView(
+            'email/registration.html.twig',
+            array('user' => $user)
+        );
+
         $message = (new \Swift_Message('[OntoME] Welcome to OntoME!'))
-            ->setFrom('ontome@dataforhistory.org')
+            ->setFrom('no-reply@ontome.net', 'OntoME')
             ->setTo($user->getEmail())
-            ->setBody(
-                $this->renderView(
-                    'email/registration.html.twig',
-                    array('user' => $user)
-                ),
-                'text/html'
-            )
-            /*
-             * If you also want to include a plaintext version of the message
-            ->addPart(
-                $this->renderView(
-                    'Emails/registration.txt.twig',
-                    array('name' => $name)
-                ),
-                'text/plain'
-            )
-            */
+            ->setBody($htmlBody, 'text/html')
+            ->addPart(strip_tags($htmlBody), 'text/plain')
         ;
 
         $mailer->send($message);
