@@ -14,6 +14,7 @@ use App\Entity\OntoClass;
 use App\Entity\OntoClassVersion;
 use App\Entity\OntoNamespace;
 use App\Entity\Project;
+use App\Entity\Property;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Form\ClassEditIdentifierForm;
