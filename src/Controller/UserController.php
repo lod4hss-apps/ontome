@@ -85,7 +85,7 @@ class UserController extends AbstractController
 
             // send Welcome e-mail
             $htmlBody = $this->renderView('email/registration.html.twig', ['user' => $user]);
-            
+
             $email = (new Email())
                 ->subject('[OntoME] Welcome to OntoME!')
                 ->from('no-reply@ontome.net')
@@ -219,7 +219,7 @@ class UserController extends AbstractController
     {
         $user = $this->getUser();
         // send Welcome e-mail
-        $htmlBody = $this->renderView('email/registration.html.twig', ['user' => $user]); 
+        $htmlBody = $this->renderView('email/registration.html.twig', ['user' => $user]);
 
         $email = (new Email())
             ->subject('[OntoME] Welcome to OntoME!')
