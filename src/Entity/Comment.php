@@ -14,135 +14,80 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Comment.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="comment")
  */
+#[ORM\Table(schema: 'che', name: 'comment')]
+#[ORM\Entity]
 class Comment
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_comment")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_comment')]
     private $id;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $comment;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Comment", mappedBy="commentedComment")
-     */
+    #[ORM\OneToMany(targetEntity: \Comment::class, mappedBy: 'commentedComment')]
     private $answers;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Comment", inversedBy="commentedComment")
-     *
-     * @ORM\JoinColumn(name="fk_commented_comment", referencedColumnName="pk_comment")
-     */
+    #[ORM\JoinColumn(name: 'fk_commented_comment', referencedColumnName: 'pk_comment')]
+    #[ORM\ManyToOne(targetEntity: \Comment::class, inversedBy: 'commentedComment')]
     private $commentedComment;
 
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $viewedBy = [];
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="commentVersions")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'commentVersions')]
     private $namespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'comments')]
     private $class;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'comments')]
     private $property;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="ClassAssociation", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_is_subclass_of", referencedColumnName="pk_is_subclass_of")
-     */
+    #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
+    #[ORM\ManyToOne(targetEntity: \ClassAssociation::class, inversedBy: 'comments')]
     private $classAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="PropertyAssociation", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_is_subproperty_of", referencedColumnName="pk_is_subproperty_of")
-     */
+    #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
+    #[ORM\ManyToOne(targetEntity: \PropertyAssociation::class, inversedBy: 'comments')]
     private $propertyAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="EntityAssociation", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_entity_association", referencedColumnName="pk_entity_association")
-     */
+    #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
+    #[ORM\ManyToOne(targetEntity: \EntityAssociation::class, inversedBy: 'comments')]
     private $entityAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\TextProperty", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_text_property", referencedColumnName="pk_text_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_text_property', referencedColumnName: 'pk_text_property')]
+    #[ORM\ManyToOne(targetEntity: TextProperty::class, inversedBy: 'comments')]
     private $textProperty;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Label", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label")
-     */
+    #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
+    #[ORM\ManyToOne(targetEntity: Label::class, inversedBy: 'comments')]
     private $label;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OntoNamespace", inversedBy="comments")
-     *
-     * @ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'comments')]
     private $namespace;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

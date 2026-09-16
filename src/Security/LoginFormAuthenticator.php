@@ -29,14 +29,17 @@ use Symfony\Component\Security\Http\Util\TargetPathTrait;
 class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
     use TargetPathTrait;
+
     /**
      * @var FormFactoryInterface
      */
     private $formFactory;
+
     /**
      * @var EntityManager
      */
     private $em;
+
     /**
      * @var RouterInterface
      */

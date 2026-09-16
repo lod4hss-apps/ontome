@@ -17,22 +17,15 @@ use Symfony\Component\Validator\GroupSequenceProviderInterface;
 
 /**
  * Class TextProperty.
- *
- * @ORM\Entity(repositoryClass="App\Repository\TextPropertyRepository")
- *
- * @ORM\Table(schema="che", name="text_property")
- *
- * @Assert\GroupSequenceProvider()
  */
+#[ORM\Table(schema: 'che', name: 'text_property')]
+#[ORM\Entity(repositoryClass: \App\Repository\TextPropertyRepository::class)]
+#[Assert\GroupSequenceProvider]
 class TextProperty implements GroupSequenceProviderInterface
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_text_property")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_text_property')]
     private $id;
 
     /**
@@ -41,173 +34,100 @@ class TextProperty implements GroupSequenceProviderInterface
      *      min = 40,
      *      message = "Your description must be at least 40 characters long",
      * )
-     *
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $textProperty;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $languageIsoCode;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'textProperties')]
     private $namespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="ProfileAssociation", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_associates_profile", referencedColumnName="pk_associates_profile", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_associates_profile', referencedColumnName: 'pk_associates_profile', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \ProfileAssociation::class, inversedBy: 'textProperties')]
     private $profileAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")
-     *
-     * @Assert\Type(type="App\Entity\OntoClass")
-     *
-     * @Assert\Valid()
-     */
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\OntoClass')]
+    #[Assert\Valid]
     private $class;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'textProperties')]
     private $property;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'textProperties')]
     private $namespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Project", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")
-     */
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
+    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'textProperties')]
     private $project;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_text_property_type", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'fk_text_property_type', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $systemType;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="validation_status", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Profile", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")
-     *
-     * @Assert\Type(type="App\Entity\Profile")
-     *
-     * @Assert\Valid()
-     */
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\Profile')]
+    #[Assert\Valid]
     private $profile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="ClassAssociation", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_is_subclass_of", referencedColumnName="pk_is_subclass_of")
-     *
-     * @Assert\Type(type="App\Entity\ClassAssociation")
-     *
-     * @Assert\Valid()
-     */
+    #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
+    #[ORM\ManyToOne(targetEntity: \ClassAssociation::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\ClassAssociation')]
+    #[Assert\Valid]
     private $classAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="EntityAssociation", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_entity_association", referencedColumnName="pk_entity_association")
-     *
-     * @Assert\Type(type="App\Entity\EntityAssociation")
-     *
-     * @Assert\Valid()
-     */
+    #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
+    #[ORM\ManyToOne(targetEntity: \EntityAssociation::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\EntityAssociation')]
+    #[Assert\Valid]
     private $entityAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="PropertyAssociation", inversedBy="textProperties")
-     *
-     * @ORM\JoinColumn(name="fk_is_subproperty_of", referencedColumnName="pk_is_subproperty_of")
-     *
-     * @Assert\Type(type="App\Entity\PropertyAssociation")
-     *
-     * @Assert\Valid()
-     */
+    #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
+    #[ORM\ManyToOne(targetEntity: \PropertyAssociation::class, inversedBy: 'textProperties')]
+    #[Assert\Type(type: 'App\Entity\PropertyAssociation')]
+    #[Assert\Valid]
     private $propertyAssociation;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="textProperty")
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'textProperty')]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_entity_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $entityNamespaceForVersion;
 
     public function __construct()

@@ -38,9 +38,7 @@ class PropertyAssociationController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/parent-property-association/new/{childProperty}", name="new_parent_property_form", requirements={"childProperty"="^[0-9]+$"})
-     */
+    #[Route(path: '/parent-property-association/new/{childProperty}', name: 'new_parent_property_form', requirements: ['childProperty' => '^[0-9]+$'])]
     public function newParentAction(Request $request, Property $childProperty, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
     {
         $propertyAssociation = new PropertyAssociation();
@@ -144,10 +142,9 @@ class PropertyAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/property-association/{id}", name="property_association_show", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/property-association/{id}', name: 'property_association_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(PropertyAssociation $propertyAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing property association: '.$propertyAssociation->getObjectIdentification());
@@ -158,9 +155,7 @@ class PropertyAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/property-association/{id}/edit", name="property_association_edit", requirements={"id"="^[0-9]+$"})
-     */
+    #[Route(path: '/property-association/{id}/edit', name: 'property_association_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Request $request, PropertyAssociation $propertyAssociation, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
     {
         // Récupérer la version de la propriété demandée
@@ -245,10 +240,9 @@ class PropertyAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/property-association/{id}/delete", name="property_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/property-association/{id}/delete', name: 'property_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
     public function deleteAction(PropertyAssociation $propertyAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $propertyAssociation);
@@ -267,12 +261,11 @@ class PropertyAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/property-association/{id}/edit-validity/{validationStatus}", name="property_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful validation
      */
+    #[Route(path: '/property-association/{id}/edit-validity/{validationStatus}', name: 'property_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(PropertyAssociation $propertyAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.

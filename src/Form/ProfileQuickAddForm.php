@@ -14,7 +14,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class ProfileQuickAddForm extends AbstractType
 {
     private $transformer;
+
     private $tokenStorage;
+
     private $em;
 
     public function __construct(UserToNumberTransformer $transformer, TokenStorageInterface $tokenStorage, EntityManagerInterface $em)

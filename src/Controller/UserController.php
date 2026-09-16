@@ -42,6 +42,7 @@ use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 class UserController extends AbstractController
 {
     private ManagerRegistry $doctrine;
+
     private $recaptchaSecret;
 
     /**
@@ -60,10 +61,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/register", name="user_register")
-     *
      * @return Response a response instance
      */
+    #[Route(path: '/register', name: 'user_register')]
     public function registerAction(Request $request, LoginFormAuthenticator $authenticator, MailerInterface $mailer, UserAuthenticatorInterface $userAuthenticator, ProjectRepository $projectRepository)
     {
         $form = $this->createForm(UserRegistrationForm::class);
@@ -117,10 +117,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/request-password", name="user_request_password")
-     *
      * @return Response a response instance
      */
+    #[Route(path: '/request-password', name: 'user_request_password')]
     public function requestPasswordAction(Request $request, MailerInterface $mailer, UserRepository $userRepository)
     {
         $tmpUser = new User();
@@ -163,9 +162,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/reset-password/{token}", name="user_reset_password")
-     */
+    #[Route(path: '/reset-password/{token}', name: 'user_reset_password')]
     public function resetPasswordAction(Request $request, $token, UserRepository $userRepository)
     {
         $em = $this->doctrine->getManager();
@@ -212,9 +209,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/user/test-mail")
-     */
+    #[Route(path: '/user/test-mail')]
     public function testMailAction(MailerInterface $mailer): Response
     {
         $user = $this->getUser();
@@ -233,9 +228,7 @@ class UserController extends AbstractController
         return $this->render('main/homepage.html.twig');
     }
 
-    /**
-     * @Route("/user")
-     */
+    #[Route(path: '/user')]
     public function listAction(AuthorizationCheckerInterface $authorizationChecker, UserRepository $userRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
@@ -250,10 +243,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{id}", name="user_show", requirements={"id"="^[0-9]+$"})
-     *
      * @param $user User
      */
+    #[Route(path: '/user/{id}', name: 'user_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
@@ -362,12 +354,11 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/editCurrentActiveProject/{project}", name="user_edit_current_active_project", requirements={"project"="^[0-9]+$"})
-     *
      * @param $project Project
      *
      * @return Response
      */
+    #[Route(path: '/user/editCurrentActiveProject/{project}', name: 'user_edit_current_active_project', requirements: ['project' => '^[0-9]+$'])]
     public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
     {
         $user = $this->getUser();
@@ -468,9 +459,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/user/{id}/edit", name="user_edit", requirements={"id"="^[0-9]+$"})
-     */
+    #[Route(path: '/user/{id}/edit', name: 'user_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(User $user, Request $request, AuthorizationCheckerInterface $authorizationChecker)
     {
         if ($user != $this->getUser() && !$authorizationChecker->isGranted('ROLE_ADMIN')) {
@@ -509,8 +498,6 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{userProjectAssociation}/namespace/{namespace}/add", name="user_project_namespace_association", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     *
      * @param OntoNamespace          $namespace              The namespace to be associated with an userProjectAssociation
      * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be associated with a namespace
      *
@@ -518,6 +505,7 @@ class UserController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/user/{userProjectAssociation}/namespace/{namespace}/add', name: 'user_project_namespace_association', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
     public function newUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
@@ -589,13 +577,12 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{userProjectAssociation}/namespace/{namespace}/delete", name="user_project_namespace_disassociation", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     *
      * @param OntoNamespace          $namespace              The namespace to be disassociated from a userProjectAssociation
      * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be disassociated from a namespace
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/user/{userProjectAssociation}/namespace/{namespace}/delete', name: 'user_project_namespace_disassociation', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
     public function deleteUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
@@ -651,8 +638,6 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{userProjectAssociation}/profile/{profile}/add", name="user_project_profile_association", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "profile"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     *
      * @param Profile                $profile                The profile to be associated with an userProjectAssociation
      * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be associated with a profile
      *
@@ -660,6 +645,7 @@ class UserController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/user/{userProjectAssociation}/profile/{profile}/add', name: 'user_project_profile_association', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'profile' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
     public function newUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
@@ -776,13 +762,12 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{userProjectAssociation}/profile/{profile}/delete", name="user_project_profile_disassociation", requirements={"userProjectAssociation"="^([0-9]+)|(userProjectID){1}$", "profile"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     *
      * @param Profile                $profile                The profile to be disassociated from a userProjectAssociation
      * @param UserProjectAssociation $userProjectAssociation The userProjectAssociation to be disassociated from a profile
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/user/{userProjectAssociation}/profile/{profile}/delete', name: 'user_project_profile_disassociation', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'profile' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
     public function deleteUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
@@ -889,12 +874,11 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/user/{id}/reinitialization", name="user_reinitialization", requirements={"id"="^[0-9]+$"})
-     *
      * @param $user User
      *
      * @return Response
      */
+    #[Route(path: '/user/{id}/reinitialization', name: 'user_reinitialization', requirements: ['id' => '^[0-9]+$'])]
     public function reinitialization(User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
     {
         $this->denyAccessUnlessGranted('edit', $user);

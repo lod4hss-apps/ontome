@@ -53,10 +53,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{id}", name="profile_show", requirements={"id"="^([0-9]+)|(profileID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profile/{id}', name: 'profile_show', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
     public function showAction(Profile $profile, ClassRepository $classRepository): Response
     {
         $em = $this->doctrine->getManager();
@@ -76,9 +75,7 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/profile")
-     */
+    #[Route(path: '/profile')]
     public function listAction(ProfileRepository $profileRepository): Response
     {
         $profiles = $profileRepository->findAll();
@@ -88,9 +85,7 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("profile/new/{project}", name="profile_new", requirements={"project"="^[0-9]+$"})
-     */
+    #[Route(path: 'profile/new/{project}', name: 'profile_new', requirements: ['project' => '^[0-9]+$'])]
     public function newAction(Request $request, Project $project, ProfileRepository $profileRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -211,10 +206,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{id}/edit", name="profile_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profile/{id}/edit', name: 'profile_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Profile $profile, Request $request, ClassRepository $classRepository, NamespaceRepository $namespaceRepository)
     {
         if (is_null($profile)) {
@@ -289,10 +283,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{id}/publish", name="profile_publish", requirements={"id"="^([0-9]+)|(profileID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profile/{id}/publish', name: 'profile_publish', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
     public function publishAction(Profile $profile): RedirectResponse
     {
         if (!$profile->isPublishable()) {
@@ -373,10 +366,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{id}/deprecate", name="profile_deprecate", requirements={"id"="^([0-9]+)|(profileID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profile/{id}/deprecate', name: 'profile_deprecate', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
     public function deprecateAction(Profile $profile): RedirectResponse
     {
         if (is_null($profile)) {
@@ -402,8 +394,6 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{namespace}/add", name="profile_namespace_association", requirements={"profile"="^([0-9]+)|(profileID)$", "namespace"="^([0-9]+)|(selectedValue)$"}, methods={"POST"})
-     *
      * @param OntoNamespace $namespace The namespace to be associated with a profile
      * @param Profile       $profile   The profile to be associated with a namespace
      *
@@ -411,6 +401,7 @@ class ProfileController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/profile/{profile}/namespace/{namespace}/add', name: 'profile_namespace_association', requirements: ['profile' => '^([0-9]+)|(profileID)$', 'namespace' => '^([0-9]+)|(selectedValue)$'], methods: ['POST'])]
     public function newProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -492,13 +483,12 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{namespace}/delete", name="profile_namespace_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     *
      * @param OntoNamespace $namespace The namespace to be disassociated from a profile
      * @param Profile       $profile   The profile to be disassociated from a namespace
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/profile/{profile}/namespace/{namespace}/delete', name: 'profile_namespace_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
     public function deleteProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -512,12 +502,11 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/namespace/{associatedNamespace}/newNamespace/{newAssociatedNamespace}/change", name="namespace_associated_profile_change", requirements={"profile"="^([0-9]+)|(profileID){1}$", "associatedNamespace"="^([0-9]+)|(oldNsId){1}$", "newAssociatedNamespace"="^([0-9]+)|(newNsId){1}$"}, methods={"GET"})
-     *
      * @param Profile       $profile                The profile to be changed from an associated namespace
      * @param OntoNamespace $associatedNamespace    The associated namespace to be changed from a new associated namespace
      * @param OntoNamespace $newAssociatedNamespace The new associated namespace to be changed from an associated namespace
      */
+    #[Route(path: '/profile/{profile}/namespace/{associatedNamespace}/newNamespace/{newAssociatedNamespace}/change', name: 'namespace_associated_profile_change', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'associatedNamespace' => '^([0-9]+)|(oldNsId){1}$', 'newAssociatedNamespace' => '^([0-9]+)|(newNsId){1}$'], methods: ['GET'])]
     public function changeReferencedNamespaceAssociationAction(Profile $profile, OntoNamespace $associatedNamespace, OntoNamespace $newAssociatedNamespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -611,10 +600,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/associated-classes/profile/{profile}/json", name="associated_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
+    #[Route(path: '/associated-classes/profile/{profile}/json', name: 'associated_classes_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$'], methods: ['GET'])]
     public function getAssociatedClassesByProfile(Profile $profile, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -633,8 +621,6 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/class/{class}/add", name="profile_class_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
-     *
      * @param OntoClass $class   The class to be associated with a profile
      * @param Profile   $profile The profile to be associated with a namespace
      *
@@ -642,6 +628,7 @@ class ProfileController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/profile/{profile}/class/{class}/add', name: 'profile_class_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['POST'])]
     public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, ClassVersionRepository $classVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -704,8 +691,6 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/add", name="profile_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"POST"})
-     *
      * @param Property $property The property to be associated with a profile
      * @param Profile  $profile  The profile to be associated with a namespace
      *
@@ -713,6 +698,7 @@ class ProfileController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/profile/{profile}/property/{property}/add', name: 'profile_property_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['POST'])]
     public function newProfilePropertyAssociationAction(Property $property, Profile $profile, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -775,8 +761,6 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/add", name="profile_inherited_property_association", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"}, methods={"POST"})
-     *
      * @param Property  $property The property to be associated with a profile
      * @param Profile   $profile  The profile to be associated with a property
      * @param OntoClass $domain   The domain to be associated
@@ -786,6 +770,7 @@ class ProfileController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/profile/{profile}/property/{property}/domain/{domain}/range/{range}/add', name: 'profile_inherited_property_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$'], methods: ['POST'])]
     public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -856,13 +841,12 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/class/{class}/delete", name="profile_class_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
-     *
      * @param OntoClass $class   The class to be disassociated from a profile
      * @param Profile   $profile The profile to be disassociated from a namespace
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/profile/{profile}/class/{class}/delete', name: 'profile_class_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['POST'])]
     public function deleteProfileClassAssociationAction(OntoClass $class, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -904,13 +888,12 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/delete", name="profile_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"POST"})
-     *
      * @param Property $property The property to be disassociated from a profile
      * @param Profile  $profile  The profile to be disassociated from a namespace
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/profile/{profile}/property/{property}/delete', name: 'profile_property_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['POST'])]
     public function deleteProfilePropertyAssociationAction(Property $property, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -930,8 +913,6 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/property/{property}/domain/{domain}/range/{range}/delete", name="profile_inherited_property_disassociation", requirements={"profile"="^([0-9]+)|(profileID){1}$", "property"="^([0-9]+)|(propertyID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$"}, methods={"POST"})
-     *
      * @param Property  $property The property to be disassociated from a profile
      * @param Profile   $profile  The profile to be disassociated from a namespace
      * @param OntoClass $domain   The domain to be disassociated
@@ -939,6 +920,7 @@ class ProfileController extends AbstractController
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/profile/{profile}/property/{property}/domain/{domain}/range/{range}/delete', name: 'profile_inherited_property_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$'], methods: ['POST'])]
     public function deleteProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -962,10 +944,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/class/{class}/properties/edit", name="profile_properties_edit", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profile/{profile}/class/{class}/properties/edit', name: 'profile_properties_edit', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'])]
     public function editProfilePropertiesAction(OntoClass $class, Profile $profile): Response
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
@@ -978,10 +959,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-outgoing-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of outgoing Properties selectable by Class and Profile
      */
+    #[Route(path: '/selectable-outgoing-properties/profile/{profile}/class/{class}/json', name: 'selectable_outgoing_properties_class_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['GET'])]
     public function getSelectableOutgoingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -998,10 +978,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-incoming-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of incoming Properties selectable by Class and Profile
      */
+    #[Route(path: '/selectable-incoming-properties/profile/{profile}/class/{class}/json', name: 'selectable_incoming_properties_class_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['GET'])]
     public function getSelectableIncomingPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -1018,10 +997,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-outgoing-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_outgoing_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of outgoing inherited Properties selectable by Class and Profile
      */
+    #[Route(path: '/selectable-outgoing-inherited-properties/profile/{profile}/class/{class}/json', name: 'selectable_outgoing_inherited_properties_class_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['GET'])]
     public function getSelectableOutgoingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -1038,10 +1016,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-incoming-inherited-properties/profile/{profile}/class/{class}/json", name="selectable_incoming_inherited_properties_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of incoming inherited Properties selectable by Class and Profile
      */
+    #[Route(path: '/selectable-incoming-inherited-properties/profile/{profile}/class/{class}/json', name: 'selectable_incoming_inherited_properties_class_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['GET'])]
     public function getSelectableIncomingInheritedPropertiesByClassAndProfile(OntoClass $class, Profile $profile, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -1058,10 +1035,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-descendent-class/profile/{profile}/class/{class}/property/{property}/json", name="selectable_descendent_class_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
+    #[Route(path: '/selectable-descendent-class/profile/{profile}/class/{class}/property/{property}/json', name: 'selectable_descendent_class_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['GET'])]
     public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -1082,10 +1058,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-descendent-domain/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_domain_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
+    #[Route(path: '/selectable-descendent-domain/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json', name: 'selectable_descendent_domain_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['GET'])]
     public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -1107,10 +1082,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-descendent-range/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json", name="selectable_descendent_range_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "domain"="^([0-9]+)|(domainID){1}$", "range"="^([0-9]+)|(rangeID){1}$", "property"="^([0-9]+)|(propertyID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
+    #[Route(path: '/selectable-descendent-range/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json', name: 'selectable_descendent_range_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['GET'])]
     public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -1131,10 +1105,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{id}/json", name="profile_json", schemes={"https"}, requirements={"id"="^[0-9]+$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted graph representation of Profile
      */
+    #[Route(path: '/profile/{id}/json', name: 'profile_json', schemes: ['https'], requirements: ['id' => '^[0-9]+$'], methods: ['GET'])]
     public function getGraphJson(Profile $profile, ProfileRepository $profileRepository): JsonResponse
     {
         $profile = $profileRepository->findProfileGraph($profile);
@@ -1143,10 +1116,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profileAssociationPropertyDeselectable/profile/{profile}/class/{class}/", name="profile_association_property_deselectable", schemes={"https"}, requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"GET"})
-     *
      * @return ProfileAssociation[] l'ensemble des profileAssociations dont la propriété dont l'un uniquement de domain ou de la range est égale à $class et l'autre inferred
      */
+    #[Route(path: '/profileAssociationPropertyDeselectable/profile/{profile}/class/{class}/', name: 'profile_association_property_deselectable', schemes: ['https'], requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['GET'])]
     public function getProfileAssociationsWithPropertiesDeselectablesIfProfileAssociationWithThisClassWillDeselect(Profile $profile, OntoClass $class)
     {
         $profileAssociationsDeselectables = [];
@@ -1195,9 +1167,7 @@ class ProfileController extends AbstractController
         return $profileAssociationsDeselectables;
     }
 
-    /**
-     * @Route("/alert-class-if-deselect/profile/{profile}/class/{class}/json", name="alert_class_if_deselect_json", requirements={"profile"="^([0-9]+)|(profileID){1}$", "class"="^([0-9]+)|(classID){1}$"}, methods={"POST"})
-     */
+    #[Route(path: '/alert-class-if-deselect/profile/{profile}/class/{class}/json', name: 'alert_class_if_deselect_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['POST'])]
     public function getAlertClassIfDeselect(Profile $profile, OntoClass $class): JsonResponse
     {
         $message = 'not-alert';
@@ -1209,10 +1179,9 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profile/{profile}/recreate", name="profile_recreate", requirements={"profile"="^[0-9]+$|(profileID){1}$"}, methods={"GET"})
-     *
      * @param Profile $profile The published profile to be recreate
      */
+    #[Route(path: '/profile/{profile}/recreate', name: 'profile_recreate', requirements: ['profile' => '^[0-9]+$|(profileID){1}$'], methods: ['GET'])]
     public function recreateProfileFromPublishedProfileAction(Profile $profile): RedirectResponse
     {
         $this->denyAccessUnlessGranted('duplicate', $profile);
@@ -1263,20 +1232,18 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/profileAssociation/{id}/custom", name="show_customisation", requirements={"id"="^([0-9]+)|(profileAssociationID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profileAssociation/{id}/custom', name: 'show_customisation', requirements: ['id' => '^([0-9]+)|(profileAssociationID){1}$'])]
     public function showCustomisationAction(ProfileAssociation $profileAssociation): Response
     {
         return $this->render('profileAssociation/show_customisation.html.twig', ['profileAssociation' => $profileAssociation]);
     }
 
     /**
-     * @Route("/profileAssociation/{id}/custom/edit", name="edit_customisation", requirements={"id"="^([0-9]+)|(profileAssociationID){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/profileAssociation/{id}/custom/edit', name: 'edit_customisation', requirements: ['id' => '^([0-9]+)|(profileAssociationID){1}$'])]
     public function editCustomisationAction(ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory, TextPropertyRepository $textPropertyRepository)
     {
         $em = $this->doctrine->getManager();
@@ -1446,9 +1413,7 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/profile/{id}/makevisible", name="profile_make_visible", requirements={"id"="^([0-9]+)|(profileID){1}$"})
-     */
+    #[Route(path: '/profile/{id}/makevisible', name: 'profile_make_visible', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
     public function makeVisibleAction(Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile);

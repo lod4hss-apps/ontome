@@ -13,74 +13,45 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class EntityUserProjectAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="associates_entity_to_user_project")
  */
+#[ORM\Table(schema: 'che', name: 'associates_entity_to_user_project')]
+#[ORM\Entity]
 class EntityUserProjectAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_associates_entity_to_user_project")
-     *
-     * @ORM\SequenceGenerator(sequenceName="che.associates_eup_pk_associates_eup_seq", allocationSize=1, initialValue=1)
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_associates_entity_to_user_project')]
+    #[ORM\SequenceGenerator(sequenceName: 'che.associates_eup_pk_associates_eup_seq', allocationSize: 1, initialValue: 1)]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="UserProjectAssociation")
-     *
-     * @ORM\JoinColumn(name="fk_associate_user_to_project", referencedColumnName="pk_associate_user_to_project", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_associate_user_to_project', referencedColumnName: 'pk_associate_user_to_project', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \UserProjectAssociation::class)]
     private $userProjectAssociation;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $namespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Profile")
-     *
-     * @ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \Profile::class)]
     private $profile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="fk_system_type", referencedColumnName="pk_system_type", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
     private $systemType;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

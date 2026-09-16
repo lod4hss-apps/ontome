@@ -26,10 +26,9 @@ class ContainerController extends AbstractController
     }
 
     /**
-     * @Route("/container/{id}/fetch", name="container", methods={"GET"})
-     *
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
+    #[Route(path: '/container/{id}/fetch', name: 'container', methods: ['GET'])]
     public function getContainer(Request $request, ContainerRepository $containerRepository): JsonResponse
     {
         $id = $request->get('id');
@@ -83,10 +82,9 @@ class ContainerController extends AbstractController
     }
 
     /**
-     * @Route("/container/{id}/root-namespaces-not-associated/fetch", name="container_root_namespaces_not_associated", methods={"GET"})
-     *
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
+    #[Route(path: '/container/{id}/root-namespaces-not-associated/fetch', name: 'container_root_namespaces_not_associated', methods: ['GET'])]
     public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $id = $request->get('id');
@@ -133,10 +131,9 @@ class ContainerController extends AbstractController
     }
 
     /**
-     * @Route("/container/create", name="container_create", methods={"POST"})
-     *
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
+    #[Route(path: '/container/create', name: 'container_create', methods: ['POST'])]
     public function createContainer(Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $projectId = $request->get('project_id');
@@ -172,10 +169,9 @@ class ContainerController extends AbstractController
     }
 
     /**
-     * @Route("/association_container_namespace/create", name="association_container_namespace_create", methods={"POST"})
-     *
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
+    #[Route(path: '/association_container_namespace/create', name: 'association_container_namespace_create', methods: ['POST'])]
     public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $containerId = $request->get('container_id');
@@ -206,10 +202,9 @@ class ContainerController extends AbstractController
     }
 
     /**
-     * @Route("/association_container_namespace/{containerId}/{namespaceId}/delete", name="association_container_namespace_delete", methods={"DELETE"})
-     *
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
+    #[Route(path: '/association_container_namespace/{containerId}/{namespaceId}/delete', name: 'association_container_namespace_delete', methods: ['DELETE'])]
     public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi

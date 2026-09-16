@@ -56,9 +56,7 @@ class NamespaceController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/namespace")
-     */
+    #[Route(path: '/namespace')]
     public function listAction(NamespaceRepository $namespaceRepository): Response
     {
         $namespaces = $namespaceRepository->findAll();
@@ -69,9 +67,7 @@ class NamespaceController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/namespace/new/{project}", name="namespace_new", requirements={"project"="^[0-9]+$"})
-     */
+    #[Route(path: '/namespace/new/{project}', name: 'namespace_new', requirements: ['project' => '^[0-9]+$'])]
     public function newNamespaceAction(Project $project, Request $request, TokenStorageInterface $tokenStorage, NamespaceRepository $namespaceRepository)
     {
         $tokenInterface = $tokenStorage->getToken();
@@ -256,10 +252,9 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{id}", name="namespace_show", requirements={"id"="^([0-9]+)|(selectedValue|refId|namespaceId){1}$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/namespace/{id}', name: 'namespace_show', requirements: ['id' => '^([0-9]+)|(selectedValue|refId|namespaceId){1}$'])]
     public function showAction(OntoNamespace $namespace, TextPropertyRepository $textPropertyRepository): Response
     {
         $textProperties = $textPropertyRepository->findBy(['namespaceForVersion' => $namespace->getId()]);
@@ -271,12 +266,11 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{id}/edit", name="namespace_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @param string $namespace
      *
      * @return Response the rendered template
      */
+    #[Route(path: '/namespace/{id}/edit', name: 'namespace_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, TextPropertyRepository $textPropertyRepository)
     {
         if (is_null($namespace)) {
@@ -402,10 +396,9 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{id}/publish", name="namespace_publication", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/namespace/{id}/publish', name: 'namespace_publication', requirements: ['id' => '^[0-9]+$'])]
     public function publishAction(OntoNamespace $namespace, Request $request): Response
     {
         if (is_null($namespace)) {
@@ -420,10 +413,9 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{id}/validate-publication", name="namespace_validate_publication", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/namespace/{id}/validate-publication', name: 'namespace_validate_publication', requirements: ['id' => '^[0-9]+$'])]
     public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository): RedirectResponse
     {
         if (is_null($namespace)) {
@@ -464,9 +456,7 @@ class NamespaceController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/namespace/{id}/toggle-automatic-identifier-management", name="namespace_toggle_identifier_management", requirements={"id"="^[0-9]+$"}, methods={"POST"})
-     */
+    #[Route(path: '/namespace/{id}/toggle-automatic-identifier-management', name: 'namespace_toggle_identifier_management', requirements: ['id' => '^[0-9]+$'], methods: ['POST'])]
     public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request): JsonResponse
     {
         if (is_null($namespace)) {
@@ -500,12 +490,11 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/root-namespace/{id}/json", name="namespaces_by_root_id_list_json", requirements={"id"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
-     *
      * @param OntoNamespace $rootNamespace The root namespace
      *
      * @return JsonResponse a Json formatted namespaces list
      */
+    #[Route(path: '/namespace/root-namespace/{id}/json', name: 'namespaces_by_root_id_list_json', requirements: ['id' => '^([0-9]+)|(selectedValue){1}$'], methods: ['GET'])]
     public function getNamespacesByRootNamespaceID(OntoNamespace $rootNamespace): JsonResponse
     {
         $namespaces = [];
@@ -552,12 +541,11 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/profile/{id}/json", name="root_namespaces_list_for_profile_json", requirements={"id"="^[0-9]+$"}, methods={"GET"})
-     *
      * @param Profile $profile The profile to be associated with a namespace
      *
      * @return JsonResponse a Json formatted namespaces list
      */
+    #[Route(path: '/namespace/profile/{id}/json', name: 'root_namespaces_list_for_profile_json', requirements: ['id' => '^[0-9]+$'], methods: ['GET'])]
     public function getRootNamespacesForAssociationWithProfile(Profile $profile, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $rootNamespaces = $namespaceRepository->findAllNonAssociatedToProfileByProfileId($profile);
@@ -580,10 +568,9 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{id}/json", name="namespace_json", schemes={"https"}, requirements={"id"="^[0-9]+"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted graph representation of Namespaces
      */
+    #[Route(path: '/namespace/{id}/json', name: 'namespace_json', schemes: ['https'], requirements: ['id' => '^[0-9]+'], methods: ['GET'])]
     public function getGraphJson(OntoNamespace $namespace, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $namespaces = $namespaceRepository->findNamespacesGraph($namespace);
@@ -592,8 +579,6 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add", name="namespace_referenced_namespace_association", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     *
      * @param OntoNamespace $namespace           The namespace to be associated with a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be associated with a namespace
      *
@@ -601,6 +586,7 @@ class NamespaceController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add', name: 'namespace_referenced_namespace_association', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
     public function newReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
@@ -642,11 +628,10 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete", name="namespace_referenced_namespace_disassociation", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"DELETE"})
-     *
      * @param OntoNamespace $namespace           The namespace to be disassociated from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be disassociated from a namespace
      */
+    #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete', name: 'namespace_referenced_namespace_disassociation', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
     public function deleteReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
@@ -670,11 +655,10 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change", name="namespace_referenced_namespace_change", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$", "referencedNamespace"="^([0-9]+)|(oldRefNsId){1}$", "newReferencedNamespace"="^([0-9]+)|(newRefNsId){1}$"}, methods={"GET"})
-     *
      * @param OntoNamespace $namespace           The namespace to be changed from a referenced namespace
      * @param OntoNamespace $referencedNamespace The referenced namespace to be changed from a namespace
      */
+    #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change', name: 'namespace_referenced_namespace_change', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(oldRefNsId){1}$', 'newReferencedNamespace' => '^([0-9]+)|(newRefNsId){1}$'], methods: ['GET'])]
     public function changeReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
@@ -785,13 +769,12 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{namespace}/choices", name="get_choices_namespaces", requirements={"namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
-     *
      * @param OntoNamespace $namespace The namespace
      *
      * @return JsonResponse
      *                      Cette fonction retrouve les espaces de noms soeurs
      */
+    #[Route(path: '/namespace/{namespace}/choices', name: 'get_choices_namespaces', requirements: ['namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['GET'])]
     public function getChoicesNamespaceAssociation(OntoNamespace $namespace): JsonResponse
     {
         $rootNamespace = $namespace->getTopLevelNamespace();
@@ -807,10 +790,9 @@ class NamespaceController extends AbstractController
     }
 
     /**
-     * @Route("/namespace/{namespace}/document", name="namespace_document", requirements={"namespace"="^([0-9]+)|(namespaceID){1}$"}, methods={"GET"})
-     *
      * @param OntoNamespace $namespace The namespace
      */
+    #[Route(path: '/namespace/{namespace}/document', name: 'namespace_document', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$'], methods: ['GET'])]
     public function getNamespaceOdt(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): BinaryFileResponse
     {
         function specialCharactersConversion($string, $forHTML = false)
@@ -1717,9 +1699,7 @@ class NamespaceController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/namespace/{id}/makevisible", name="namespace_make_visible", requirements={"id"="^([0-9]+)|(namespaceID){1}$"})
-     */
+    #[Route(path: '/namespace/{id}/makevisible', name: 'namespace_make_visible', requirements: ['id' => '^([0-9]+)|(namespaceID){1}$'])]
     public function makeVisibleAction(OntoNamespace $namespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);

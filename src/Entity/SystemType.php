@@ -15,79 +15,48 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class SystemType.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="system_type")
  */
+#[ORM\Table(schema: 'che', name: 'system_type')]
+#[ORM\Entity]
 class SystemType
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_system_type")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_system_type')]
     private $id;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $usedInTable;
 
-    /**
-     *  @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $standardLabel;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="systemType")
-     */
+    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'systemType')]
     private $textProperties;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\ProfileAssociation", mappedBy="systemType")
-     */
+    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'systemType')]
     private $profileAssociations;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function __construct()

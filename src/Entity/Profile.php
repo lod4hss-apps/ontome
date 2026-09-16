@@ -15,187 +15,111 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Profile.
- *
- * @ORM\Entity(repositoryClass="App\Repository\ProfileRepository")
- *
- * @ORM\Table(schema="che", name="profile")
  */
+#[ORM\Table(schema: 'che', name: 'profile')]
+#[ORM\Entity(repositoryClass: \App\Repository\ProfileRepository::class)]
 class Profile
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_profile")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_profile')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private $standardLabel;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $startDate;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $endDate;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $wasClosedAt;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isOngoing;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isVisible;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isRootProfile;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $version;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isForcedPublication;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Profile",  inversedBy="childProfiles")
-     *
-     * @ORM\JoinColumn(name="fk_root_profile", referencedColumnName="pk_profile", nullable=true)
-     */
+    #[ORM\JoinColumn(name: 'fk_root_profile', referencedColumnName: 'pk_profile', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \Profile::class, inversedBy: 'childProfiles')]
     private $rootProfile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="ownedProfiles")
-     *
-     * @ORM\JoinColumn(name="fk_project_of_belonging", referencedColumnName="pk_project")
-     */
+    #[ORM\JoinColumn(name: 'fk_project_of_belonging', referencedColumnName: 'pk_project')]
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'ownedProfiles')]
     private $projectOfBelonging;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Profile", mappedBy="rootProfile")
-     */
+    #[ORM\OneToMany(targetEntity: \Profile::class, mappedBy: 'rootProfile')]
     private $childProfiles;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="profile", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'profile', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\Label", mappedBy="profile", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'profile', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $labels;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\OntoClass",  inversedBy="profiles", fetch="EXTRA_LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_profile",
-     *      joinColumns={@ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_profile')]
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\InverseJoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToMany(targetEntity: OntoClass::class, inversedBy: 'profiles', fetch: 'EXTRA_LAZY')]
     private $classes;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Property", mappedBy="profiles")
-     *
-     * @ORM\OrderBy({"identifierInNamespace" = "ASC"})
-     */
+    #[ORM\ManyToMany(targetEntity: \Property::class, mappedBy: 'profiles')]
+    #[ORM\OrderBy(['identifierInNamespace' => 'ASC'])]
     private $properties;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Project", mappedBy="profiles")
-     */
+    #[ORM\ManyToMany(targetEntity: \Project::class, mappedBy: 'profiles')]
     private $projects;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="OntoNamespace",  inversedBy="profiles", fetch="EXTRA_LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_referenced_namespace",
-     *      joinColumns={@ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_referenced_namespace", referencedColumnName="pk_namespace")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_referenced_namespace')]
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\InverseJoinColumn(name: 'fk_referenced_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'profiles', fetch: 'EXTRA_LAZY')]
     private $namespaces;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\ProfileAssociation", mappedBy="profile", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"systemType" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'profile', cascade: ['persist'])]
+    #[ORM\OrderBy(['systemType' => 'ASC'])]
     private $profileAssociations;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="EntityUserProjectAssociation", mappedBy="profile")
-     *
-     * @ORM\OrderBy({"id" = "ASC"})
-     */
+    #[ORM\ManyToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'profile')]
+    #[ORM\OrderBy(['id' => 'ASC'])]
     private $profileUserProjectAssociation;
 
     public function __construct()

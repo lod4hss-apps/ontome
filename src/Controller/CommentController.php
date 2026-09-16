@@ -12,8 +12,6 @@ namespace App\Controller;
 use App\Entity\ClassAssociation;
 use App\Entity\Comment;
 use App\Entity\EntityAssociation;
-use App\Entity\Label;
-use App\Entity\Property;
 use App\Entity\PropertyAssociation;
 use App\Form\CommentForm;
 use App\Repository\ClassRepository;
@@ -40,16 +38,12 @@ class CommentController extends AbstractController
     }
 
     /**
-     * @Route("/comment/{objectType}/{objectId}/json",
-     *     name="comment_show_json",
-     *     requirements={"objectType"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"},
-     *     methods={"GET"})
-     *
      * @param string $objectType The object type name
      * @param int    $objectId   The id of the object
      *
      * @return JsonResponse a Json formatted comments list
      */
+    #[Route(path: '/comment/{objectType}/{objectId}/json', name: 'comment_show_json', requirements: ['objectType' => '^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['GET'])]
     public function getCommentsAction(string $objectType, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();
@@ -118,9 +112,7 @@ class CommentController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/comment/new/{object}/{objectId}", name="comment_new", requirements={"object"="^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$","objectId"="^[0-9]+$"}, methods={"POST"})
-     */
+    #[Route(path: '/comment/new/{object}/{objectId}', name: 'comment_new', requirements: ['object' => '^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['POST'])]
     public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
     {
         $em = $this->doctrine->getManager();
@@ -269,9 +261,7 @@ class CommentController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/comment/{object}/{objectId}/viewedby/json", name="viewed_by_json", requirements={"object"="^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$","objectId"="^([0-9]+)|(selectedValue){1}$"}, methods={"GET"})
-     */
+    #[Route(path: '/comment/{object}/{objectId}/viewedby/json', name: 'viewed_by_json', requirements: ['object' => '^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$', 'objectId' => '^([0-9]+)|(selectedValue){1}$'], methods: ['GET'])]
     public function viewedByJson(string $object, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $em = $this->doctrine->getManager();

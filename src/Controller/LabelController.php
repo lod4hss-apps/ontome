@@ -42,10 +42,9 @@ class LabelController extends AbstractController
     }
 
     /**
-     * @Route("/label/{id}", name="label_show", requirements={"id"="^[0-9]+"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/label/{id}', name: 'label_show', requirements: ['id' => '^[0-9]+'])]
     public function showAction(Label $label, LoggerInterface $logger): Response
     {
         $logger->info('Showing text property: '.$label->getId());
@@ -55,9 +54,7 @@ class LabelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/label/{id}/edit", name="label_edit", requirements={"id"="^[0-9]+"})
-     */
+    #[Route(path: '/label/{id}/edit', name: 'label_edit', requirements: ['id' => '^[0-9]+'])]
     public function editAction(Label $label, Request $request, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
         $canInverseLabel = false;
@@ -165,9 +162,7 @@ class LabelController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/label/new/{object}/{objectId}", name="label_new", requirements={"object"="^(class|property|profile|project|namespace){1}$","objectId"="^[0-9]+"})
-     */
+    #[Route(path: '/label/new/{object}/{objectId}', name: 'label_new', requirements: ['object' => '^(class|property|profile|project|namespace){1}$', 'objectId' => '^[0-9]+'])]
     public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
         $em = $this->doctrine->getManager();
@@ -281,10 +276,9 @@ class LabelController extends AbstractController
     }
 
     /**
-     * @Route("/label/{id}/edit-validity/{validationStatus}", name="label_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/label/{id}/edit-validity/{validationStatus}', name: 'label_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(Label $label, SystemType $validationStatus): RedirectResponse
     {
         $object = null;

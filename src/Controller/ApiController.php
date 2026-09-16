@@ -26,10 +26,9 @@ use Symfony\Component\Routing\Annotation\Route;
 class ApiController extends AbstractController
 {
     /**
-     * @Route("/api/classes/project/{project}/json", name="classes_project_json", requirements={"project"="^[0-9]+$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
+    #[Route(path: '/api/classes/project/{project}/json', name: 'classes_project_json', requirements: ['project' => '^[0-9]+$'], methods: ['GET'])]
     public function getClassesByProject(Project $project, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -47,10 +46,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/properties/project/{project}/json", name="properties_project_json", requirements={"project"="^[0-9]+$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Property related to a Project
      */
+    #[Route(path: '/api/properties/project/{project}/json', name: 'properties_project_json', requirements: ['project' => '^[0-9]+$'], methods: ['GET'])]
     public function getPropertiesByProject(Project $project, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -67,10 +65,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/profiles.json", name="api_profiles_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of profiles
      */
+    #[Route(path: '/api/profiles.json', name: 'api_profiles_json', methods: ['GET'])]
     public function getProfiles(Request $request, ProfileRepository $profileRepository): JsonResponse
     {
         try {
@@ -98,10 +95,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/classes-profile.json", name="api_classes_profile_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of classes with profile
      */
+    #[Route(path: '/api/classes-profile.json', name: 'api_classes_profile_json', methods: ['GET'])]
     public function getClassesWithProfile(Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -129,10 +125,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/properties-profile.json", name="api_properties_profile_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of properties with profile
      */
+    #[Route(path: '/api/properties-profile.json', name: 'api_properties_profile_json', methods: ['GET'])]
     public function getPropertiesWithProfile(Request $request, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
@@ -159,9 +154,7 @@ class ApiController extends AbstractController
         return new JsonResponse($properties[0]['json'], Response::HTTP_OK, [], true);
     }
 
-    /**
-     * @Route("/api/shacl-profile.ttl", name="api_shacl_profile", methods={"GET"})
-     */
+    #[Route(path: '/api/shacl-profile.ttl', name: 'api_shacl_profile', methods: ['GET'])]
     public function getShaclWithProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
@@ -182,9 +175,7 @@ class ApiController extends AbstractController
         return new Response($output, Response::HTTP_OK, ['Content-Type' => 'text/turtle']);
     }
 
-    /**
-     * @Route("/api/namespaces-rdf-owl.rdf", name="api_classes_and_properties_by_namespace_xml", methods={"GET"})
-     */
+    #[Route(path: '/api/namespaces-rdf-owl.rdf', name: 'api_classes_and_properties_by_namespace_xml', methods: ['GET'])]
     public function getClassesAndPropertiesByNamespace(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
@@ -206,9 +197,7 @@ class ApiController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/api/owl-wisski.rdf", name="api_owl_wisski_by_namespace", methods={"GET"})
-     */
+    #[Route(path: '/api/owl-wisski.rdf', name: 'api_owl_wisski_by_namespace', methods: ['GET'])]
     public function getOwlWisskiByNamespace(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         // Let's see what environment we're in. If dev, we do not persist files
@@ -272,10 +261,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/project-rdf-owl.rdf", name="api_classes_and_properties_by_project_xml", methods={"GET"})
-     *
      * @return Response XML formatted response of classes and properties related to this project
      */
+    #[Route(path: '/api/project-rdf-owl.rdf', name: 'api_classes_and_properties_by_project_xml', methods: ['GET'])]
     public function getClassesAndPropertiesByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
@@ -298,10 +286,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/profile-rdf-owl.rdf", name="api_classes_and_properties_by_profile_xml", methods={"GET"})
-     *
      * @return Response XML formatted response of classes and properties related to this profile
      */
+    #[Route(path: '/api/profile-rdf-owl.rdf', name: 'api_classes_and_properties_by_profile_xml', methods: ['GET'])]
     public function getClassesAndPropertiesByProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
@@ -323,9 +310,7 @@ class ApiController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/api/namespaces-rdfs.rdf", name="api_classes_and_properties_by_namespace_xml_rdfs", methods={"GET"})
-     */
+    #[Route(path: '/api/namespaces-rdfs.rdf', name: 'api_classes_and_properties_by_namespace_xml_rdfs', methods: ['GET'])]
     public function getClassesAndPropertiesByNamespaceRdfs(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
@@ -353,10 +338,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/profile-rdfs.rdf", name="api_classes_and_properties_by_profile_xml_rdfs", methods={"GET"})
-     *
      * @return Response XML formatted response of classes and properties related to this profile
      */
+    #[Route(path: '/api/profile-rdfs.rdf', name: 'api_classes_and_properties_by_profile_xml_rdfs', methods: ['GET'])]
     public function getClassesAndPropertiesByProfileRdfs(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
@@ -382,9 +366,7 @@ class ApiController extends AbstractController
         return $response;
     }
 
-    /**
-     * @Route("/api/owl-wisski-project.rdf", name="api_owl_wisski_by_project", methods={"GET"})
-     */
+    #[Route(path: '/api/owl-wisski-project.rdf', name: 'api_owl_wisski_by_project', methods: ['GET'])]
     public function getOwlWisskiByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
@@ -407,10 +389,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/owl-container-wisski.rdf", name="api_owl_wisski_by_container", methods={"GET"})
-     *
      * @return Response a XML formatted response of namespaces related to this container, in OWL format (WissKI)
      */
+    #[Route(path: '/api/owl-container-wisski.rdf', name: 'api_owl_wisski_by_container', methods: ['GET'])]
     public function getOwlWisskiByContainer(Request $request, ContainerRepository $containerRepository): Response
     {
         try {
@@ -444,10 +425,9 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/container{container}.rdf", name="api_container", requirements={"container"="^([0-9]+)|(containerId){1}$"}, methods={"GET"})
-     *
      * @return Response a XML formatted response of namespaces and pathbuilders related to this container
      */
+    #[Route(path: '/api/container{container}.rdf', name: 'api_container', requirements: ['container' => '^([0-9]+)|(containerId){1}$'], methods: ['GET'])]
     public function getApiContainer(Request $request, ContainerRepository $containerRepository): Response
     {
         try {
@@ -472,12 +452,11 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/classes-type-descendants/label/{label}/json", name="classes_type_descendants_json", requirements={"label"="^[a-zA-Z0-9 -]+$"}, methods={"GET"})
-     *
      * @param string $label the class label to find
      *
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
+    #[Route(path: '/api/classes-type-descendants/label/{label}/json', name: 'classes_type_descendants_json', requirements: ['label' => '^[a-zA-Z0-9 -]+$'], methods: ['GET'])]
     public function getE55ChildrenClassesByLabel(string $label, ClassRepository $classRepository): JsonResponse
     {
         try {
@@ -501,13 +480,12 @@ class ApiController extends AbstractController
     }
 
     /**
-     * @Route("/api/get-ontome-uri", name="api_get_ontome_uri", methods={"GET"})
-     *
      * @param Request $request the request containing the officialUri parameter
      *
      * @return JsonResponse a Json formatted response containing the OntoME URI corresponding to the given official URI
      *                      This API endpoint allows clients to retrieve the OntoME URI corresponding to a given official URI of a class or property
      */
+    #[Route(path: '/api/get-ontome-uri', name: 'api_get_ontome_uri', methods: ['GET'])]
     public function getOntoMeUriFromOfficialUri(Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $officialUri = rawurldecode($request->query->get('officialUri'));

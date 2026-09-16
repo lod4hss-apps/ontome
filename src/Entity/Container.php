@@ -15,82 +15,50 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Container.
- *
- * @ORM\Entity(repositoryClass="App\Repository\ContainerRepository")
- *
- * @ORM\Table(schema="che", name="container")
  */
+#[ORM\Table(schema: 'che', name: 'container')]
+#[ORM\Entity(repositoryClass: \App\Repository\ContainerRepository::class)]
 class Container
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_container")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_container')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Project", inversedBy="containers")
-     *
-     * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'containers')]
     private $project;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="OntoNamespace", inversedBy="containers")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_container_namespace",
-     *      joinColumns={@ORM\JoinColumn(name="fk_container", referencedColumnName="pk_container")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_container_namespace')]
+    #[ORM\JoinColumn(name: 'fk_container', referencedColumnName: 'pk_container')]
+    #[ORM\InverseJoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'containers')]
     private $namespaces;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Pathbuilder", mappedBy="container")
-     */
+    #[ORM\OneToMany(targetEntity: \Pathbuilder::class, mappedBy: 'container')]
     private $pathbuilders;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Label", inversedBy="containers")
-     *
-     * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label")
-     */
+    #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
+    #[ORM\ManyToOne(targetEntity: \Label::class, inversedBy: 'containers')]
     private $label;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isOngoing;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function __construct()

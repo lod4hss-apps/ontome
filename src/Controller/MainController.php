@@ -24,29 +24,24 @@ class MainController extends AbstractController
         return $this->render('main/homepage.html.twig');
     }
 
-    /**
-     * @Route("/terms-of-service")
-     */
+    #[Route(path: '/terms-of-service')]
     public function legalNoticeAction(): Response
     {
         return $this->render('main/legalNotice.html.twig');
     }
 
-    /**
-     * @Route("/the-data-for-history-consortium")
-     */
+    #[Route(path: '/the-data-for-history-consortium')]
     public function projectDescriptionAction(): Response
     {
         return $this->render('main/projectDescription.html.twig');
     }
 
     /**
-     * @Route("/search")
-     * @Route("/search/")
-     * @Route("/search/{query}", name="search_query")
-     *
      * @param string $query
      */
+    #[Route(path: '/search')]
+    #[Route(path: '/search/')]
+    #[Route(path: '/search/{query}', name: 'search_query')]
     public function searchAction($query = '', ?TextPropertyRepository $textPropertyRepository = null, ?LabelRepository $labelRepository = null): Response
     {
         // Sécurité anti-injection SQL...
@@ -71,11 +66,10 @@ class MainController extends AbstractController
     }
 
     /**
-     * @Route("/ns/{name}/{identifierInNamespace}")
-     *
      * @param string $name
      * @param string $identifierInNamespace
      */
+    #[Route(path: '/ns/{name}/{identifierInNamespace}')]
     public function redirectUriAction($name, $identifierInNamespace, NamespaceRepository $namespaceRepository): RedirectResponse
     {
         // Sécurité anti-injection SQL...

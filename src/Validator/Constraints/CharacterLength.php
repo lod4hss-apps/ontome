@@ -17,6 +17,8 @@ use Symfony\Component\Validator\Constraint;
 class CharacterLength extends Constraint
 {
     public $groups;
+
     public $min;
+
     public $message;
 }

@@ -17,34 +17,22 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Class OntoClass.
- *
- * @ORM\Entity(repositoryClass="App\Repository\ClassRepository")
- *
- * @ORM\Table(schema="che", name="class")
  */
+#[ORM\Table(schema: 'che', name: 'class')]
+#[ORM\Entity(repositoryClass: \App\Repository\ClassRepository::class)]
 class OntoClass
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_class")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_class')]
     private $id;
 
-    /**
-     * @Assert\Regex(pattern="/^[a-zA-Z0-9_.]+$/", message="This identifier should be alphanumeric without space. Underscores and dots are allowed.")
-     *
-     * @ORM\Column(type="string")
-     */
+    #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
+    #[ORM\Column(type: 'string')]
     private $identifierInNamespace;
 
-    /**
-     * @ORM\Column(type="string", name="identifier_in_uri")
-     *
-     * @Assert\NotBlank(message="The identifier in URI field cannot be empty")
-     */
+    #[ORM\Column(type: 'string', name: 'identifier_in_uri')]
+    #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]
     private $identifierInURI;
 
     /**
@@ -54,137 +42,81 @@ class OntoClass
      */
     private $isManualIdentifier;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\OntoClassVersion", mappedBy="class", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: OntoClassVersion::class, mappedBy: 'class', cascade: ['persist'])]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $classVersions;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $importerXmlField;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $importerTextField;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    /**
-     * @ORM\OneToMany(targetEntity="ClassAssociation", mappedBy="childClass")
-     */
+    #[ORM\OneToMany(targetEntity: \ClassAssociation::class, mappedBy: 'childClass')]
     private $childClassAssociations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="ClassAssociation", mappedBy="parentClass")
-     */
+    #[ORM\OneToMany(targetEntity: \ClassAssociation::class, mappedBy: 'parentClass')]
     private $parentClassAssociations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="EntityAssociation", mappedBy="sourceClass")
-     */
+    #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'sourceClass')]
     private $sourceEntityAssociations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="EntityAssociation", mappedBy="targetClass")
-     */
+    #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'targetClass')]
     private $targetEntityAssociations;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="OntoNamespace",  inversedBy="classes", fetch="EXTRA_LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="class_version",
-     *      joinColumns={@ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'class_version')]
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\InverseJoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'classes', fetch: 'EXTRA_LAZY')]
     private $namespaces;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\Label", mappedBy="class", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'class', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $labels;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="class", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC", "creationTime" = "DESC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'class', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC', 'creationTime' => 'DESC'])]
     private $textProperties;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Profile",  mappedBy="classes", fetch="LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_profile",
-     *      joinColumns={@ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_profile')]
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\InverseJoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\ManyToMany(targetEntity: \Profile::class, mappedBy: 'classes', fetch: 'LAZY')]
     private $profiles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="class")
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'class')]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\ProfileAssociation", mappedBy="class", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"systemType" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'class', cascade: ['persist'])]
+    #[ORM\OrderBy(['systemType' => 'ASC'])]
     private $profileAssociations;
 
-    /**
-     * @ORM\Column(type="boolean")
-     */
+    #[ORM\Column(type: 'boolean')]
     private $isRecursive;
 
     public function __construct()
@@ -199,9 +131,7 @@ class OntoClass
         $this->comments = new ArrayCollection();
     }
 
-    /**
-     * @Assert\Callback
-     */
+    #[Assert\Callback]
     public function validate(ExecutionContextInterface $context, $payload)
     {
         // check if the identifier is set when needed

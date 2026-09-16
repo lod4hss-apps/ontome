@@ -46,9 +46,7 @@ class PropertyController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/property")
-     */
+    #[Route(path: '/property')]
     public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): Response
     {
         // FILTRAGE : Récupérer les namespaces
@@ -108,9 +106,7 @@ class PropertyController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("property/{type}/new/{class}", name="property_new", requirements={"type"="^(ingoing|outgoing){1}$", "class"="^[0-9]+$"})
-     */
+    #[Route(path: 'property/{type}/new/{class}', name: 'property_new', requirements: ['type' => '^(ingoing|outgoing){1}$', 'class' => '^[0-9]+$'])]
     public function newAction(string $type, Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         $property = new Property();
@@ -302,15 +298,14 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/property/{id}", name="property_show", requirements={"id"="^([0-9]+)|(propertyID){1}$"})
-     * @Route("/ontology/p{id}", name="property_uri_show", requirements={"id"="^([0-9]+)|(propertyID){1}$"})
-     * @Route("/ontology/p{id}i", name="property_uri_inverse_show", requirements={"id"="^([0-9]+)|(propertyID){1}$"})
-     * @Route("/property/{id}/namespace/{namespaceFromUrlId}", name="property_show_with_version", requirements={"id"="^([0-9]+)|(propertyID){1}$", "namespaceFromUrlId"="^([0-9]+)|(namespaceID){1}$"})
-     *
      * @param int|null $namespaceFromUrlId
      *
      * @return Response the rendered template
      */
+    #[Route(path: '/property/{id}', name: 'property_show', requirements: ['id' => '^([0-9]+)|(propertyID){1}$'])]
+    #[Route(path: '/ontology/p{id}', name: 'property_uri_show', requirements: ['id' => '^([0-9]+)|(propertyID){1}$'])]
+    #[Route(path: '/ontology/p{id}i', name: 'property_uri_inverse_show', requirements: ['id' => '^([0-9]+)|(propertyID){1}$'])]
+    #[Route(path: '/property/{id}/namespace/{namespaceFromUrlId}', name: 'property_show_with_version', requirements: ['id' => '^([0-9]+)|(propertyID){1}$', 'namespaceFromUrlId' => '^([0-9]+)|(namespaceID){1}$'])]
     public function showAction(Property $property, LoggerInterface $logger, $namespaceFromUrlId = null, ?NamespaceRepository $namespaceRepository = null, ?PropertyRepository $propertyRepository = null)
     {
         // Vérifier si le namespace -si renseigné- est bien associé à la propriété
@@ -513,12 +508,11 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/property/{id}/edit", name="property_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      *
      * @throws \Exception
      */
+    #[Route(path: '/property/{id}/edit', name: 'property_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Property $property, Request $request, LoggerInterface $logger, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         // Récupérer la version de la propriété demandée
@@ -780,12 +774,11 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/property-version/{id}/edit-validity/{validationStatus}", name="property_version_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful validation
      */
+    #[Route(path: '/property-version/{id}/edit-validity/{validationStatus}', name: 'property_version_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(PropertyVersion $propertyVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
@@ -955,19 +948,16 @@ class PropertyController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/properties-tree")
-     */
+    #[Route(path: '/properties-tree')]
     public function getTreeAction(): Response
     {
         return $this->render('property/tree.html.twig');
     }
 
     /**
-     * @Route("/properties-tree/json", name="properties_tree_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted tree representation of Properties
      */
+    #[Route(path: '/properties-tree/json', name: 'properties_tree_json', methods: ['GET'])]
     public function getTreeJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $properties = $propertyRepository->findPropertiesTree();
@@ -976,10 +966,9 @@ class PropertyController extends AbstractController
     }
 
     /**
-     * @Route("/properties-tree-legend/json", name="properties_tree_legend_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted legend for the Properties tree
      */
+    #[Route(path: '/properties-tree-legend/json', name: 'properties_tree_legend_json', methods: ['GET'])]
     public function getTreeLegendJson(PropertyRepository $propertyRepository): JsonResponse
     {
         $legend = $propertyRepository->findPropertiesTreeLegend();

@@ -28,9 +28,7 @@ class ProjectAssociationController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/public-project-namespace-association/new", name="public_project_namespace_association_new")
-     */
+    #[Route(path: '/public-project-namespace-association/new', name: 'public_project_namespace_association_new')]
     public function newPublicProjectNamespaceAssociationAction(Request $request, ProjectRepository $projectRepository)
     {
         $projectAssociation = new ProjectAssociation();
@@ -69,9 +67,7 @@ class ProjectAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/project-association/{id}/delete", name="project_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
-     */
+    #[Route(path: '/project-association/{id}/delete', name: 'project_association_delete', requirements: ['id' => '^([0-9]+)|(associationID){1}$'])]
     public function deleteAction(ProjectAssociation $projectAssociation)
     {
         $this->denyAccessUnlessGranted('full_edit', $projectAssociation->getProject());

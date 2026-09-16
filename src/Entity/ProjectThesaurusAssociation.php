@@ -14,62 +14,38 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ProjectThesaurusAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="associates_project_thesaurus")
  */
+#[ORM\Table(schema: 'che', name: 'associates_project_thesaurus')]
+#[ORM\Entity]
 class ProjectThesaurusAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_associates_project_thesaurus")
-     *
-     * @ORM\SequenceGenerator(sequenceName="che.associates_project_thesaurus_pk_asso_project_thesaurus_seq", allocationSize=1, initialValue=1)
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_associates_project_thesaurus')]
+    #[ORM\SequenceGenerator(sequenceName: 'che.associates_project_thesaurus_pk_asso_project_thesaurus_seq', allocationSize: 1, initialValue: 1)]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="projectThesaurusAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'projectThesaurusAssociations')]
     private $project;
 
-    /**
-     * @Assert\Url(message="Please enter a valid URI")
-     *
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=true, unique=true)
-     */
+    #[Assert\Url(message: 'Please enter a valid URI')]
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: true, unique: true)]
     private $thesaurusURL;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

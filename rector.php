@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
+use Rector\Doctrine\Set\DoctrineSetList;
 use Rector\Config\RectorConfig;
-use Rector\Set\ValueObject\LevelSetList;
 use Rector\Symfony\Set\SymfonySetList;
+use Rector\Symfony\Set\SensiolabsSetList;
 
 // return RectorConfig::configure()
 //     ->withPaths([
@@ -18,6 +19,7 @@ use Rector\Symfony\Set\SymfonySetList;
 
 return RectorConfig::configure()
     ->withSets([
-        LevelSetList::UP_TO_PHP_84,
+        DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
+        SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
     ])
     ->withSymfonyContainerXml(__DIR__ . '/var/cache/dev/App_KernelDevDebugContainer.xml');

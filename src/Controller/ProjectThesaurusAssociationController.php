@@ -31,14 +31,11 @@ class ProjectThesaurusAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/project-thesaurus-association/project/{projectId}/json",
-     *     name="project_thesaurus_association_show_json",
-     *     requirements={"projectId"="^[0-9]+$"}, methods={"GET"})
-     *
      * @param int $projectId The id of the object
      *
      * @return JsonResponse a Json formatted ProjectThesaurusAssociation list
      */
+    #[Route(path: '/project-thesaurus-association/project/{projectId}/json', name: 'project_thesaurus_association_show_json', requirements: ['projectId' => '^[0-9]+$'], methods: ['GET'])]
     public function getProjectThesaurusAssociationAction(string $projectId, ProjectRepository $projectRepository): JsonResponse
     {
         $project = $projectRepository->find($projectId);
@@ -65,8 +62,9 @@ class ProjectThesaurusAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/project-thesaurus-association/new/project/{projectId}", name="project_thesaurus_association_new", requirements={"projectId"="^[0-9]+$"}), methods={"POST"})
+     * , methods={"POST"}).
      */
+    #[Route(path: '/project-thesaurus-association/new/project/{projectId}', name: 'project_thesaurus_association_new', requirements: ['projectId' => '^[0-9]+$'])]
     public function newAction(string $projectId, Request $request, ProjectRepository $projectRepository)
     {
         $projectThesaurusAssociation = new ProjectThesaurusAssociation();
@@ -150,10 +148,9 @@ class ProjectThesaurusAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/project-thesaurus-association/{id}/delete", name="project_thesaurus_association_delete", requirements={"id"="^([0-9]+)|(associationID){1}$"})
-     *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/project-thesaurus-association/{id}/delete', name: 'project_thesaurus_association_delete', requirements: ['id' => '^([0-9]+)|(associationID){1}$'])]
     public function deleteAction(ProjectThesaurusAssociation $projectThesaurusAssociation): JsonResponse
     {
         $project = $projectThesaurusAssociation->getProject();

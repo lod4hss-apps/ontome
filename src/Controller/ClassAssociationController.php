@@ -38,9 +38,7 @@ class ClassAssociationController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/parent-class-association/new/{childClass}", name="new_parent_class_form", requirements={"childClass"="^[0-9]+$"})
-     */
+    #[Route(path: '/parent-class-association/new/{childClass}', name: 'new_parent_class_form', requirements: ['childClass' => '^[0-9]+$'])]
     public function newParentAction(Request $request, OntoClass $childClass, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository)
     {
         $classAssociation = new ClassAssociation();
@@ -134,10 +132,9 @@ class ClassAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/class-association/{id}", name="class_association_show", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/class-association/{id}', name: 'class_association_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(ClassAssociation $classAssociation, LoggerInterface $logger): Response
     {
         $logger->info('Showing class association: '.$classAssociation->getObjectIdentification());
@@ -148,9 +145,7 @@ class ClassAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/class-association/{id}/edit", name="class_association_edit", requirements={"id"="^[0-9]+$"})
-     */
+    #[Route(path: '/class-association/{id}/edit', name: 'class_association_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Request $request, ClassAssociation $classAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository)
     {
         // Récupérer la version de la classe demandée
@@ -210,12 +205,11 @@ class ClassAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/class-association/{id}/edit-validity/{validationStatus}", name="class_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful validation
      */
+    #[Route(path: '/class-association/{id}/edit-validity/{validationStatus}', name: 'class_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(ClassAssociation $classAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
@@ -281,10 +275,9 @@ class ClassAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/class-association/{id}/delete", name="class_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/class-association/{id}/delete', name: 'class_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
     public function deleteAction(ClassAssociation $classAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $classAssociation);

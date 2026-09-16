@@ -15,140 +15,83 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Label.
- *
- * @ORM\Entity(repositoryClass="App\Repository\LabelRepository")
- *
- * @ORM\Table(schema="che", name="label")
  */
+#[ORM\Table(schema: 'che', name: 'label')]
+#[ORM\Entity(repositoryClass: \App\Repository\LabelRepository::class)]
 class Label
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_label")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_label')]
     private $id;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $label;
 
-    /**
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[ORM\Column(type: 'text', nullable: false)]
     private $inverseLabel;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="text", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $languageIsoCode;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="labelVersions")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'labelVersions')]
     private $namespaceForVersion;
 
-    /**
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Column(type: 'integer')]
     private $importerInteger;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $isStandardLabelForLanguage;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="labels")
-     *
-     * @ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'labels')]
     private $class;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="labels")
-     *
-     * @ORM\JoinColumn(name="fk_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'labels')]
     private $property;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="labels")
-     *
-     * @ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'labels')]
     private $namespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Project", inversedBy="labels")
-     *
-     * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")
-     */
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
+    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'labels')]
     private $project;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Profile", inversedBy="labels")
-     *
-     * @ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")
-     */
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\ManyToOne(targetEntity: \Profile::class, inversedBy: 'labels')]
     private $profile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="validation_status", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="label")
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'label')]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function __construct()

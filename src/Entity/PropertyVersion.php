@@ -14,138 +14,82 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class PropertyVersion.
- *
- * @ORM\Entity(repositoryClass="App\Repository\PropertyVersionRepository")
- *
- * @ORM\Table(schema="che", name="property_version")
  */
+#[ORM\Table(schema: 'che', name: 'property_version')]
+#[ORM\Entity(repositoryClass: \App\Repository\PropertyVersionRepository::class)]
 class PropertyVersion
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_property_version")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_property_version')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private $standardLabel;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="propertyVersion")
-     *
-     * @ORM\JoinColumn(name="fk_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'propertyVersion')]
     private $property;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="propertiesAsDomain")
-     *
-     * @ORM\JoinColumn(name="has_domain", referencedColumnName="pk_class", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'has_domain', referencedColumnName: 'pk_class', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'propertiesAsDomain')]
     private $domain;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_domain_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $domainNamespace;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="OntoClass")
-     *
-     * @ORM\JoinColumn(name="has_range", referencedColumnName="pk_class", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'has_range', referencedColumnName: 'pk_class', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class)]
     private $range;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_range_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $rangeNamespace;
 
-    /**
-     * @ORM\Column(type="smallint", name="domain_instances_min_quantifier")
-     */
+    #[ORM\Column(type: 'smallint', name: 'domain_instances_min_quantifier')]
     private $domainMinQuantifier;
 
-    /**
-     * @ORM\Column(type="smallint", name="domain_instances_max_quantifier")
-     */
+    #[ORM\Column(type: 'smallint', name: 'domain_instances_max_quantifier')]
     private $domainMaxQuantifier;
 
-    /**
-     * @ORM\Column(type="smallint", name="range_instances_min_quantifier")
-     */
+    #[ORM\Column(type: 'smallint', name: 'range_instances_min_quantifier')]
     private $rangeMinQuantifier;
 
-    /**
-     * @ORM\Column(type="smallint", name="range_instances_max_quantifier")
-     */
+    #[ORM\Column(type: 'smallint', name: 'range_instances_max_quantifier')]
     private $rangeMaxQuantifier;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property")
-     *
-     * @ORM\JoinColumn(name="fk_property_of_origin", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property_of_origin', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class)]
     private $propertyOfOrigin;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="propertyVersions")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'propertyVersions')]
     private $namespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="validation_status", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function __construct()

@@ -15,166 +15,99 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Project.
- *
- * @ORM\Entity(repositoryClass="App\Repository\ProjectRepository")
- *
- * @ORM\Table(schema="che", name="project")
  */
+#[ORM\Table(schema: 'che', name: 'project')]
+#[ORM\Entity(repositoryClass: \App\Repository\ProjectRepository::class)]
 class Project
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_project")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_project')]
     private $id;
 
-    /**
-     * @ORM\Column(type="date")
-     */
+    #[ORM\Column(type: 'date')]
     private $startDate;
 
-    /**
-     * @ORM\Column(type="date")
-     */
+    #[ORM\Column(type: 'date')]
     private $endDate;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $standardLabel;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Project", inversedBy="childProjects")
-     *
-     * @ORM\JoinColumn(name="fk_is_subproject_of", referencedColumnName="pk_project", nullable=true)
-     */
+    #[ORM\JoinColumn(name: 'fk_is_subproject_of', referencedColumnName: 'pk_project', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'childProjects')]
     private $parentProject;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Profile", mappedBy="projectOfBelonging")
-     */
+    #[ORM\OneToMany(targetEntity: \Profile::class, mappedBy: 'projectOfBelonging')]
     private $ownedProfiles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="OntoNamespace", mappedBy="projectForTopLevelNamespace")
-     */
+    #[ORM\OneToMany(targetEntity: \OntoNamespace::class, mappedBy: 'projectForTopLevelNamespace')]
     private $managedNamespaces;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="Profile",  inversedBy="Project", fetch="EXTRA_LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_project",
-     *      joinColumns={@ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_project')]
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
+    #[ORM\InverseJoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
+    #[ORM\ManyToMany(targetEntity: \Profile::class, inversedBy: 'Project', fetch: 'EXTRA_LAZY')]
     private $profiles;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="OntoNamespace",  inversedBy="projects", fetch="EXTRA_LAZY")
-     *
-     * @ORM\JoinTable(schema="che", name="associates_project",
-     *      joinColumns={@ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project")},
-     *      inverseJoinColumns={@ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace")}
-     *      )
-     */
+    #[ORM\JoinTable(schema: 'che', name: 'associates_project')]
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
+    #[ORM\InverseJoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'projects', fetch: 'EXTRA_LAZY')]
     private $namespaces;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="project", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'project', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotBlank()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\Label", mappedBy="project", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'project', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $labels;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Project", mappedBy="parentProject")
-     */
+    #[ORM\OneToMany(targetEntity: \Project::class, mappedBy: 'parentProject')]
     private $childProjects;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\OneToMany(targetEntity="UserProjectAssociation", mappedBy="project")
-     */
+    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: \UserProjectAssociation::class, mappedBy: 'project')]
     private $userProjectAssociations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ProjectAssociation", mappedBy="project")
-     */
+    #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'project')]
     private $projectAssociations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ProjectThesaurusAssociation", mappedBy="project")
-     */
+    #[ORM\OneToMany(targetEntity: ProjectThesaurusAssociation::class, mappedBy: 'project')]
     private $projectThesaurusAssociations;
 
-    /**
-     * @Assert\Url(message="Please enter a valid URI")
-     *
-     * @ORM\Column(type="text", nullable=true, unique=true)
-     */
+    #[Assert\Url(message: 'Please enter a valid URI')]
+    #[ORM\Column(type: 'text', nullable: true, unique: true)]
     private $uriProject;
 
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $project_types = [];
 
-    /**
-     * @ORM\OneToMany(targetEntity="Container", mappedBy="project")
-     */
+    #[ORM\OneToMany(targetEntity: \Container::class, mappedBy: 'project')]
     private $containers;
 
     public function __construct()

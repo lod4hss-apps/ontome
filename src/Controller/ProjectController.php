@@ -58,10 +58,8 @@ class ProjectController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/project")
-     * @Route("/domains", name="domain_list")
-     */
+    #[Route(path: '/project')]
+    #[Route(path: '/domains', name: 'domain_list')]
     public function listAction(Request $request, ProjectRepository $projectRepository): Response
     {
         $displayDomains = $request->attributes->get('_route') === 'domain_list';
@@ -78,9 +76,7 @@ class ProjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/project/new", name="project_new_user")
-     */
+    #[Route(path: '/project/new', name: 'project_new_user')]
     public function newUserProjectAction(Request $request, TokenStorageInterface $tokenStorage, ProjectRepository $projectRepository)
     {
         $tokenInterface = $tokenStorage->getToken();
@@ -187,10 +183,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{id}", name="project_show", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/project/{id}', name: 'project_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(Project $project, NamespaceRepository $namespaceRepository): Response
     {
         $associatedNamespacesForAPIProject = $namespaceRepository->findApiNamespacesProject($project);
@@ -206,10 +201,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{id}/edit", name="project_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/project/{id}/edit', name: 'project_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Project $project, Request $request, UserRepository $userRepository, NamespaceRepository $namespaceRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -1494,10 +1488,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-members/project/{project}/json", name="selectable_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Users selectable by Project
      */
+    #[Route(path: '/selectable-members/project/{project}/json', name: 'selectable_members_project_json', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
     public function getSelectableMembersByProject(Project $project, UserRepository $userRepository): JsonResponse
     {
         try {
@@ -1516,10 +1509,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/associated-members/project/{project}/json", name="associated_members_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Users selected by Project
      */
+    #[Route(path: '/associated-members/project/{project}/json', name: 'associated_members_project_json', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
     public function getAssociatedMembersByProject(Project $project, UserRepository $userRepository): JsonResponse
     {
         try {
@@ -1538,8 +1530,6 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{project}/user/{user}/add", name="project_user_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "user"="^([0-9]+)|(id){1}$"}, methods={"POST"})
-     *
      * @param User    $user    The user to be associated with a project
      * @param Project $project The project to be associated with a user
      *
@@ -1547,6 +1537,7 @@ class ProjectController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/project/{project}/user/{user}/add', name: 'project_user_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'user' => '^([0-9]+)|(id){1}$'], methods: ['POST'])]
     public function newProjectUserAssociationAction(Project $project, User $user, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
@@ -1585,8 +1576,6 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{project}/namespace/{namespace}/add", name="project_namespace_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "namespace"="^([0-9]+)|(selectedValue){1}$"}, methods={"POST"})
-     *
      * @param OntoNamespace $namespace The namespace to be associated with a project API
      * @param Project       $project   The project API to be associated with a namespace
      *
@@ -1594,6 +1583,7 @@ class ProjectController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/project/{project}/namespace/{namespace}/add', name: 'project_namespace_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
     public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
@@ -1636,8 +1626,6 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/user-project-association/{id}/permission/{permission}/edit", name="project_member_permission_edit", requirements={"id"="^([0-9]+)|(associationId){1}$", "permission"="^([1-4])|(permissionToken){1}$"}, methods={"POST"})
-     *
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be edited
      * @param int                    $permission             The permission to
      *
@@ -1645,6 +1633,7 @@ class ProjectController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/user-project-association/{id}/permission/{permission}/edit', name: 'project_member_permission_edit', requirements: ['id' => '^([0-9]+)|(associationId){1}$', 'permission' => '^([1-4])|(permissionToken){1}$'], methods: ['POST'])]
     public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, string $permission, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('full_edit', $userProjectAssociation->getProject());
@@ -1677,12 +1666,11 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/user-project-association/{id}/delete", name="project_member_disassociation", requirements={"id"="^([0-9]+)|(associationId){1}$"}, methods={"POST"})
-     *
      * @param UserProjectAssociation $userProjectAssociation The user to project association to be deleted
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/user-project-association/{id}/delete', name: 'project_member_disassociation', requirements: ['id' => '^([0-9]+)|(associationId){1}$'], methods: ['POST'])]
     public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $userProjectAssociation->getProject());
@@ -1713,10 +1701,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-profiles/project/{project}/json", name="selectable_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Profiles selectable by Project
      */
+    #[Route(path: '/selectable-profiles/project/{project}/json', name: 'selectable_profiles_project_json', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
     public function getSelectableProfilesByProject(Project $project, ProfileRepository $profileRepository): JsonResponse
     {
         try {
@@ -1736,10 +1723,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/associated-profiles/project/{project}/json", name="associated_profiles_project_json", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Profiles associated with Project
      */
+    #[Route(path: '/associated-profiles/project/{project}/json', name: 'associated_profiles_project_json', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
     public function getAssociatedProfilesByProject(Project $project, ProfileRepository $profileRepository): JsonResponse
     {
         try {
@@ -1758,8 +1744,6 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{project}/profile/{profile}/add", name="project_profile_association", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"}, methods={"POST"})
-     *
      * @param Profile $profile The profile to be associated with a project
      * @param Project $project The project to be associated with a profile
      *
@@ -1767,6 +1751,7 @@ class ProjectController extends AbstractController
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/project/{project}/profile/{profile}/add', name: 'project_profile_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'profile' => '^([0-9]+)|(profileID){1}$'], methods: ['POST'])]
     public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -1817,13 +1802,12 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{project}/profile/{profile}/delete", name="project_profile_disassociation", requirements={"project"="^([0-9]+)|(projectID){1}$", "profile"="^([0-9]+)|(profileID){1}$"}, methods={"POST"})
-     *
      * @param Profile $profile The profile to be disassociated from a project
      * @param Project $project The project to be disassociated from a profile
      *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/project/{project}/profile/{profile}/delete', name: 'project_profile_disassociation', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'profile' => '^([0-9]+)|(profileID){1}$'], methods: ['POST'])]
     public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -1839,12 +1823,11 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project-uri-edit/{project}", name="project_uri_edit", requirements={"project"="^([0-9]+)|(projectID){1}$"}, methods={"POST"})
-     *
      * @param Project $project The project for which the URI is to be edited
      *
      * @return JsonResponse a Json response with the new project URI
      */
+    #[Route(path: '/project-uri-edit/{project}', name: 'project_uri_edit', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['POST'])]
     public function editProjectURIAction(Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
@@ -1873,10 +1856,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/project/{id}/containers/json", name="containers_by_project_json", requirements={"id"="^([0-9]+)|(projectID){1}$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of Containers selected by Project
      */
+    #[Route(path: '/project/{id}/containers/json', name: 'containers_by_project_json', requirements: ['id' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
     public function getContainersByProjectForDatatable(Project $project, ContainerRepository $containerRepository): JsonResponse
     {
         try {
@@ -1928,10 +1910,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/pathbuilder/{id}/export", name="export_pathbuilder", requirements={"id"="^([0-9]+)|(pathbuilderID){1}$"}, methods={"GET"})
-     *
      * @return Response an XML file response with the content of the pathbuilder to export
      */
+    #[Route(path: '/pathbuilder/{id}/export', name: 'export_pathbuilder', requirements: ['id' => '^([0-9]+)|(pathbuilderID){1}$'], methods: ['GET'])]
     public function exportPathbuilderAction(Pathbuilder $pathbuilder): Response
     {
         $xmlContent = $pathbuilder->getXmlContent();
@@ -1945,10 +1926,9 @@ class ProjectController extends AbstractController
     }
 
     /**
-     * @Route("/container/{container}/pathbuilder/create", name="association_container_pathbuilder_create", requirements={"container"="^([0-9]+)|(containerID){1}$"}, methods={"POST"})
-     *
      * @return JsonResponse a Json response with the id and label of the created pathbuilder
      */
+    #[Route(path: '/container/{container}/pathbuilder/create', name: 'association_container_pathbuilder_create', requirements: ['container' => '^([0-9]+)|(containerID){1}$'], methods: ['POST'])]
     public function createAssociationContainerPathbuilderAction(Container $container, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
@@ -2050,12 +2030,10 @@ class ProjectController extends AbstractController
     }
 
     // Supprimer un pathbuilder d'un container
-
     /**
-     * @Route("/container/{container}/pathbuilder/{pathbuilder}/delete", name="association_container_pathbuilder_delete", requirements={"container"="^([0-9]+)|(containerID){1}$", "pathbuilder"="^([0-9]+)|(pathbuilderID){1}$"}, methods={"DELETE"})
-     *
      * @return JsonResponse a Json 204 HTTP response
      */
+    #[Route(path: '/container/{container}/pathbuilder/{pathbuilder}/delete', name: 'association_container_pathbuilder_delete', requirements: ['container' => '^([0-9]+)|(containerID){1}$', 'pathbuilder' => '^([0-9]+)|(pathbuilderID){1}$'], methods: ['DELETE'])]
     public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());

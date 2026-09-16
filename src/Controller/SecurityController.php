@@ -17,9 +17,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    /**
-     * @Route("/login", name="security_login")
-     */
+    #[Route(path: '/login', name: 'security_login')]
     public function loginAction(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -39,9 +37,7 @@ class SecurityController extends AbstractController
             ]);
     }
 
-    /**
-     * @Route("/logout", name="security_logout")
-     */
+    #[Route(path: '/logout', name: 'security_logout')]
     public function logoutAction()
     {
         throw new \Exception('this should not be reached!');

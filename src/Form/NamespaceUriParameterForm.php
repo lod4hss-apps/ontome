@@ -15,7 +15,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class NamespaceUriParameterForm extends AbstractType
 {
     private $transformer;
+
     private $tokenStorage;
+
     private $em;
 
     public function __construct(OntoClassToNumberTransformer $transformer, TokenStorageInterface $tokenStorage, EntityManagerInterface $em)

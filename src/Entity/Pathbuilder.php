@@ -14,67 +14,41 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Pathbuilder.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="pathbuilder")
  */
+#[ORM\Table(schema: 'che', name: 'pathbuilder')]
+#[ORM\Entity]
 class Pathbuilder
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_pathbuilder")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_pathbuilder')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Container", inversedBy="pathbuilders")
-     *
-     * @ORM\JoinColumn(name="fk_container", referencedColumnName="pk_container", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_container', referencedColumnName: 'pk_container', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \Container::class, inversedBy: 'pathbuilders')]
     private $container;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Label", inversedBy="pathbuilders")
-     *
-     * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label")
-     */
+    #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
+    #[ORM\ManyToOne(targetEntity: \Label::class, inversedBy: 'pathbuilders')]
     private $label;
 
-    /**
-     * @ORM\Column(type="text", name="xml_content")
-     */
+    #[ORM\Column(type: 'text', name: 'xml_content')]
     private $xmlContent;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

@@ -15,7 +15,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class EntityAssociationEditForm extends AbstractType
 {
     private $transformer;
+
     private $tokenStorage;
+
     private $em;
 
     public function __construct(SystemTypeToNumberTransformer $transformer, TokenStorageInterface $tokenStorage, EntityManagerInterface $em)

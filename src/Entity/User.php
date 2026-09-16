@@ -16,131 +16,78 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- *
- * @ORM\Table(schema="che", name="admin_user")
- *
- * @UniqueEntity(fields={"email"}, message="This e-mail is already in use.")
- * @UniqueEntity(fields={"login"}, message="This login is already in use.")
- */
+#[ORM\Table(schema: 'che', name: 'admin_user')]
+#[ORM\Entity(repositoryClass: \App\Repository\UserRepository::class)]
+#[UniqueEntity(fields: ['email'], message: 'This e-mail is already in use.')]
+#[UniqueEntity(fields: ['login'], message: 'This login is already in use.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer",  name="pk_user")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_user')]
     private $id;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="string", unique=true)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', unique: true)]
     private $login;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @Assert\Email()
-     *
-     * @ORM\Column(type="string", unique=true)
-     */
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    #[ORM\Column(type: 'string', unique: true)]
     private $email;
 
     /**
      * The encoded password.
-     *
-     * @ORM\Column(type="string", nullable=true)
      */
+    #[ORM\Column(type: 'string', nullable: true)]
     private $password;
 
     /**
      * A non-persisted field that's used to create the encoded password.
      *
-     * @Assert\NotBlank(groups={"Registration","ResetPassword"})
-     *
-     * @Assert\Length(
-     *      min = 12,
-     *      minMessage = "Your password must be at least {{ limit }} characters long",
-     * )
-     *
-     * @Assert\Regex(
-     *     pattern="/^(?:(?!.*[<>])(?:(?=.*[~!\[@#$%^&*()_,|`\]\{+=?.\}\\\/<>-])(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))).*$/",
-     *     match=true,
-     *     message="Your password must contain at least 1 special character, 1 digit, 1 lowercase and 1 uppercase letter"
-     * )
-     *
      * @var string
      */
+    #[Assert\NotBlank(groups: ['Registration', 'ResetPassword'])]
+    #[Assert\Length(min: 12, minMessage: 'Your password must be at least {{ limit }} characters long')]
+    #[Assert\Regex(pattern: '/^(?:(?!.*[<>])(?:(?=.*[~!\[@#$%^&*()_,|`\]\{+=?.\}\\\\\\/<>-])(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))).*$/', match: true, message: 'Your password must contain at least 1 special character, 1 digit, 1 lowercase and 1 uppercase letter')]
     private $plainPassword;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="string", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', nullable: false)]
     private $lastName;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\Column(type="string", nullable=false)
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', nullable: false)]
     private $firstName;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $status;
 
-    /**
-     * @Assert\NotEqualTo(false, message="You must accept our term of service")
-     *
-     * @ORM\Column(type="boolean", nullable=false)
-     */
+    #[Assert\NotEqualTo(false, message: 'You must accept our term of service')]
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $hasValidatedPolicy;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private $institution;
 
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $roles = [];
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private $token;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $tokenDate;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\OneToMany(targetEntity="UserProjectAssociation", mappedBy="user")
-     */
+    #[Assert\NotBlank]
+    #[ORM\OneToMany(targetEntity: \UserProjectAssociation::class, mappedBy: 'user')]
     private $userProjectAssociations;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Project", inversedBy="UserProjectAssociation")
-     *
-     * @ORM\JoinColumn(name="fk_current_active_project", referencedColumnName="pk_project", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_current_active_project', referencedColumnName: 'pk_project', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'UserProjectAssociation')]
     private $currentActiveProject;
 
-    /**
-     * @ORM\OneToMany(targetEntity="Comment", mappedBy="creator")
-     */
+    #[ORM\OneToMany(targetEntity: \Comment::class, mappedBy: 'creator')]
     private $comments;
 
     /**

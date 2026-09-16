@@ -13,91 +13,55 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class ProjectAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="associates_project")
  */
+#[ORM\Table(schema: 'che', name: 'associates_project')]
+#[ORM\Entity]
 class ProjectAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_associates_project")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_associates_project')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Project", inversedBy="projectAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_project", referencedColumnName="pk_project", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'projectAssociations')]
     private $project;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Label")
-     *
-     * @ORM\JoinColumn(name="fk_label", referencedColumnName="pk_label", nullable=true)
-     */
+    #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Label::class)]
     private $label;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OntoNamespace", inversedBy="projectAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_namespace", referencedColumnName="pk_namespace", nullable=true)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'projectAssociations')]
     private $namespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\TextProperty")
-     *
-     * @ORM\JoinColumn(name="fk_text_property", referencedColumnName="pk_text_property", nullable=true)
-     */
+    #[ORM\JoinColumn(name: 'fk_text_property', referencedColumnName: 'pk_text_property', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: TextProperty::class)]
     private $textProperty;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType", inversedBy="projectAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_system_type", referencedColumnName="pk_system_type", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'projectAssociations')]
     private $systemType;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Profile")
-     *
-     * @ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Profile::class)]
     private $profile;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

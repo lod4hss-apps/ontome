@@ -15,132 +15,78 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class EntityAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(name="che.entity_association")
  */
+#[ORM\Table(name: 'che.entity_association')]
+#[ORM\Entity]
 class EntityAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_entity_association")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_entity_association')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="sourceEntityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_source_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_source_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'sourceEntityAssociations')]
     private $sourceClass;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="targetEntityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_target_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_target_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'targetEntityAssociations')]
     private $targetClass;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="sourceEntityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_source_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_source_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'sourceEntityAssociations')]
     private $sourceProperty;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_source_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_source_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $sourceNamespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Property", inversedBy="targetEntityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_target_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_target_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'targetEntityAssociations')]
     private $targetProperty;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_target_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_target_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $targetNamespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType", inversedBy="entityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_system_type", referencedColumnName="pk_system_type")
-     */
+    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'entityAssociations')]
     private $systemType;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="validation_status", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    /**
-     * @ORM\Column(type="boolean", name="directed")
-     */
+    #[ORM\Column(type: 'boolean', name: 'directed')]
     private $directed;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="entityAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'entityAssociations')]
     private $namespaceForVersion;
 
-    /**
-     * @Assert\NotNull()
-     *
-     * @Assert\Valid()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="entityAssociation", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\NotNull]
+    #[Assert\Valid]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'entityAssociation', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="entityAssociation")
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'entityAssociation')]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
     /**

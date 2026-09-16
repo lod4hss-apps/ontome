@@ -19,7 +19,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class TextPropertyForm extends AbstractType
 {
     private $transformer;
+
     private $tokenStorage;
+
     private $em;
 
     public function __construct(UserToNumberTransformer $transformer, SystemTypeToNumberTransformer $st_transformer, TokenStorageInterface $tokenStorage, EntityManagerInterface $em)

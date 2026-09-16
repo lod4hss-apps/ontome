@@ -39,9 +39,7 @@ class EntityAssociationController extends AbstractController
         $this->doctrine = $doctrine;
     }
 
-    /**
-     * @Route("/entity-association/new/{object}/{objectId}", name="new_entity_association_form", requirements={"object"="^(class|property){1}$","objectId"="^[0-9]+$"})
-     */
+    #[Route(path: '/entity-association/new/{object}/{objectId}', name: 'new_entity_association_form', requirements: ['object' => '^(class|property){1}$', 'objectId' => '^[0-9]+$'])]
     public function newEntityAssociationAction(Request $request, string $object, string $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $em = $this->doctrine->getManager();
@@ -176,11 +174,10 @@ class EntityAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/entity-association/{id}", name="entity_association_show", requirements={"id"="^[0-9]+$"})
-     * @Route("/entity-association/{id}/inverse", name="entity_association_inverse_show", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/entity-association/{id}', name: 'entity_association_show', requirements: ['id' => '^[0-9]+$'])]
+    #[Route(path: '/entity-association/{id}/inverse', name: 'entity_association_inverse_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(Request $request, EntityAssociation $entityAssociation): Response
     {
         $inverse = false;
@@ -194,10 +191,8 @@ class EntityAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/entity-association/{id}/edit", name="entity_association_edit", requirements={"id"="^[0-9]+$"})
-     * @Route("/entity-association/{id}/inverse/edit", name="entity_association_inverse_edit", requirements={"id"="^[0-9]+$"})
-     */
+    #[Route(path: '/entity-association/{id}/edit', name: 'entity_association_edit', requirements: ['id' => '^[0-9]+$'])]
+    #[Route(path: '/entity-association/{id}/inverse/edit', name: 'entity_association_inverse_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(Request $request, EntityAssociation $entityAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $inverse = false;
@@ -315,12 +310,11 @@ class EntityAssociationController extends AbstractController
     }
 
     /**
-     * @Route("/entity-association/{id}/edit-validity/{validationStatus}", name="entity_association_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful validation
      */
+    #[Route(path: '/entity-association/{id}/edit-validity/{validationStatus}', name: 'entity_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(EntityAssociation $entityAssociation, SystemType $validationStatus, Request $request): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
@@ -385,9 +379,7 @@ class EntityAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/entity-association/{id}/delete", name="entity_association_delete", requirements={"id"="^([0-9]+)|(associationId){1}$"})
-     */
+    #[Route(path: '/entity-association/{id}/delete', name: 'entity_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
     public function deleteAction(Request $request, EntityAssociation $entityAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $entityAssociation);

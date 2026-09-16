@@ -14,123 +14,73 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ProfileAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="associates_profile")
  */
+#[ORM\Table(schema: 'che', name: 'associates_profile')]
+#[ORM\Entity]
 class ProfileAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_associates_profile")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_associates_profile')]
     private $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Profile", inversedBy="profileAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_profile", referencedColumnName="pk_profile", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'profileAssociations')]
     private $profile;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Property")
-     *
-     * @ORM\JoinColumn(name="fk_property", referencedColumnName="pk_property")
-     */
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
+    #[ORM\ManyToOne(targetEntity: Property::class)]
     private $property;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OntoClass")
-     *
-     * @ORM\JoinColumn(name="fk_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
     private $class;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_entity_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $entityNamespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OntoClass")
-     *
-     * @ORM\JoinColumn(name="fk_inheriting_domain_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_inheriting_domain_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
     private $domain;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_domain_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $domainNamespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\OntoClass")
-     *
-     * @ORM\JoinColumn(name="fk_inheriting_range_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'fk_inheriting_range_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
     private $range;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_range_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $rangeNamespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType", inversedBy="profileAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_system_type", referencedColumnName="pk_system_type")
-     */
+    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'profileAssociations')]
     private $systemType;
 
-    /**
-     * @Assert\Valid()
-     *
-     * @Assert\NotNull()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="profileAssociation", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\Valid]
+    #[Assert\NotNull]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'profileAssociation', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     public function getId()

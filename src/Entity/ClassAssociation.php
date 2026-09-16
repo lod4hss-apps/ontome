@@ -16,118 +16,68 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ClassAssociation.
- *
- * @ORM\Entity
- *
- * @ORM\Table(schema="che", name="is_subclass_of")
- *
- * @UniqueEntity(
- *     fields={"childClass", "parentClass", "namespaceForVersion"},
- *     message="This parent class is already associated with this child class"
- * )
  */
+#[ORM\Table(schema: 'che', name: 'is_subclass_of')]
+#[ORM\Entity]
+#[UniqueEntity(fields: ['childClass', 'parentClass', 'namespaceForVersion'], message: 'This parent class is already associated with this child class')]
 class ClassAssociation
 {
-    /**
-     * @ORM\Id
-     *
-     * @ORM\GeneratedValue(strategy="AUTO")
-     *
-     * @ORM\Column(type="integer", name="pk_is_subclass_of")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer', name: 'pk_is_subclass_of')]
     private $id;
 
-    /**
-     * @Assert\NotBlank()
-     *
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="childClassAssociations")
-     *
-     * @ORM\JoinColumn(name="is_child_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'is_child_class', referencedColumnName: 'pk_class')]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'childClassAssociations')]
     private $childClass;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_child_class_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_child_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $childClassNamespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoClass", inversedBy="parentClassAssociations")
-     *
-     * @ORM\JoinColumn(name="is_parent_class", referencedColumnName="pk_class")
-     */
+    #[ORM\JoinColumn(name: 'is_parent_class', referencedColumnName: 'pk_class')]
+    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'parentClassAssociations')]
     private $parentClass;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace")
-     *
-     * @ORM\JoinColumn(name="fk_parent_class_namespace", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_parent_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $parentClassNamespace;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="OntoNamespace", inversedBy="classAssociations")
-     *
-     * @ORM\JoinColumn(name="fk_namespace_for_version", referencedColumnName="pk_namespace", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'classAssociations')]
     private $namespaceForVersion;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="SystemType")
-     *
-     * @ORM\JoinColumn(name="validation_status", referencedColumnName="pk_system_type")
-     *
-     * @Assert\Type(type="App\Entity\SystemType")
-     */
+    #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private $notes;
 
-    /**
-     * @Assert\NotNull()
-     *
-     * @Assert\Valid()
-     *
-     * @ORM\OneToMany(targetEntity="App\Entity\TextProperty", mappedBy="classAssociation", cascade={"persist"})
-     *
-     * @ORM\OrderBy({"languageIsoCode" = "ASC"})
-     */
+    #[Assert\NotNull]
+    #[Assert\Valid]
+    #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'classAssociation', cascade: ['persist'])]
+    #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="classAssociation")
-     *
-     * @ORM\OrderBy({"creationTime" = "DESC"})
-     */
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'classAssociation')]
+    #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="creator", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $creator;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="User")
-     *
-     * @ORM\JoinColumn(name="modifier", referencedColumnName="pk_user", nullable=false)
-     */
+    #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
+    #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $creationTime;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
     /**
@@ -157,9 +107,7 @@ class ClassAssociation
         return $this->childClass;
     }
 
-    /**
-     * @Assert\NotBlank()
-     */
+    #[Assert\NotBlank]
     public function getParentClass()
     {
         return $this->parentClass;

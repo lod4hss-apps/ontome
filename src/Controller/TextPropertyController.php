@@ -43,10 +43,9 @@ class TextPropertyController extends AbstractController
     }
 
     /**
-     * @Route("/text-property/{id}", name="text_property_show", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      */
+    #[Route(path: '/text-property/{id}', name: 'text_property_show', requirements: ['id' => '^[0-9]+$'])]
     public function showAction(TextProperty $textProperty, LoggerInterface $logger): Response
     {
         $logger->info('Showing text property: '.$textProperty->getId());
@@ -57,11 +56,10 @@ class TextPropertyController extends AbstractController
     }
 
     /**
-     * @Route("/text-property/{id}/edit", name="text_property_edit", requirements={"id"="^[0-9]+$"})
-     * @Route("/text-property/{id}/inverse/edit", name="text_property_inverse_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @return RedirectResponse|Response
      */
+    #[Route(path: '/text-property/{id}/edit', name: 'text_property_edit', requirements: ['id' => '^[0-9]+$'])]
+    #[Route(path: '/text-property/{id}/inverse/edit', name: 'text_property_inverse_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(TextProperty $textProperty, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $textProperty);
@@ -154,12 +152,8 @@ class TextPropertyController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/text-property/{type}/new/{object}/{objectId}", name="text_property_new",
-     *     requirements={"type"="^(scope-note|example|justification|internal-note|definition|dct:contributor|owl:versionInfo){1}$", "object"="^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$", "objectId"="^[0-9]+$"})
-     * @Route("/text-property/{type}/new/{object}/{objectId}/inverse", name="text_property_inverse_new",
-     *     requirements={"type"="^(scope-note|example|justification|additional-note|definition|dct:contributor|owl:versionInfo){1}$", "object"="^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$", "objectId"="^[0-9]+$"})
-     */
+    #[Route(path: '/text-property/{type}/new/{object}/{objectId}', name: 'text_property_new', requirements: ['type' => '^(scope-note|example|justification|internal-note|definition|dct:contributor|owl:versionInfo){1}$', 'object' => '^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$', 'objectId' => '^[0-9]+$'])]
+    #[Route(path: '/text-property/{type}/new/{object}/{objectId}/inverse', name: 'text_property_inverse_new', requirements: ['type' => '^(scope-note|example|justification|additional-note|definition|dct:contributor|owl:versionInfo){1}$', 'object' => '^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$', 'objectId' => '^[0-9]+$'])]
     public function newAction(string $type, string $object, string $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
     {
         $em = $this->doctrine->getManager();
@@ -408,12 +402,11 @@ class TextPropertyController extends AbstractController
     }
 
     /**
-     * @Route("/text-property/{id}/edit-validity/{validationStatus}", name="text_property_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^(26|27|28|37){1}$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful association
      */
+    #[Route(path: '/text-property/{id}/edit-validity/{validationStatus}', name: 'text_property_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
     public function editValidationStatusAction(TextProperty $textProperty, SystemType $validationStatus): RedirectResponse
     {
         $object = null;

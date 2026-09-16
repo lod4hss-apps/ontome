@@ -35,9 +35,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ClassController extends AbstractController
 {
-    /**
-     * @Route("/class")
-     */
+    #[Route(path: '/class')]
     public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository): Response
     {
         // FILTRAGE : Récupérer les namespaces
@@ -98,12 +96,11 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("class/new/{namespace}", name="class_new", requirements={"namespace"="^[0-9]+$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception
      */
+    #[Route(path: 'class/new/{namespace}', name: 'class_new', requirements: ['namespace' => '^[0-9]+$'])]
     public function newAction(Request $request, OntoNamespace $namespace)
     {
         $class = new OntoClass();
@@ -224,16 +221,15 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/class/{id}", name="class_show", requirements={"id"="^[0-9]+$"})
-     * @Route("/ontology/c{id}", name="class_uri_show", requirements={"id"="^[0-9]+$"})
-     * @Route("/class/{id}/namespace/{namespaceFromUrlId}", name="class_show_with_version", requirements={"id"="^([0-9]+)|(classID){1}$", "namespaceFromUrlId"="^([0-9]+)|(namespaceFromUrlId){1}$"})
-     *
      * @param int|null $namespaceFromUrlId
      *
      * @return Response the rendered template
      *
      * @throws DBALException
      */
+    #[Route(path: '/class/{id}', name: 'class_show', requirements: ['id' => '^[0-9]+$'])]
+    #[Route(path: '/ontology/c{id}', name: 'class_uri_show', requirements: ['id' => '^[0-9]+$'])]
+    #[Route(path: '/class/{id}/namespace/{namespaceFromUrlId}', name: 'class_show_with_version', requirements: ['id' => '^([0-9]+)|(classID){1}$', 'namespaceFromUrlId' => '^([0-9]+)|(namespaceFromUrlId){1}$'])]
     public function showAction(OntoClass $class, $namespaceFromUrlId = null)
     {
         // Vérifier si le namespace -si renseigné- est bien associé à la classe
@@ -464,12 +460,11 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/class/{id}/edit", name="class_edit", requirements={"id"="^[0-9]+$"})
-     *
      * @return Response the rendered template
      *
      * @throws DBALException
      */
+    #[Route(path: '/class/{id}/edit', name: 'class_edit', requirements: ['id' => '^[0-9]+$'])]
     public function editAction(OntoClass $class, Request $request, LoggerInterface $logger)
     {
         // Récupérer la version de la classe demandée
@@ -698,12 +693,11 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/class-version/{id}/edit-validity/{validationStatus}", name="class_version_validation_status_edit", requirements={"id"="^[0-9]+$", "validationStatus"="^26|27|28|37$"})
-     *
      * @return RedirectResponse|Response
      *
      * @throws \Exception in case of unsuccessful validation
      */
+    #[Route(path: '/class-version/{id}/edit-validity/{validationStatus}', name: 'class_version_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^26|27|28|37$'])]
     public function editValidationStatusAction(OntoClassVersion $classVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
@@ -887,19 +881,16 @@ class ClassController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/classes-tree")
-     */
+    #[Route(path: '/classes-tree')]
     public function getTreeAction(): Response
     {
         return $this->render('class/tree.html.twig');
     }
 
     /**
-     * @Route("/classes-tree/json", name="classes_tree_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
+    #[Route(path: '/classes-tree/json', name: 'classes_tree_json', methods: ['GET'])]
     public function getTreeJson(): JsonResponse
     {
         $em = $this->getDoctrine()->getManager();
@@ -916,10 +907,9 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/classes-tree-legend/json", name="classes_tree_legend_json", methods={"GET"})
-     *
      * @return JsonResponse a Json formatted legend for the OntoClasses tree
      */
+    #[Route(path: '/classes-tree-legend/json', name: 'classes_tree_legend_json', methods: ['GET'])]
     public function getTreeLegendJson(): JsonResponse
     {
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
@@ -936,10 +926,9 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/class/{class}/{namespace}/graph/json", name="class_graph_json", requirements={"class"="^[0-9]+$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
+    #[Route(path: '/class/{class}/{namespace}/graph/json', name: 'class_graph_json', requirements: ['class' => '^[0-9]+$'], methods: ['GET'])]
     public function getGraphJson(OntoClass $class, OntoNamespace $namespace): JsonResponse
     {
         $em = $this->getDoctrine()->getManager();
@@ -950,10 +939,9 @@ class ClassController extends AbstractController
     }
 
     /**
-     * @Route("/api/classes/project/{project}/json", name="classes_project_json", requirements={"project"="^[0-9]+$"}, methods={"GET"})
-     *
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
+    #[Route(path: '/api/classes/project/{project}/json', name: 'classes_project_json', requirements: ['project' => '^[0-9]+$'], methods: ['GET'])]
     public function getClassesByProject(Project $project): JsonResponse
     {
         try {
