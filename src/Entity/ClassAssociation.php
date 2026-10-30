@@ -11,49 +11,53 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\SequenceGenerator;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ClassAssociation.
  */
-#[ORM\Table(schema: 'che', name: 'is_subclass_of')]
+#[ORM\Table(name: 'is_subclass_of', schema: 'che')]
+#[ORM\Index(name: 'is_subclass_of_fk_child_class_namespace_idx', columns: ['fk_child_class_namespace'])]
+#[ORM\Index(name: 'is_subclass_of_fk_parent_class_namespace_idx', columns: ['fk_parent_class_namespace'])]
+#[ORM\Index(name: 'is_subclass_of_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
 #[ORM\Entity]
 #[UniqueEntity(fields: ['childClass', 'parentClass', 'namespaceForVersion'], message: 'This parent class is already associated with this child class')]
 class ClassAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_is_subclass_of')]
     private $id;
 
     #[ORM\JoinColumn(name: 'is_child_class', referencedColumnName: 'pk_class')]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'childClassAssociations')]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'childClassAssociations')]
     private $childClass;
 
     #[ORM\JoinColumn(name: 'fk_child_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $childClassNamespace;
 
     #[ORM\JoinColumn(name: 'is_parent_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'parentClassAssociations')]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'parentClassAssociations')]
     private $parentClass;
 
     #[ORM\JoinColumn(name: 'fk_parent_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $parentClassNamespace;
 
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'classAssociations')]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'classAssociations')]
     private $namespaceForVersion;
 
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
-    #[Assert\Type(type: 'App\Entity\SystemType')]
+    #[ORM\ManyToOne(targetEntity: SystemType::class)]
+    #[Assert\Type(type: SystemType::class)]
     private $validationStatus;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[Assert\NotNull]
@@ -67,14 +71,14 @@ class ClassAssociation
     private $comments;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

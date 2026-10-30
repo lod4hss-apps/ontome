@@ -1188,17 +1188,21 @@
                                 }
 
                                 $pathbuilderRow.append(
-                                    $('<td>').text(pathbuilder.label),
-                                    $('<td>').append(
-                                        $('<a>', {
-                                            href: urlPathbuilderExport,
-                                            download: pathbuilder.label + '.xml'
-                                        }).append(
-                                            $('<i>', {
-                                                class: 'fas fa-file-export',
-                                                title: 'Export this pathbuilder'
-                                            })
+                                    $('<td>')
+                                        .append(
+                                            $('<a>', {
+                                                href: urlPathbuilderExport,
+                                                download: pathbuilder.label + '.xml'
+                                            }).text(pathbuilder.label)
                                         )
+                                        .append(
+                                            $('<span>', {
+                                                id: 'pathbuilder-copy-url-' + pathbuilder.id,
+                                                style: 'display: none;'
+                                            }).text('https://ontome.net' + urlPathbuilderExport)
+                                        ),
+                                    $('<td>').append(
+                                        `<button data-id="pathbuilder-copy-url-${pathbuilder.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>`
                                     )
                                 );
 

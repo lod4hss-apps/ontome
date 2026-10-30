@@ -9,6 +9,7 @@
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -16,15 +17,18 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class OntoClassVersion.
  */
 #[ORM\Table(schema: 'che', name: 'class_version')]
-#[ORM\Entity(repositoryClass: \App\Repository\ClassVersionRepository::class)]
+#[ORM\Index(name: 'class_version_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
+#[ORM\Index(name: 'class_version_fk_class_idx', columns: ['fk_class'])]
+#[ORM\UniqueConstraint(name: 'uniq_class_version_class_namespace', columns: ['fk_class', 'fk_namespace_for_version'])]
+#[ORM\Entity(repositoryClass: ClassVersionRepository::class)]
 class OntoClassVersion
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_class_version')]
     private $id;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', length: 500)]
     private $standardLabel;
 
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
@@ -36,7 +40,7 @@ class OntoClassVersion
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -49,7 +53,7 @@ class OntoClassVersion
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
@@ -58,6 +62,12 @@ class OntoClassVersion
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
     #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'classVersions')]
     private $namespaceForVersion;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $importerXmlField = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $importer_text_field = null;
 
     public function __construct()
     {
@@ -269,5 +279,29 @@ class OntoClassVersion
         }
 
         return false;
+    }
+
+    public function getImporterXmlField(): ?string
+    {
+        return $this->importerXmlField;
+    }
+
+    public function setImporterXmlField(?string $importerXmlField): static
+    {
+        $this->importerXmlField = $importerXmlField;
+
+        return $this;
+    }
+
+    public function getImporterTextField(): ?string
+    {
+        return $this->importer_text_field;
+    }
+
+    public function setImporterTextField(?string $importer_text_field): static
+    {
+        $this->importer_text_field = $importer_text_field;
+
+        return $this;
     }
 }

@@ -11,20 +11,39 @@ namespace App\Entity;
 
 use App\Validator\Constraints\CharacterLength;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\GroupSequenceProviderInterface;
+use App\Entity\OntoNamespace;
+use App\Entity\ProfileAssociation;
+use App\Entity\OntoClass;
+use App\Entity\Property;
+use App\Entity\Project;
+use App\Entity\SystemType;
+use App\Entity\Profile;
+use App\Entity\ClassAssociation;
+use App\Entity\EntityAssociation;
+use App\Entity\PropertyAssociation;
+use App\Entity\Comment;
+use App\Entity\User;
 
 /**
  * Class TextProperty.
  */
 #[ORM\Table(schema: 'che', name: 'text_property')]
-#[ORM\Entity(repositoryClass: \App\Repository\TextPropertyRepository::class)]
+#[ORM\Index(name: 'text_property_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
+#[ORM\Index(name: 'text_property_fk_entity_namespace_for_version_idx', columns: ['fk_entity_namespace_for_version'])]
+#[ORM\Index(name: 'text_property_fk_entity_association_idx', columns: ['fk_entity_association'])]
+#[ORM\Index(name: 'text_property_creator_idx', columns: ['creator'])]
+#[ORM\Index(name: 'text_property_modifier_idx', columns: ['modifier'])]
+#[ORM\Entity]
 #[Assert\GroupSequenceProvider]
 class TextProperty implements GroupSequenceProviderInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_text_property')]
     private $id;
 
@@ -40,42 +59,42 @@ class TextProperty implements GroupSequenceProviderInterface
     private $textProperty;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'text', nullable: false)]
+    #[ORM\Column(type: 'string', nullable: false)]
     private $languageIsoCode;
 
-    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $namespaceForVersion;
 
-    #[ORM\JoinColumn(name: 'fk_associates_profile', referencedColumnName: 'pk_associates_profile', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \ProfileAssociation::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_associates_profile', referencedColumnName: 'pk_associates_profile', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: ProfileAssociation::class, inversedBy: 'textProperties')]
     private $profileAssociation;
 
-    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'textProperties')]
     #[Assert\Type(type: 'App\Entity\OntoClass')]
     #[Assert\Valid]
     private $class;
 
-    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Property::class, inversedBy: 'textProperties')]
     private $property;
 
-    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'textProperties')]
     private $namespace;
 
-    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
-    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'textProperties')]
     private $project;
 
-    #[ORM\JoinColumn(name: 'fk_text_property_type', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'textProperties')]
+    #[ORM\JoinColumn(name: 'fk_text_property_type', referencedColumnName: 'pk_system_type', options: ['comment' => 'Typed by a system type'])]
+    #[ORM\ManyToOne(targetEntity: SystemType::class, inversedBy: 'textProperties')]
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $systemType;
 
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[ORM\ManyToOne(targetEntity: SystemType::class)]
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
@@ -86,19 +105,19 @@ class TextProperty implements GroupSequenceProviderInterface
     private $profile;
 
     #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
-    #[ORM\ManyToOne(targetEntity: \ClassAssociation::class, inversedBy: 'textProperties')]
+    #[ORM\ManyToOne(targetEntity: ClassAssociation::class, inversedBy: 'textProperties')]
     #[Assert\Type(type: 'App\Entity\ClassAssociation')]
     #[Assert\Valid]
     private $classAssociation;
 
     #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
-    #[ORM\ManyToOne(targetEntity: \EntityAssociation::class, inversedBy: 'textProperties')]
+    #[ORM\ManyToOne(targetEntity: EntityAssociation::class, inversedBy: 'textProperties')]
     #[Assert\Type(type: 'App\Entity\EntityAssociation')]
     #[Assert\Valid]
     private $entityAssociation;
 
     #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
-    #[ORM\ManyToOne(targetEntity: \PropertyAssociation::class, inversedBy: 'textProperties')]
+    #[ORM\ManyToOne(targetEntity: PropertyAssociation::class, inversedBy: 'textProperties')]
     #[Assert\Type(type: 'App\Entity\PropertyAssociation')]
     #[Assert\Valid]
     private $propertyAssociation;
@@ -112,23 +131,29 @@ class TextProperty implements GroupSequenceProviderInterface
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $entityNamespaceForVersion;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $importerText = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $importerInteger = null;
 
     public function __construct()
     {
@@ -414,5 +439,29 @@ class TextProperty implements GroupSequenceProviderInterface
         }
 
         return ['TextProperty'];
+    }
+
+    public function getImporterText(): ?string
+    {
+        return $this->importerText;
+    }
+
+    public function setImporterText(?string $importerText): static
+    {
+        $this->importerText = $importerText;
+
+        return $this;
+    }
+
+    public function getImporterInteger(): ?int
+    {
+        return $this->importerInteger;
+    }
+
+    public function setImporterInteger(?int $importerInteger): static
+    {
+        $this->importerInteger = $importerInteger;
+
+        return $this;
     }
 }

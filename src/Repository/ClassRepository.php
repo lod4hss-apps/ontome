@@ -141,18 +141,18 @@ class ClassRepository extends ServiceEntityRepository
         // Construit la chaine ?,? pour les namespacesId dans la requête SQL
         $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
-        $sql = "SELECT pk_child AS id,
+        $sql = 'SELECT pk_child AS id,
                   child_identifier AS identifier,
                   depth,
                   che.get_root_namespace(nsp.pk_namespace) AS \"rootNamespaceId\",
-                  ( SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = 'en') AS \"rootNamespaceLabel\",
+                  ( SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = \'en\') AS \"rootNamespaceLabel\",
                   nsp.pk_namespace AS \"classNamespaceId\",
                   nsp.standard_label AS \"classNamespaceLabel\",
                   fk_namespace_for_version,
                   ARRAY_TO_STRING(descendants,'|') AS \"descendants\",
                   ARRAY_TO_STRING(pk_descendants,'|') AS \"pk_descendants\",
                   ARRAY_TO_STRING(pk_version_descendants,'|') AS \"pk_version_descendants\"
-                  FROM che.descendant_class_hierarchy(?, ARRAY[".$in.']::integer[]) cls,
+                  FROM che.descendant_class_hierarchy(?, ARRAY['.$in.']::integer[]) cls,
                   che.namespace nsp
                 WHERE nsp.pk_namespace = cls.fk_namespace_for_version
                 AND nsp.pk_namespace IN ('.$in.')

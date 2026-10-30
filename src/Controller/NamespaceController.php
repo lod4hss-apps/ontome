@@ -107,6 +107,7 @@ class NamespaceController extends AbstractController
         $namespace->setModifier($this->getUser());
 
         $namespaceLabel->setIsStandardLabelForLanguage(true);
+        $namespaceLabel->setLanguageIsoCode('en');
         $namespaceLabel->setCreator($this->getUser());
         $namespaceLabel->setModifier($this->getUser());
         $namespaceLabel->setCreationTime(new \DateTime('now'));
@@ -435,6 +436,7 @@ class NamespaceController extends AbstractController
 
         $newNamespaceLabel = new Label();
         $newNamespaceLabel->setIsStandardLabelForLanguage(true);
+        $newNamespaceLabel->setLanguageIsoCode('en');
         $newNamespaceLabel->setCreator($this->getUser());
         $newNamespaceLabel->setModifier($this->getUser());
         $newNamespaceLabel->setCreationTime(new \DateTime('now'));

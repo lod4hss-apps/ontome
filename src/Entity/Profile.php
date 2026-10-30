@@ -12,74 +12,83 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Property;
+use App\Entity\User;
+use App\Entity\TextProperty;
+use App\Entity\Label;
+use App\Entity\EntityUserProjectAssociation;
+use App\Entity\ProjectAssociation;
+use App\Entity\ProfileAssociation;
+use App\Entity\ReferencedNamespaceAssociation;
 
 /**
  * Class Profile.
  */
 #[ORM\Table(schema: 'che', name: 'profile')]
-#[ORM\Entity(repositoryClass: \App\Repository\ProfileRepository::class)]
+#[ORM\Index(name: 'profile_fk_root_profile_idx', columns: ['fk_root_profile'])]
+#[ORM\Entity]
 class Profile
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_profile')]
     private $id;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', length: 500)]
     private $standardLabel;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $startDate;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $endDate;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $wasClosedAt;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private $isOngoing;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isVisible;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isRootProfile;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $version;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isForcedPublication;
 
     #[ORM\JoinColumn(name: 'fk_root_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \Profile::class, inversedBy: 'childProfiles')]
+    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'childProfiles')]
     private $rootProfile;
 
     #[ORM\JoinColumn(name: 'fk_project_of_belonging', referencedColumnName: 'pk_project')]
     #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'ownedProfiles')]
     private $projectOfBelonging;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    #[ORM\OneToMany(targetEntity: \Profile::class, mappedBy: 'rootProfile')]
+    #[ORM\OneToMany(targetEntity: Profile::class, mappedBy: 'rootProfile')]
     private $childProfiles;
 
     #[Assert\Valid]
@@ -94,43 +103,30 @@ class Profile
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $labels;
 
-    #[ORM\JoinTable(schema: 'che', name: 'associates_profile')]
-    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\InverseJoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToMany(targetEntity: OntoClass::class, inversedBy: 'profiles', fetch: 'EXTRA_LAZY')]
-    private $classes;
-
-    #[ORM\ManyToMany(targetEntity: \Property::class, mappedBy: 'profiles')]
-    #[ORM\OrderBy(['identifierInNamespace' => 'ASC'])]
-    private $properties;
-
-    #[ORM\ManyToMany(targetEntity: \Project::class, mappedBy: 'profiles')]
-    private $projects;
-
-    #[ORM\JoinTable(schema: 'che', name: 'associates_referenced_namespace')]
-    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\InverseJoinColumn(name: 'fk_referenced_namespace', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'profiles', fetch: 'EXTRA_LAZY')]
-    private $namespaces;
+    #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'profile')]
+    private $projectAssociations;
 
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'profile', cascade: ['persist'])]
     #[ORM\OrderBy(['systemType' => 'ASC'])]
     private $profileAssociations;
 
-    #[ORM\ManyToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'profile')]
+    #[ORM\OneToMany(targetEntity: EntityUserProjectAssociation::class, mappedBy: 'profile')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $profileUserProjectAssociation;
+
+    #[ORM\OneToMany(targetEntity: ReferencedNamespaceAssociation::class, mappedBy: 'profile')]
+    private $referencedNamespaceAssociations;
 
     public function __construct()
     {
         $this->childProfiles = new ArrayCollection();
         $this->textProperties = new ArrayCollection();
         $this->labels = new ArrayCollection();
-        $this->projects = new ArrayCollection();
-        $this->namespaces = new ArrayCollection();
-        $this->classes = new ArrayCollection();
+        $this->projectAssociations = new ArrayCollection();
         $this->profileAssociations = new ArrayCollection();
+        $this->profileUserProjectAssociation = new ArrayCollection();
+        $this->referencedNamespaceAssociations = new ArrayCollection();
     }
 
     public function getId()
@@ -259,7 +255,13 @@ class Profile
      */
     public function getClasses()
     {
-        return $this->classes;
+        $classes = [];
+        // Filter the profileAssociations where the class is defined
+        $profileAssociationsWithValidClass = $this->profileAssociations->filter(fn($profileAssociation) => $profileAssociation->getClass() !== null);
+        foreach ($profileAssociationsWithValidClass as $profileAssociationWithValidClass) {
+            $classes[] = $profileAssociationWithValidClass->getClass();
+        }
+        return $classes;
     }
 
     /**
@@ -267,7 +269,13 @@ class Profile
      */
     public function getProperties()
     {
-        return $this->properties;
+        $properties = [];
+        // Filter the profileAssociations where the property is defined
+        $profileAssociationsWithValidProperty = $this->profileAssociations->filter(fn($profileAssociation) => $profileAssociation->getProperty() !== null);
+        foreach ($profileAssociationsWithValidProperty as $profileAssociationWithValidProperty) {
+            $properties[] = $profileAssociationWithValidProperty->getProperty();
+        }
+        return $properties;
     }
 
     /**
@@ -275,7 +283,13 @@ class Profile
      */
     public function getProjects()
     {
-        return $this->projects;
+        $projects = [];
+        foreach ($this->projectAssociations as $projectAssociation) {
+            if ($projectAssociation->getProject() !== null) {
+                $projects[] = $projectAssociation->getProject();
+            }
+        }
+        return $projects;
     }
 
     /**
@@ -283,7 +297,13 @@ class Profile
      */
     public function getNamespaces()
     {
-        return $this->namespaces;
+        $namespaces = new ArrayCollection();
+        foreach ($this->referencedNamespaceAssociations as $referencedNamespaceAssociation) {
+            if ($referencedNamespaceAssociation->getReferencedNamespace() !== null) {
+                $namespaces->add($referencedNamespaceAssociation->getReferencedNamespace());
+            }
+        }
+        return $namespaces;
     }
 
     public function getProfileAssociations()
@@ -387,7 +407,7 @@ class Profile
     /**
      * @param Profile $rootProfile
      */
-    public function setRootProfile($rootProfile)
+    public function setRootProfile(Profile $rootProfile)
     {
         $this->rootProfile = $rootProfile;
     }
@@ -400,7 +420,7 @@ class Profile
     /**
      * @param Project $projectOfBelonging
      */
-    public function setProjectOfBelonging($projectOfBelonging)
+    public function setProjectOfBelonging(Project $projectOfBelonging)
     {
         $this->projectOfBelonging = $projectOfBelonging;
     }
@@ -460,37 +480,6 @@ class Profile
         $label->setProfile($this);
     }
 
-    public function addNamespace(OntoNamespace $namespace)
-    {
-        if ($this->namespaces->contains($namespace)) {
-            return;
-        }
-        $this->namespaces[] = $namespace;
-    }
-
-    public function setNamespaces($namespaces)
-    {
-        $this->namespaces = $namespaces;
-    }
-
-    public function addClass(OntoClass $class)
-    {
-        if ($this->classes->contains($class)) {
-            return;
-        }
-        $this->classes[] = $class;
-    }
-
-    public function setClasses($classes)
-    {
-        $this->classes = $classes;
-    }
-
-    public function setProperties($properties)
-    {
-        $this->properties = $properties;
-    }
-
     /**
      * @return bool
      */
@@ -502,16 +491,6 @@ class Profile
     public function setIsVisible($isVisible)
     {
         $this->isVisible = $isVisible;
-    }
-
-    public function removeNamespace(OntoNamespace $namespace)
-    {
-        $this->namespaces->removeElement($namespace);
-    }
-
-    public function removeClass(OntoClass $class)
-    {
-        $this->classes->removeElement($class);
     }
 
     public function __toString()

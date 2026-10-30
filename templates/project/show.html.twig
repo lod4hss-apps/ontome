@@ -694,13 +694,24 @@
                                     .replace('pathbuilderID', pathbuilder.id);
 
                                 $pathbuildersList.append(
-                                    $('<li>', {'data-pathbuilder-id': pathbuilder.id}).append(
-                                        $('<a>', {
-                                            href: urlPathbuilderExport,
-                                            download: pathbuilder.label + '.xml',
-                                            text: pathbuilder.label
-                                        })
-                                    )
+                                    $('<div>', { 'data-pathbuilder-id': pathbuilder.id })
+                                        .addClass('d-flex justify-content-between')
+                                        .append(
+                                            $('<a>', {
+                                                href: urlPathbuilderExport,
+                                                download: pathbuilder.label + '.xml',
+                                                text: pathbuilder.label
+                                            })
+                                        )
+                                        .append(
+                                            $('<span>', {
+                                                id: 'pathbuilder-copy-url-' + pathbuilder.id,
+                                                style: 'display: none;'
+                                            }).text('https://ontome.net' + urlPathbuilderExport)
+                                        )
+                                        .append(
+                                            `<button data-id="pathbuilder-copy-url-${pathbuilder.id}" class="btn btn-xs btn-secondary copyToClipboard" title="Copy to clipboard"><i class="fas fa-file-export"></i> Copy URL</button>`
+                                        )
                                 );
                             }
                         }

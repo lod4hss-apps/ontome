@@ -11,48 +11,50 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class OntoNamespace.
  */
 #[ORM\Table(schema: 'che', name: 'namespace')]
-#[ORM\Entity(repositoryClass: \App\Repository\NamespaceRepository::class)]
+#[ORM\Index(name: 'namespace_fk_top_level_namespace_idx', columns: ['fk_top_level_namespace'])]
+#[ORM\Entity]
 class OntoNamespace
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_namespace')]
     private $id;
 
     #[Assert\Url(message: 'Please enter a valid URI')]
-    #[ORM\Column(type: 'text', nullable: true, unique: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $namespaceURI;
 
     #[ORM\Column(type: 'boolean')]
     private $isExternalNamespace;
 
     #[Assert\Url]
-    #[ORM\Column(type: 'text', nullable: true, unique: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $originalNamespaceURI;
 
     #[Assert\Length(min: 1, max: 6, minMessage: 'Your class prefix must be at least {{ limit }} characters long', maxMessage: 'Your class prefix cannot be longer than {{ limit }} characters')]
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
     private $classPrefix;
 
     #[Assert\Length(min: 1, max: 6, minMessage: 'Your property prefix must be at least {{ limit }} characters long', maxMessage: 'Your property prefix cannot be longer than {{ limit }} characters')]
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
     private $propertyPrefix;
 
     #[Assert\GreaterThanOrEqual(value: 0, message: 'Your current class number should be greater than or equal to 0.')]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $currentClassNumber;
 
     #[Assert\GreaterThanOrEqual(value: 0, message: 'Your current property number should be greater than or equal to 0.')]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $currentPropertyNumber;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $importerInteger;
 
     #[ORM\JoinColumn(name: 'fk_is_version_of', referencedColumnName: 'pk_namespace', nullable: true)]
@@ -69,30 +71,30 @@ class OntoNamespace
     #[ORM\Column(type: 'boolean')]
     private $isOngoing;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isVisible;
 
-    #[ORM\Column(type: 'boolean')]
-    private $hasPublication;
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private $hasPublication; // TODO: A quoi ça sert exactement ?
 
     #[ORM\JoinColumn(name: 'fk_project_for_top_level_namespace', referencedColumnName: 'pk_project')]
-    #[ORM\ManyToOne(targetEntity: \Project::class, cascade: ['persist'])]
+    #[ORM\ManyToOne(targetEntity: \Project::class, cascade: ['persist'], inversedBy: 'managedNamespaces')]
     private $projectForTopLevelNamespace;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'text')]
     private $standardLabel;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $publishedAt;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $deprecatedAt;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'namespace')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -105,7 +107,7 @@ class OntoNamespace
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
@@ -113,11 +115,11 @@ class OntoNamespace
 
     #[Assert\Length(min: 1, max: 10, minMessage: 'Your root namespace prefix must be at least {{ limit }} characters long', maxMessage: 'Your root namespace prefix cannot be longer than {{ limit }} characters')]
     #[Assert\NotNull(groups: ['RequirePrefix'])]
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'string', length: 10, nullable: true)]
     #[Assert\Regex(pattern: '/^[a-z0-9](-?[a-z0-9])*$/', match: true, message: 'Your prefix can only contain alphanumeric characters without accents and dashes')]
     private $rootNamespacePrefix;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private $uriParameter;
 
     /*
@@ -139,15 +141,7 @@ class OntoNamespace
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    #[ORM\ManyToMany(targetEntity: \OntoClass::class, mappedBy: 'namespaces')]
-    #[ORM\OrderBy(['identifierInNamespace' => 'ASC'])]
-    private $classes;
-
-    #[ORM\ManyToMany(targetEntity: \Property::class, mappedBy: 'namespaces')]
-    #[ORM\OrderBy(['identifierInNamespace' => 'ASC'])]
-    private $properties;
-
-    #[ORM\OneToMany(targetEntity: \ClassAssociation::class, mappedBy: 'namespaceForVersion')]
+    #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $classAssociations;
 
@@ -159,17 +153,9 @@ class OntoNamespace
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $propertyAssociations;
 
-    #[ORM\ManyToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'namespace')]
+    #[ORM\OneToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'namespace')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $namespaceUserProjectAssociation;
-
-    #[ORM\ManyToMany(targetEntity: Profile::class, mappedBy: 'namespaces')]
-    #[ORM\OrderBy(['standardLabel' => 'ASC'])]
-    private $profiles;
-
-    #[ORM\ManyToMany(targetEntity: Project::class, mappedBy: 'namespaces')]
-    #[ORM\OrderBy(['standardLabel' => 'ASC'])]
-    private $projects;
 
     #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'namespace')]
     private $projectAssociations;
@@ -248,8 +234,6 @@ class OntoNamespace
 
     public function __construct()
     {
-        $this->classes = new ArrayCollection();
-        $this->properties = new ArrayCollection();
         $this->labels = new ArrayCollection();
         $this->textProperties = new ArrayCollection();
         $this->classAssociations = new ArrayCollection();
@@ -257,8 +241,6 @@ class OntoNamespace
         $this->entityAssociations = new ArrayCollection();
         $this->referencedNamespaceAssociations = new ArrayCollection();
         $this->childVersions = new ArrayCollection();
-        $this->profiles = new ArrayCollection();
-        $this->projects = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->projectAssociations = new ArrayCollection();
         $this->classVersions = new ArrayCollection();
@@ -399,7 +381,12 @@ class OntoNamespace
      */
     public function getClasses()
     {
-        return $this->classes;
+        $classes = new ArrayCollection();
+
+        foreach ($this->classVersions as $classVersion) {
+            $classes->add($classVersion->getClass());
+        }
+        return $classes;
     }
 
     /**
@@ -407,7 +394,13 @@ class OntoNamespace
      */
     public function getProperties()
     {
-        return $this->properties;
+        $properties = new ArrayCollection();
+
+        foreach ($this->propertyVersions as $propertyVersion) {
+            $properties->add($propertyVersion->getProperty());
+        }
+
+        return $properties;
     }
 
     public function getLabels()
@@ -441,7 +434,14 @@ class OntoNamespace
      */
     public function getProfiles()
     {
-        return $this->profiles;
+        $profiles = new ArrayCollection();
+
+        foreach ($this->referencedNamespaceAssociations as $referencedNamespaceAssociation) {
+            if($referencedNamespaceAssociation->getProfile() !== null) {
+                $profiles->add($referencedNamespaceAssociation->getProfile());
+            }
+        }
+        return $profiles;
     }
 
     /**
@@ -449,7 +449,14 @@ class OntoNamespace
      */
     public function getProjects()
     {
-        return $this->projects;
+        $projects = new ArrayCollection();
+
+        foreach ($this->projectAssociations as $projectAssociation) {
+            if($projectAssociation->getProject() !== null && !$projects->contains($projectAssociation->getProject())) {
+                $projects->add($projectAssociation->getProject());
+            }
+        }
+        return $projects;
     }
 
     /**

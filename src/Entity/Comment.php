@@ -16,11 +16,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Comment.
  */
 #[ORM\Table(schema: 'che', name: 'comment')]
+#[ORM\Index(name: 'comment_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
 #[ORM\Entity]
 class Comment
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_comment')]
     private $id;
 
@@ -32,14 +33,14 @@ class Comment
     private $answers;
 
     #[ORM\JoinColumn(name: 'fk_commented_comment', referencedColumnName: 'pk_comment')]
-    #[ORM\ManyToOne(targetEntity: \Comment::class, inversedBy: 'commentedComment')]
+    #[ORM\ManyToOne(targetEntity: \Comment::class, inversedBy: 'answers')]
     private $commentedComment;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private $viewedBy = [];
 
-    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'commentVersions')]
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $namespaceForVersion;
 
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
@@ -76,18 +77,18 @@ class Comment
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: \User::class, inversedBy: 'comments')]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: false, options: ['default' => 'now'])]
     private $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $modificationTime;
 
     public function getId()

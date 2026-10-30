@@ -19,26 +19,26 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Class Property.
  */
 #[ORM\Table(schema: 'che', name: 'property')]
-#[ORM\Entity(repositoryClass: \App\Repository\PropertyRepository::class)]
+#[ORM\Entity]
 class Property
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_property')]
     private $id;
 
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'text')]
     private $identifierInNamespace;
 
-    #[ORM\Column(type: 'string', name: 'identifier_in_uri')]
+    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
     #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]
     private $identifierInURI;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $importerXmlField;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $importerTextField;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -51,13 +51,13 @@ class Property
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     /**
@@ -83,12 +83,6 @@ class Property
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $labels;
 
-    #[ORM\JoinTable(schema: 'che', name: 'associates_profile')]
-    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\InverseJoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\ManyToMany(targetEntity: \Profile::class, inversedBy: 'Property', fetch: 'EXTRA_LAZY')]
-    private $profiles;
-
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'property', cascade: ['persist'])]
     #[ORM\OrderBy(['systemType' => 'ASC'])]
@@ -110,24 +104,23 @@ class Property
     #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'targetProperty')]
     private $targetEntityAssociations;
 
-    #[ORM\JoinTable(schema: 'che', name: 'property_version')]
-    #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\InverseJoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'Property', fetch: 'EXTRA_LAZY')]
-    private $namespaces;
-
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isRecursive;
+
+    #[ORM\Column(nullable: false, options: ['default' => false])]
+    private ?bool $isDomainIdentification = null;
 
     public function __construct()
     {
-        $this->namespaces = new ArrayCollection();
         $this->propertyVersions = new ArrayCollection();
         $this->labels = new ArrayCollection();
         $this->textProperties = new ArrayCollection();
-        $this->profiles = new ArrayCollection();
         $this->comments = new ArrayCollection();
         $this->profileAssociations = new ArrayCollection();
+        $this->childPropertyAssociations = new ArrayCollection();
+        $this->parentPropertyAssociations = new ArrayCollection();
+        $this->sourceEntityAssociations = new ArrayCollection();
+        $this->targetEntityAssociations = new ArrayCollection();
     }
 
     #[Assert\Callback]
@@ -244,7 +237,11 @@ class Property
      */
     public function getNamespaces()
     {
-        return $this->namespaces;
+        $namespaces = [];
+        foreach ($this->propertyVersions as $propertyVersion) {
+            $namespaces[] = $propertyVersion->getNamespaceForVersion();
+        }
+        return $namespaces;
     }
 
     /**
@@ -308,7 +305,11 @@ class Property
      */
     public function getProfiles()
     {
-        return $this->profiles;
+        $profiles = [];
+        foreach ($this->profileAssociations as $profileAssociation) {
+            $profiles[] = $profileAssociation->getProfile();
+        }
+        return $profiles;
     }
 
     /**
@@ -389,16 +390,6 @@ class Property
     public function setTextProperties($textProperties)
     {
         $this->textProperties = $textProperties;
-    }
-
-    public function setProfiles($profiles)
-    {
-        $this->profiles = $profiles;
-    }
-
-    public function setNamespaces($namespaces)
-    {
-        $this->namespaces = $namespaces;
     }
 
     public function setLabels($labels)
@@ -582,5 +573,17 @@ class Property
                 $this->setIdentifierInURI($newIdentifierInUri);
                 break;
         }
+    }
+
+    public function isIsDomainIdentification(): ?bool
+    {
+        return $this->isDomainIdentification;
+    }
+
+    public function setIsDomainIdentification(?bool $isDomainIdentification): static
+    {
+        $this->isDomainIdentification = $isDomainIdentification;
+
+        return $this;
     }
 }

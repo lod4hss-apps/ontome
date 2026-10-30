@@ -14,48 +14,50 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Class EntityAssociation.
  */
-#[ORM\Table(name: 'che.associates_referenced_namespace')]
+#[ORM\Table(name: 'che.asso_referenced_namespace')]
+#[ORM\Index(name: 'asso_referenced_namespace_creator_idx', columns: ['creator'])]
+#[ORM\Index(name: 'asso_referenced_namespace_modifier_idx', columns: ['modifier'])]
 #[ORM\Entity]
 class ReferencedNamespaceAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
-    #[ORM\Column(type: 'integer', name: 'pk_associates_referenced_namespace')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
+    #[ORM\Column(type: 'integer', name: 'pk_asso_referenced_namespace')]
     private $id;
 
     #[ORM\JoinColumn(name: 'fk_referenced_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $referencedNamespace;
 
-    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Project::class)]
+    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
     private $project;
 
-    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Profile::class)]
+    #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'referencedNamespaceAssociations')]
     private $profile;
 
-    #[ORM\JoinColumn(name: 'fk_associate_user_to_project', referencedColumnName: 'pk_associate_user_to_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \UserProjectAssociation::class)]
+    #[ORM\JoinColumn(name: 'fk_associate_user_to_project', referencedColumnName: 'pk_associate_user_to_project', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: UserProjectAssociation::class)]
     private $userProjectAssociation;
 
-    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'referencedNamespaceAssociations')]
     private $namespace;
 
-    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
+    #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: SystemType::class)]
     private $systemType;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

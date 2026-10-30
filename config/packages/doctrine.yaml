@@ -1,6 +1,14 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        mapping_types:
+            # Custom PostgreSQL types present in this schema
+            tstzrange: string
+            xml: text
+            json: json
+            jsonb: json
+        # Exclude others schemas from Doctrine's mapping
+        schema_filter: '~^che\.~'
 
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)

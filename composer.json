@@ -47,6 +47,7 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "rector/rector": "^2.6",
         "symfony/dotenv": "^5.4",
+        "symfony/maker-bundle": "*",
         "symfony/phpunit-bridge": "^5.4",
         "symfony/stopwatch": "^5.4",
         "symfony/web-profiler-bundle": "^5.4"

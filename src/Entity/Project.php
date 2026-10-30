@@ -17,24 +17,25 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Project.
  */
 #[ORM\Table(schema: 'che', name: 'project')]
-#[ORM\Entity(repositoryClass: \App\Repository\ProjectRepository::class)]
+#[ORM\UniqueConstraint(name: 'uniq_project_uri_project', columns: ['uri_project'])]
+#[ORM\Entity]
 class Project
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_project')]
     private $id;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $startDate;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $endDate;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'string', length: 500)]
     private $standardLabel;
 
     #[ORM\JoinColumn(name: 'fk_is_subproject_of', referencedColumnName: 'pk_project', nullable: true)]
@@ -57,23 +58,11 @@ class Project
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
-
-    #[ORM\JoinTable(schema: 'che', name: 'associates_project')]
-    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
-    #[ORM\InverseJoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\ManyToMany(targetEntity: \Profile::class, inversedBy: 'Project', fetch: 'EXTRA_LAZY')]
-    private $profiles;
-
-    #[ORM\JoinTable(schema: 'che', name: 'associates_project')]
-    #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
-    #[ORM\InverseJoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'projects', fetch: 'EXTRA_LAZY')]
-    private $namespaces;
 
     #[Assert\Valid]
     #[Assert\NotNull]
@@ -101,7 +90,7 @@ class Project
     private $projectThesaurusAssociations;
 
     #[Assert\Url(message: 'Please enter a valid URI')]
-    #[ORM\Column(type: 'text', nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', nullable: true, unique: true)]
     private $uriProject;
 
     #[ORM\Column(type: 'json', nullable: true)]
@@ -114,8 +103,6 @@ class Project
     {
         $this->ownedProfiles = new ArrayCollection();
         $this->managedNamespaces = new ArrayCollection();
-        $this->profiles = new ArrayCollection();
-        $this->namespaces = new ArrayCollection();
         $this->textProperties = new ArrayCollection();
         $this->labels = new ArrayCollection();
         $this->childProjects = new ArrayCollection();
@@ -232,7 +219,12 @@ class Project
      */
     public function getProfiles()
     {
-        return $this->profiles;
+        $profiles = [];
+        $projectAssociationsWithValidProfile = $this->projectAssociations->filter(fn($projectAssociation) => $projectAssociation->getProfile() !== null);
+        foreach ($projectAssociationsWithValidProfile as $projectAssociationWithValidProfile) {
+            $profiles[] = $projectAssociationWithValidProfile->getProfile();
+        }
+        return $profiles;
     }
 
     /**
@@ -240,7 +232,12 @@ class Project
      */
     public function getNamespaces()
     {
-        return $this->namespaces;
+        $namespaces = [];
+        $projectAssociationsWithValidNamespace = $this->projectAssociations->filter(fn($projectAssociation) => $projectAssociation->getNamespace() !== null);
+        foreach ($projectAssociationsWithValidNamespace as $projectAssociationWithValidNamespace) {
+            $namespaces[] = $projectAssociationWithValidNamespace->getNamespace();
+        }
+        return $namespaces;
     }
 
     /**

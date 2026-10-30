@@ -19,19 +19,20 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Class OntoClass.
  */
 #[ORM\Table(schema: 'che', name: 'class')]
-#[ORM\Entity(repositoryClass: \App\Repository\ClassRepository::class)]
+#[ORM\Index(name: 'class_identifier_in_namespace_idx', columns: ['identifier_in_namespace'])]
+#[ORM\Entity]
 class OntoClass
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_class')]
     private $id;
 
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'text')]
     private $identifierInNamespace;
 
-    #[ORM\Column(type: 'string', name: 'identifier_in_uri')]
+    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
     #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]
     private $identifierInURI;
 
@@ -46,13 +47,13 @@ class OntoClass
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $classVersions;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $importerXmlField;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $importerTextField;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -65,29 +66,23 @@ class OntoClass
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
 
-    #[ORM\OneToMany(targetEntity: \ClassAssociation::class, mappedBy: 'childClass')]
+    #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'childClass')]
     private $childClassAssociations;
 
-    #[ORM\OneToMany(targetEntity: \ClassAssociation::class, mappedBy: 'parentClass')]
+    #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'parentClass')]
     private $parentClassAssociations;
 
-    #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'sourceClass')]
+    #[ORM\OneToMany(targetEntity: EntityAssociation::class, mappedBy: 'sourceClass')]
     private $sourceEntityAssociations;
 
-    #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'targetClass')]
+    #[ORM\OneToMany(targetEntity: EntityAssociation::class, mappedBy: 'targetClass')]
     private $targetEntityAssociations;
-
-    #[ORM\JoinTable(schema: 'che', name: 'class_version')]
-    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\InverseJoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'classes', fetch: 'EXTRA_LAZY')]
-    private $namespaces;
 
     #[Assert\Valid]
     #[Assert\NotNull]
@@ -101,12 +96,6 @@ class OntoClass
     #[ORM\OrderBy(['languageIsoCode' => 'ASC', 'creationTime' => 'DESC'])]
     private $textProperties;
 
-    #[ORM\JoinTable(schema: 'che', name: 'associates_profile')]
-    #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\InverseJoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\ManyToMany(targetEntity: \Profile::class, mappedBy: 'classes', fetch: 'LAZY')]
-    private $profiles;
-
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'class')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
@@ -116,19 +105,28 @@ class OntoClass
     #[ORM\OrderBy(['systemType' => 'ASC'])]
     private $profileAssociations;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private $isRecursive;
+
+    #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'domain')]
+    private $propertiesAsDomain;
+
+    #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'range')]
+    private $propertiesAsRange;
 
     public function __construct()
     {
-        $this->namespaces = new ArrayCollection();
         $this->classVersions = new ArrayCollection();
         $this->labels = new ArrayCollection();
         $this->textProperties = new ArrayCollection();
-        $this->profiles = new ArrayCollection();
         $this->parentClassAssociations = new ArrayCollection();
         $this->childClassAssociations = new ArrayCollection();
         $this->comments = new ArrayCollection();
+        $this->sourceEntityAssociations = new ArrayCollection();
+        $this->targetEntityAssociations = new ArrayCollection();
+        $this->profileAssociations = new ArrayCollection();
+        $this->propertiesAsDomain = new ArrayCollection();
+        $this->propertiesAsRange = new ArrayCollection();
     }
 
     #[Assert\Callback]
@@ -240,7 +238,11 @@ class OntoClass
      */
     public function getNamespaces()
     {
-        return $this->namespaces;
+        $namespaces = [];
+        foreach ($this->classVersions as $classVersion) {
+            $namespaces[] = $classVersion->getNamespaceForVersion();
+        }
+        return $namespaces;
     }
 
     /**
@@ -264,7 +266,11 @@ class OntoClass
      */
     public function getProfiles()
     {
-        return $this->profiles;
+        $profiles = [];
+        foreach ($this->profileAssociations as $profileAssociation) {
+            $profiles[] = $profileAssociation->getProfile();
+        }
+        return $profiles;
     }
 
     /**
@@ -392,22 +398,6 @@ class OntoClass
         $this->labels[] = $label;
         // needed to update the owning side of the relationship!
         $label->setClass($this);
-    }
-
-    public function addNamespace(OntoNamespace $namespace)
-    {
-        if ($this->namespaces->contains($namespace)) {
-            return;
-        }
-        $this->namespaces[] = $namespace;
-    }
-
-    public function addProfile(Profile $profile)
-    {
-        if ($this->profiles->contains($profile)) {
-            return;
-        }
-        $this->profiles[] = $profile;
     }
 
     public function addProfileAssociation(ProfileAssociation $profileAssociation)

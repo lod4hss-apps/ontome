@@ -17,13 +17,15 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Table(schema: 'che', name: 'admin_user')]
-#[ORM\Entity(repositoryClass: \App\Repository\UserRepository::class)]
+#[ORM\Entity]
 #[UniqueEntity(fields: ['email'], message: 'This e-mail is already in use.')]
 #[UniqueEntity(fields: ['login'], message: 'This login is already in use.')]
+#[ORM\UniqueConstraint(name: 'uniq_user_login', columns: ['login'])]
+#[ORM\UniqueConstraint(name: 'uniq_user_email', columns: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_user')]
     private $id;
 
@@ -60,11 +62,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', nullable: false)]
     private $firstName;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true, 'comment' => 'Définit le statut de l\'utilisateur : 1 pour actif et 0 pour inactif'])]
     private $status;
 
     #[Assert\NotEqualTo(false, message: 'You must accept our term of service')]
-    #[ORM\Column(type: 'boolean', nullable: false)]
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true])]
     private $hasValidatedPolicy;
 
     #[ORM\Column(type: 'string', nullable: true)]
@@ -73,10 +75,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json', nullable: true)]
     private $roles = [];
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', nullable: true)]
     private $token;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $tokenDate;
 
     #[Assert\NotBlank]
@@ -84,7 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $userProjectAssociations;
 
     #[ORM\JoinColumn(name: 'fk_current_active_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'UserProjectAssociation')]
+    #[ORM\ManyToOne(targetEntity: Project::class)]
     private $currentActiveProject;
 
     #[ORM\OneToMany(targetEntity: \Comment::class, mappedBy: 'creator')]

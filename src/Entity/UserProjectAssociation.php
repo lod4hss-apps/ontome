@@ -12,6 +12,8 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\User;
+use App\Entity\Project;
 
 /**
  * Class UserProjectAssociation.
@@ -19,50 +21,51 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(schema: 'che', name: 'associate_user_to_project')]
 #[ORM\Entity]
 #[UniqueEntity(fields: ['user', 'project'], message: 'This user class is already associated with this project')]
+#[ORM\UniqueConstraint(name: 'uniq_user_user_project', columns: ['fk_user', 'fk_project'])]
 class UserProjectAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_associate_user_to_project')]
     private $id;
 
     #[ORM\JoinColumn(name: 'fk_user', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class, inversedBy: 'userProjectAssociations')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userProjectAssociations')]
     private $user;
 
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Project::class)]
+    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'userProjectAssociations')]
     private $project;
 
-    #[ORM\Column(type: 'integer', name: 'has_permissions_in_project')]
+    #[ORM\Column(type: 'integer', name: 'has_permissions_in_project', nullable: false)]
     #[Assert\Choice([1, 2, 3])]
     private $permission;
 
-    #[ORM\Column(type: 'date', nullable: false)]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $startDate;
 
-    #[ORM\Column(type: 'date')]
+    #[ORM\Column(type: 'date', nullable: true)]
     private $endDate;
 
-    #[ORM\OneToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'userProjectAssociation')]
+    #[ORM\OneToMany(targetEntity: EntityUserProjectAssociation::class, mappedBy: 'userProjectAssociation')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $entityUserProjectAssociations;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $creator;
 
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: false, options: ['default' => 'now'])]
     private $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $modificationTime;
 
     public function getId()

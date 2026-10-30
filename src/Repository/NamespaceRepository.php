@@ -100,7 +100,7 @@ class NamespaceRepository extends ServiceEntityRepository
                        standard_label AS "standardLabel" 
                 FROM che.namespace
                 WHERE pk_namespace NOT IN (
-                    SELECT nsp.fk_top_level_namespace FROM che.associates_referenced_namespace ansp
+                    SELECT nsp.fk_top_level_namespace FROM che.asso_referenced_namespace ansp
                     JOIN che.namespace nsp ON ansp.fk_referenced_namespace = nsp.pk_namespace
                     WHERE ansp.fk_namespace = :namespace AND ansp.fk_referenced_namespace IS NOT NULL
                     )
@@ -201,7 +201,7 @@ class NamespaceRepository extends ServiceEntityRepository
         $rsm->addRootEntityFromClassMetadata(OntoNamespace::class, 'ns');
 
         $sql = '  SELECT ns.* FROM che.namespace ns
-                      LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
+                      LEFT JOIN che.asso_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
                       WHERE aseup.fk_system_type = 25
                       AND aseup.fk_associate_user_to_project = (SELECT pk_associate_user_to_project 
                                                                 FROM che.associate_user_to_project 
@@ -209,9 +209,9 @@ class NamespaceRepository extends ServiceEntityRepository
                         --+ All references namespaces from active namespaces
                       UNION
                       SELECT ns2.* FROM che.namespace ns2
-                      WHERE ns2.pk_namespace IN (SELECT fk_referenced_namespace FROM che.associates_referenced_namespace WHERE fk_namespace IN(
+                      WHERE ns2.pk_namespace IN (SELECT fk_referenced_namespace FROM che.asso_referenced_namespace WHERE fk_namespace IN(
                         SELECT ns3.pk_namespace FROM che.namespace ns3
-                        LEFT JOIN che.associates_entity_to_user_project aseup2 ON aseup2.fk_namespace = ns3.pk_namespace 
+                        LEFT JOIN che.asso_entity_to_user_project aseup2 ON aseup2.fk_namespace = ns3.pk_namespace 
                         WHERE aseup2.fk_system_type = 25
                         AND aseup2.fk_associate_user_to_project = (SELECT pk_associate_user_to_project 
                                                                   FROM che.associate_user_to_project 
@@ -255,7 +255,7 @@ class NamespaceRepository extends ServiceEntityRepository
         $rsm->addRootEntityFromClassMetadata(OntoNamespace::class, 'ns');
 
         $sql = '  SELECT ns.* FROM che.namespace ns
-                      LEFT JOIN che.associates_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
+                      LEFT JOIN che.asso_entity_to_user_project aseup ON aseup.fk_namespace = ns.pk_namespace 
                       WHERE aseup.fk_system_type = 25
                       AND aseup.fk_associate_user_to_project = (SELECT pk_associate_user_to_project 
                                                                 FROM che.associate_user_to_project 
@@ -476,7 +476,7 @@ class NamespaceRepository extends ServiceEntityRepository
                 FROM publicNamespacesId
                 UNION
                 SELECT fk_referenced_namespace AS fk_namespace
-                FROM che.associates_referenced_namespace
+                FROM che.asso_referenced_namespace
                 WHERE fk_namespace IN(  SELECT fk_namespace 
                                         FROM publicNamespacesId);';
 
@@ -499,7 +499,7 @@ class NamespaceRepository extends ServiceEntityRepository
 	                SELECT eupa.fk_namespace
 	                FROM che.admin_user us
 	                LEFT JOIN che.associate_user_to_project upa ON upa.fk_project = us.fk_current_active_project AND upa.fk_user = us.pk_user
-                    LEFT JOIN che.associates_entity_to_user_project eupa ON eupa.fk_associate_user_to_project = upa.pk_associate_user_to_project
+                    LEFT JOIN che.asso_entity_to_user_project eupa ON eupa.fk_associate_user_to_project = upa.pk_associate_user_to_project
 	                WHERE us.pk_user = :userId
 	                AND eupa.fk_namespace IS NOT NULL
 	                AND eupa.fk_system_type = 25
@@ -512,7 +512,7 @@ class NamespaceRepository extends ServiceEntityRepository
                 FROM selectionNamespacesId
                 UNION
                 SELECT fk_referenced_namespace AS fk_namespace 
-                FROM che.associates_referenced_namespace 
+                FROM che.asso_referenced_namespace 
                 WHERE fk_namespace IN (SELECT fk_namespace FROM selectionNamespacesId)
                 UNION
                 SELECT DISTINCT pk_namespace AS fk_namespace

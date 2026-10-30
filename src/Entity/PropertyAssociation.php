@@ -18,12 +18,15 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class PropertyAssociation.
  */
 #[ORM\Table(schema: 'che', name: 'is_subproperty_of')]
+#[ORM\Index(name: 'is_subproperty_of_fk_child_property_namespace_idx', columns: ['fk_child_property_namespace'])]
+#[ORM\Index(name: 'is_subproperty_of_fk_parent_property_namespace_idx', columns: ['fk_parent_property_namespace'])]
+#[ORM\Index(name: 'is_subproperty_of_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
 #[ORM\Entity]
 #[UniqueEntity(fields: ['childProperty', 'parentProperty', 'namespaceForVersion'], message: 'This parent property is already associated with this child property')]
 class PropertyAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_is_subproperty_of')]
     private $id;
 
@@ -53,7 +56,7 @@ class PropertyAssociation
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[Assert\NotNull]
@@ -74,7 +77,7 @@ class PropertyAssociation
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

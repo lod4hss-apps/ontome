@@ -17,11 +17,15 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class EntityAssociation.
  */
 #[ORM\Table(name: 'che.entity_association')]
+#[ORM\Index(name: 'entity_association_fk_source_namespace_for_version_idx', columns: ['fk_source_namespace_for_version'])]
+#[ORM\Index(name: 'entity_association_fk_target_namespace_for_version_idx', columns: ['fk_target_namespace_for_version'])]
+#[ORM\Index(name: 'entity_association_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
+#[ORM\Index(name: 'entity_association_fk_system_type_idx', columns: ['fk_system_type'])]
 #[ORM\Entity]
 class EntityAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_entity_association')]
     private $id;
 
@@ -50,7 +54,7 @@ class EntityAssociation
     private $targetNamespaceForVersion;
 
     #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'entityAssociations')]
+    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
     private $systemType;
 
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
@@ -58,7 +62,7 @@ class EntityAssociation
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    #[ORM\Column(type: 'boolean', name: 'directed')]
+    #[ORM\Column(type: 'boolean', name: 'directed', options: ['default' => false])]
     private $directed;
 
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
@@ -79,7 +83,7 @@ class EntityAssociation
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
@@ -88,6 +92,9 @@ class EntityAssociation
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'entityAssociation')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private $notes;
 
     /**
      * EntityAssociation constructor.
@@ -247,6 +254,16 @@ class EntityAssociation
     public function getTargetNamespaceForVersion()
     {
         return $this->targetNamespaceForVersion;
+    }
+
+    public function getNotes()
+    {
+        return $this->notes;
+    }
+
+    public function setNotes($notes)
+    {
+        $this->notes = $notes;
     }
 
     public function setNamespaceForVersion($namespaceForVersion)

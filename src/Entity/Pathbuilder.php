@@ -10,17 +10,22 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Pathbuilder.
  */
 #[ORM\Table(schema: 'che', name: 'pathbuilder')]
+#[ORM\Index(name: 'pathbuilder_fk_container_idx', columns: ['fk_container'])]
+#[ORM\Index(name: 'pathbuilder_fk_label_idx', columns: ['fk_label'])]
+#[ORM\Index(name: 'pathbuilder_fk_creator_idx', columns: ['creator'])]
+#[ORM\Index(name: 'pathbuilder_fk_modifier_idx', columns: ['modifier'])]
 #[ORM\Entity]
 class Pathbuilder
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_pathbuilder')]
     private $id;
 
@@ -29,7 +34,7 @@ class Pathbuilder
     private $container;
 
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    #[ORM\ManyToOne(targetEntity: \Label::class, inversedBy: 'pathbuilders')]
+    #[ORM\ManyToOne(targetEntity: \Label::class)]
     private $label;
 
     #[ORM\Column(type: 'text', name: 'xml_content')]
@@ -45,7 +50,7 @@ class Pathbuilder
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

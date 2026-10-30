@@ -114,7 +114,12 @@ class TextPropertyController extends AbstractController
             $object = $textProperty->getNamespace();
             $objectType = 'namespace';
             $redirectToRoute = 'namespace_edit';
-            $redirectToRouteFragment = 'definition';
+            // 31 = owl:versionInfo -> back to identification tab and not definition tab
+            if($textProperty->getSystemType()->getId() == 31){ 
+                $redirectToRouteFragment = 'identification';
+            } else {
+                $redirectToRouteFragment = 'definition';
+            }
         } else {
             throw $this->createNotFoundException('The related object for the text property  n° '.$textProperty->getId().' does not exist. Please contact an administrator.');
         }

@@ -21,15 +21,15 @@ use Symfony\Component\Validator\Constraints as Assert;
 class SystemType
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_system_type')]
     private $id;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'text', nullable: false)]
+    #[ORM\Column(type: 'string', length: 250, nullable: false, options: ['comment' => 'A table name where a system type can be used. Many table names can be provided: they have to be separated by commas without spaces'])]
     private $usedInTable;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'string', length: 500, nullable: false)]
     private $standardLabel;
 
     #[Assert\NotBlank]
@@ -53,7 +53,7 @@ class SystemType
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

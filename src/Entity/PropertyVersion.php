@@ -9,55 +9,62 @@
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class PropertyVersion.
  */
 #[ORM\Table(schema: 'che', name: 'property_version')]
-#[ORM\Entity(repositoryClass: \App\Repository\PropertyVersionRepository::class)]
+#[ORM\Index(name: 'property_version_fk_domain_namespace_idx', columns: ['fk_domain_namespace'])]
+#[ORM\Index(name: 'property_version_fk_range_namespace_idx', columns: ['fk_range_namespace'])]
+#[ORM\Index(name: 'property_version_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
+#[ORM\Index(name: 'property_version_has_domain_idx', columns: ['has_domain'])]
+#[ORM\Index(name: 'property_version_has_range_idx', columns: ['has_range'])]
+#[ORM\Entity]
 class PropertyVersion
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_property_version')]
     private $id;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', length: 500)]
     private $standardLabel;
 
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'propertyVersion')]
+    #[ORM\ManyToOne(targetEntity: Property::class, inversedBy: 'propertyVersions')]
     private $property;
 
-    #[ORM\JoinColumn(name: 'has_domain', referencedColumnName: 'pk_class', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'propertiesAsDomain')]
+    #[ORM\JoinColumn(name: 'has_domain', referencedColumnName: 'pk_class', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'propertiesAsDomain')]
     private $domain;
 
-    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $domainNamespace;
 
-    #[ORM\JoinColumn(name: 'has_range', referencedColumnName: 'pk_class', nullable: false)]
+    #[ORM\JoinColumn(name: 'has_range', referencedColumnName: 'pk_class', nullable: true)]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class)]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'propertiesAsRange')]
     private $range;
 
-    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
+    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
     private $rangeNamespace;
 
-    #[ORM\Column(type: 'smallint', name: 'domain_instances_min_quantifier')]
+    #[ORM\Column(type: 'smallint', name: 'domain_instances_min_quantifier', nullable: true)]
     private $domainMinQuantifier;
 
-    #[ORM\Column(type: 'smallint', name: 'domain_instances_max_quantifier')]
+    #[ORM\Column(type: 'smallint', name: 'domain_instances_max_quantifier', nullable: true)]
     private $domainMaxQuantifier;
 
-    #[ORM\Column(type: 'smallint', name: 'range_instances_min_quantifier')]
+    #[ORM\Column(type: 'smallint', name: 'range_instances_min_quantifier', nullable: true)]
     private $rangeMinQuantifier;
 
-    #[ORM\Column(type: 'smallint', name: 'range_instances_max_quantifier')]
+    #[ORM\Column(type: 'smallint', name: 'range_instances_max_quantifier', nullable: true)]
     private $rangeMaxQuantifier;
 
     #[ORM\JoinColumn(name: 'fk_property_of_origin', referencedColumnName: 'pk_property')]
@@ -73,7 +80,7 @@ class PropertyVersion
     #[Assert\Type(type: 'App\Entity\SystemType')]
     private $validationStatus;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -86,11 +93,20 @@ class PropertyVersion
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
     private $modificationTime;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $importerXmlField = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $importerTextField = null;
+
+    #[ORM\Column(nullable: false, options: ['default' => false])]
+    private ?bool $isDomainIdentification = null;
 
     public function __construct()
     {
@@ -588,5 +604,41 @@ class PropertyVersion
         }
 
         return false;
+    }
+
+    public function getImporterXmlField(): ?string
+    {
+        return $this->importerXmlField;
+    }
+
+    public function setImporterXmlField(?string $importerXmlField): static
+    {
+        $this->importerXmlField = $importerXmlField;
+
+        return $this;
+    }
+
+    public function getImporterTextField(): ?string
+    {
+        return $this->importerTextField;
+    }
+
+    public function setImporterTextField(?string $importerTextField): static
+    {
+        $this->importerTextField = $importerTextField;
+
+        return $this;
+    }
+
+    public function isIsDomainIdentification(): ?bool
+    {
+        return $this->isDomainIdentification;
+    }
+
+    public function setIsDomainIdentification(?bool $isDomainIdentification): static
+    {
+        $this->isDomainIdentification = $isDomainIdentification;
+
+        return $this;
     }
 }

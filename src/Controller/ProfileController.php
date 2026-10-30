@@ -20,6 +20,7 @@ use App\Entity\Property;
 use App\Entity\SystemType;
 use App\Entity\TextProperty;
 use App\Entity\UserProjectAssociation;
+use App\Entity\ReferencedNamespaceAssociation;
 use App\Form\ProfileEditForm;
 use App\Form\ProfileQuickAddForm;
 use App\Form\TextPropertyForm;
@@ -75,7 +76,7 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/profile')]
+    #[Route(path: '/profile', name: 'app_profile_list', methods: ['GET'])]
     public function listAction(ProfileRepository $profileRepository): Response
     {
         $profiles = $profileRepository->findAll();
@@ -423,7 +424,19 @@ class ProfileController extends AbstractController
             $message = 'This namespace is already used by this profile';
         } else {
             $em = $this->doctrine->getManager();
-            $profile->addNamespace($namespace);
+            
+
+            $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
+            $referencedNamespaceAssociation->setProfile($profile);
+            $referencedNamespaceAssociation->setReferencedNamespace($namespace);
+            $referencedNamespaceAssociation->setCreator($this->getUser());
+            $referencedNamespaceAssociation->setModifier($this->getUser());
+            $referencedNamespaceAssociation->setCreationTime(new \DateTime('now'));
+            $referencedNamespaceAssociation->setModificationTime(new \DateTime('now'));
+
+            $em->persist($referencedNamespaceAssociation);
+            $em->flush();
+
             foreach ($namespace->getAllReferencedNamespaces() as $referencedNamespace) {
                 if (!$arrayAllReferencesNamespacesForProfile->contains($referencedNamespace) and $referencedNamespace != $namespace) {
                     $arrayAllReferencesNamespacesForProfile->add($referencedNamespace);
@@ -493,9 +506,17 @@ class ProfileController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $profile->removeNamespace($namespace);
+        // Trouver le referencedNamespaceAssociation correspondant
         $em = $this->doctrine->getManager();
-        $em->persist($profile);
+        $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)->findOneBy([
+            'profile' => $profile,
+            'referencedNamespace' => $namespace,
+        ]);
+
+        if ($referencedNamespaceAssociation) {
+            $em->remove($referencedNamespaceAssociation);
+        }
+        
         $em->flush();
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
@@ -580,6 +601,7 @@ class ProfileController extends AbstractController
     }
 
     /**
+     * @Route("/selectable-classes/profile/{profile}/json", name="selectable_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"}, methods={"GET"})
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
     public function getSelectableClassesByProfile(Profile $profile, ClassRepository $classRepository)

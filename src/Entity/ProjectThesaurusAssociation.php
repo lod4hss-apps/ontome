@@ -15,14 +15,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Class ProjectThesaurusAssociation.
  */
-#[ORM\Table(schema: 'che', name: 'associates_project_thesaurus')]
+#[ORM\Table(schema: 'che', name: 'asso_project_thesaurus')]
 #[ORM\Entity]
 class ProjectThesaurusAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
-    #[ORM\Column(type: 'integer', name: 'pk_associates_project_thesaurus')]
-    #[ORM\SequenceGenerator(sequenceName: 'che.associates_project_thesaurus_pk_asso_project_thesaurus_seq', allocationSize: 1, initialValue: 1)]
+    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\SequenceGenerator(sequenceName: 'che.associates_pro_the_seq', allocationSize: 1)]
+    #[ORM\Column(type: 'integer', name: 'pk_asso_project_thesaurus')]
     private $id;
 
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
@@ -31,7 +31,7 @@ class ProjectThesaurusAssociation
 
     #[Assert\Url(message: 'Please enter a valid URI')]
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'text', nullable: true, unique: true)]
+    #[ORM\Column(type: 'text', nullable: false)]
     private $thesaurusURL;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -42,7 +42,7 @@ class ProjectThesaurusAssociation
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

@@ -10,17 +10,27 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class ProfileAssociation.
  */
 #[ORM\Table(schema: 'che', name: 'associates_profile')]
+#[ORM\Index(name: 'associates_profile_fk_profile_idx', columns: ['fk_profile'])]
+#[ORM\Index(name: 'associates_profile_fk_property_idx', columns: ['fk_property'])]
+#[ORM\Index(name: 'associates_profile_fk_class_idx', columns: ['fk_class'])]
+#[ORM\Index(name: 'associates_profile_fk_entity_namespace_for_version_idx', columns: ['fk_entity_namespace_for_version'])]
+#[ORM\Index(name: 'associates_profile_fk_inheriting_domain_class_idx', columns: ['fk_inheriting_domain_class'])]
+#[ORM\Index(name: 'associates_profile_fk_domain_namespace_idx', columns: ['fk_domain_namespace'])]
+#[ORM\Index(name: 'associates_profile_fk_inheriting_range_class_idx', columns: ['fk_inheriting_range_class'])]
+#[ORM\Index(name: 'associates_profile_fk_range_namespace_idx', columns: ['fk_range_namespace'])]
+#[ORM\Index(name: 'associates_profile_fk_system_type_idx', columns: ['fk_system_type'])]
 #[ORM\Entity]
 class ProfileAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_associates_profile')]
     private $id;
 
@@ -29,11 +39,11 @@ class ProfileAssociation
     private $profile;
 
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: Property::class)]
+    #[ORM\ManyToOne(targetEntity: Property::class, inversedBy: 'profileAssociations')]
     private $property;
 
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
+    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'profileAssociations')]
     private $class;
 
     #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
@@ -44,7 +54,7 @@ class ProfileAssociation
     #[ORM\ManyToOne(targetEntity: OntoClass::class)]
     private $domain;
 
-    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
     #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $domainNamespace;
 
@@ -52,7 +62,7 @@ class ProfileAssociation
     #[ORM\ManyToOne(targetEntity: OntoClass::class)]
     private $range;
 
-    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
+    #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
     #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $rangeNamespace;
 
@@ -66,7 +76,7 @@ class ProfileAssociation
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
     private $textProperties;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -77,7 +87,7 @@ class ProfileAssociation
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

@@ -12,16 +12,21 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Repository\ContainerRepository;
 
 /**
  * Class Container.
  */
 #[ORM\Table(schema: 'che', name: 'container')]
-#[ORM\Entity(repositoryClass: \App\Repository\ContainerRepository::class)]
+#[ORM\Index(name: 'container_fk_project_idx', columns: ['fk_project'])]
+#[ORM\Index(name: 'container_fk_label_idx', columns: ['fk_label'])]
+#[ORM\Index(name: 'container_creator_idx', columns: ['creator'])]
+#[ORM\Index(name: 'container_modifier_idx', columns: ['modifier'])]
+#[ORM\Entity]
 class Container
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_container')]
     private $id;
 
@@ -39,10 +44,10 @@ class Container
     private $pathbuilders;
 
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    #[ORM\ManyToOne(targetEntity: \Label::class, inversedBy: 'containers')]
+    #[ORM\ManyToOne(targetEntity: \Label::class)]
     private $label;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private $isOngoing;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -55,7 +60,7 @@ class Container
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]

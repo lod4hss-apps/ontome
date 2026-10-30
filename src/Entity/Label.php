@@ -17,11 +17,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Class Label.
  */
 #[ORM\Table(schema: 'che', name: 'label')]
-#[ORM\Entity(repositoryClass: \App\Repository\LabelRepository::class)]
+#[ORM\Index(name: 'label_language_iso_code_idx', columns: ['language_iso_code'])]
+#[ORM\Index(name: 'label_fk_namespace_for_version_idx', columns: ['fk_namespace_for_version'])]
+#[ORM\Index(name: 'label_fk_namespace_idx', columns: ['fk_namespace'])]
+#[ORM\Entity]
 class Label
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_label')]
     private $id;
 
@@ -29,18 +32,18 @@ class Label
     #[ORM\Column(type: 'text', nullable: false)]
     private $label;
 
-    #[ORM\Column(type: 'text', nullable: false)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $inverseLabel;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'text', nullable: false)]
+    #[ORM\Column(type: 'string', nullable: false)]
     private $languageIsoCode;
 
-    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'labelVersions')]
+    #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
     private $namespaceForVersion;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: true)]
     private $importerInteger;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
@@ -54,7 +57,7 @@ class Label
     #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'labels')]
     private $property;
 
-    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
+    #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
     #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'labels')]
     private $namespace;
 
@@ -75,7 +78,7 @@ class Label
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
     private $comments;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private $notes;
 
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -88,7 +91,7 @@ class Label
     #[ORM\ManyToOne(targetEntity: \User::class)]
     private $modifier;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
     private $creationTime;
 
     #[ORM\Column(type: 'datetime')]
