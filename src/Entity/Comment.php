@@ -43,7 +43,7 @@ class Comment
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespaceForVersion;
+    private ?OntoNamespace $namespaceForVersion = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]

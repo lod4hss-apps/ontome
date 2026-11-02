@@ -42,7 +42,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     // The encoded password.
     #[ORM\Column(nullable: true)]
-    private string $password;
+    private ?string $password = null;
 
     // A non-persisted field that's used to create the encoded password.
     #[Assert\NotBlank(groups: ['Registration', 'ResetPassword'])]
@@ -66,16 +66,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $hasValidatedPolicy;
 
     #[ORM\Column(nullable: true)]
-    private string $institution;
+    private ?string $institution = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private array $roles = [];
 
     #[ORM\Column(nullable: true)]
-    private string $token;
+    private ?string $token = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private DateTime $tokenDate;
+    private ?DateTime $tokenDate = null;
 
     #[Assert\NotBlank]
     #[ORM\OneToMany(targetEntity: UserProjectAssociation::class, mappedBy: 'user')]

@@ -43,7 +43,7 @@ class SystemType
     private Collection $profileAssociations;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne]

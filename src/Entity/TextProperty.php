@@ -63,28 +63,28 @@ class TextProperty implements GroupSequenceProviderInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespaceForVersion;
+    private ?OntoNamespace $namespaceForVersion = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_associates_profile', referencedColumnName: 'pk_associates_profile', nullable: true)]
-    private ProfileAssociation $profileAssociation;
+    private ?ProfileAssociation $profileAssociation = null;
 
     #[Assert\Valid]
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class', nullable: true)]
-    private OntoClass $class;
+    private ?OntoClass $class = null;
 
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property', nullable: true)]
-    private Property $property;
+    private ?Property $property = null;
 
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespace;
+    private ?OntoNamespace $namespace = null;
 
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: true)]
-    private Project $project;
+    private ?Project $project = null;
 
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_text_property_type', referencedColumnName: 'pk_system_type', options: ['comment' => 'Typed by a system type'])]
@@ -119,7 +119,7 @@ class TextProperty implements GroupSequenceProviderInterface
     private Collection $comments;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne]
@@ -139,7 +139,7 @@ class TextProperty implements GroupSequenceProviderInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $entityNamespaceForVersion;
+    private ?OntoNamespace $entityNamespaceForVersion = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $importerText = null;

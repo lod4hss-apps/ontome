@@ -65,7 +65,7 @@ class Profile
 
     #[ORM\ManyToOne(inversedBy: 'childProfiles')]
     #[ORM\JoinColumn(name: 'fk_root_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    private Profile $rootProfile;
+    private ?Profile $rootProfile = null;
 
     #[ORM\ManyToOne(inversedBy: 'ownedProfiles')]
     #[ORM\JoinColumn(name: 'fk_project_of_belonging', referencedColumnName: 'pk_project')]

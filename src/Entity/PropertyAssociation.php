@@ -58,7 +58,7 @@ class PropertyAssociation
     private SystemType $validationStatus;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[Assert\NotNull]
     #[Assert\Valid]

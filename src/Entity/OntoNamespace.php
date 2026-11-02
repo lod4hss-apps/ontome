@@ -76,11 +76,11 @@ class OntoNamespace
 
     #[ORM\ManyToOne(inversedBy: 'childVersions', cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'fk_is_version_of', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $referencedVersion;
+    private ?OntoNamespace $referencedVersion = null;
 
     #[ORM\ManyToOne(cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'fk_top_level_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $topLevelNamespace;
+    private ?OntoNamespace $topLevelNamespace = null;
 
     #[ORM\Column]
     private bool $isTopLevelNamespace;

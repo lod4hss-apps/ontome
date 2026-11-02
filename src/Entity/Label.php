@@ -35,7 +35,7 @@ class Label
     private string $label;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $inverseLabel;
+    private ?string $inverseLabel = null;
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'string', nullable: false)]
@@ -46,7 +46,7 @@ class Label
     private ?OntoNamespace $namespaceForVersion = null;
 
     #[ORM\Column(nullable: true)]
-    private int $importerInteger;
+    private ?int $importerInteger = null;
 
     #[ORM\Column(nullable: false)]
     private bool $isStandardLabelForLanguage;
@@ -61,7 +61,7 @@ class Label
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespace;
+    private ?OntoNamespace $namespace = null;
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]

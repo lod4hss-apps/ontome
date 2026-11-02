@@ -32,11 +32,11 @@ class ReferencedNamespaceAssociation
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: true)]
-    private Project $project;
+    private ?Project $project = null;
 
     #[ORM\ManyToOne(inversedBy: 'referencedNamespaceAssociations')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    private Profile $profile;
+    private ?Profile $profile = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_associate_user_to_project', referencedColumnName: 'pk_associate_user_to_project', nullable: true)]
@@ -44,11 +44,11 @@ class ReferencedNamespaceAssociation
 
     #[ORM\ManyToOne(inversedBy: 'referencedNamespaceAssociations')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespace;
+    private ?OntoNamespace $namespace = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: true)]
-    private SystemType $systemType;
+    private ?SystemType $systemType = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]

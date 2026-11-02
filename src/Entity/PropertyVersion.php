@@ -41,32 +41,32 @@ class PropertyVersion
 
     #[ORM\ManyToOne(inversedBy: 'propertiesAsDomain')]
     #[ORM\JoinColumn(name: 'has_domain', referencedColumnName: 'pk_class', nullable: true)]
-    private OntoClass $domain;
+    private ?OntoClass $domain = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $domainNamespace;
+    private ?OntoNamespace $domainNamespace = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'propertiesAsRange')]
     #[ORM\JoinColumn(name: 'has_range', referencedColumnName: 'pk_class', nullable: true)]
-    private OntoClass $range;
+    private ?OntoClass $range = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $rangeNamespace;
+    private ?OntoNamespace $rangeNamespace = null;
 
     #[ORM\Column(type: 'smallint', name: 'domain_instances_min_quantifier', nullable: true)]
-    private int $domainMinQuantifier;
+    private ?int $domainMinQuantifier = null;
 
     #[ORM\Column(type: 'smallint', name: 'domain_instances_max_quantifier', nullable: true)]
-    private int $domainMaxQuantifier;
+    private ?int $domainMaxQuantifier = null;
 
     #[ORM\Column(type: 'smallint', name: 'range_instances_min_quantifier', nullable: true)]
-    private int $rangeMinQuantifier;
+    private ?int $rangeMinQuantifier = null;
 
     #[ORM\Column(type: 'smallint', name: 'range_instances_max_quantifier', nullable: true)]
-    private int $rangeMaxQuantifier;
+    private ?int $rangeMaxQuantifier = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_property_of_origin', referencedColumnName: 'pk_property')]
@@ -81,7 +81,7 @@ class PropertyVersion
     private SystemType $validationStatus;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne]

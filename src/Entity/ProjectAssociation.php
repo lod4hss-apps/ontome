@@ -38,7 +38,7 @@ class ProjectAssociation
 
     #[ORM\ManyToOne(inversedBy: 'projectAssociations')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    private OntoNamespace $namespace;
+    private ?OntoNamespace $namespace = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: false)]
@@ -46,10 +46,10 @@ class ProjectAssociation
 
     #[ORM\ManyToOne(inversedBy: 'projectAssociations')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    private Profile $profile;
+    private ?Profile $profile = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]

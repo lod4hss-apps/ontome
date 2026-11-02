@@ -44,17 +44,17 @@ class UserProjectAssociation
     private int $permission;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private DateTime $startDate;
+    private ?DateTime $startDate = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private DateTime $endDate;
+    private ?DateTime $endDate = null;
 
     #[ORM\OneToMany(targetEntity: EntityUserProjectAssociation::class, mappedBy: 'userProjectAssociation')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $entityUserProjectAssociations;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $notes;
+    private ?string $notes = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
@@ -68,7 +68,7 @@ class UserProjectAssociation
     private DateTime $creationTime;
 
     #[ORM\Column(nullable: true)]
-    private DateTime $modificationTime;
+    private ?DateTime $modificationTime = null;
 
     public function getId()
     {

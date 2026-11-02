@@ -38,10 +38,10 @@ class Property
     private string $identifierInURI;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $importerXmlField;
+    private ?string $importerXmlField = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $importerTextField;
+    private ?string $importerTextField = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne]
