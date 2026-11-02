@@ -48,7 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(groups: ['Registration', 'ResetPassword'])]
     #[Assert\Length(min: 12, minMessage: 'Your password must be at least {{ limit }} characters long')]
     #[Assert\Regex(pattern: '/^(?:(?!.*[<>])(?:(?=.*[~!\[@#$%^&*()_,|`\]\{+=?.\}\\\\\\/<>-])(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))).*$/', match: true, message: 'Your password must contain at least 1 special character, 1 digit, 1 lowercase and 1 uppercase letter')]
-    private string $plainPassword;
+    private ?string $plainPassword;
 
     #[Assert\NotBlank]
     #[ORM\Column(nullable: false)]
@@ -106,6 +106,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->login;
     }
 
+    // S'en débarasser à Symfony 6 (remplacé par getUserIdentifier)
     public function getUsername(): string
     {
         return $this->login;

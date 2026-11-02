@@ -16,6 +16,7 @@
 
                 {% if app.request.get('_route') != app.request.headers.get('referer') %}
                     <input type="hidden" name="_target_path" value="{{ app.request.headers.get('referer') }}" />
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                 {% endif %}
                 <button type="submit" class="btn btn-success">Login <span class="fa fa-lock"></span></button>
                 &nbsp;

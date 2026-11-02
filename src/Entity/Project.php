@@ -97,7 +97,7 @@ class Project
     private ?string $uriProject = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private array $project_types = [];
+    private ?array $project_types = null;
 
     #[ORM\OneToMany(targetEntity: Container::class, mappedBy: 'project')]
     private Collection $containers;
