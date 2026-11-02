@@ -9,6 +9,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,43 +26,42 @@ class OntoClassVersion
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_class_version')]
-    private $id;
+    #[ORM\Column(name: 'pk_class_version')]
+    private int $id;
 
-    #[ORM\Column(type: 'string', length: 500)]
-    private $standardLabel;
+    #[ORM\Column(length: 500)]
+    private string $standardLabel;
 
+    #[ORM\ManyToOne(inversedBy: 'classVersions')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'classVersions')]
-    private $class;
+    private OntoClass $class;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
-    #[Assert\Type(type: 'App\Entity\SystemType')]
-    private $validationStatus;
+    private SystemType $validationStatus;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
+    #[ORM\ManyToOne(inversedBy: 'classVersions')]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'classVersions')]
-    private $namespaceForVersion;
+    private OntoNamespace $namespaceForVersion;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $importerXmlField = null;

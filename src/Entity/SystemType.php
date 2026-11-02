@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -22,42 +24,42 @@ class SystemType
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_system_type')]
-    private $id;
+    #[ORM\Column(name: 'pk_system_type')]
+    private int $id;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'string', length: 250, nullable: false, options: ['comment' => 'A table name where a system type can be used. Many table names can be provided: they have to be separated by commas without spaces'])]
-    private $usedInTable;
+    #[ORM\Column(length: 250, nullable: false, options: ['comment' => 'A table name where a system type can be used. Many table names can be provided: they have to be separated by commas without spaces'])]
+    private string $usedInTable;
 
-    #[ORM\Column(type: 'string', length: 500, nullable: false)]
-    private $standardLabel;
+    #[ORM\Column(length: 500, nullable: false)]
+    private string $standardLabel;
 
     #[Assert\NotBlank]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'systemType')]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[Assert\NotBlank]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'systemType')]
-    private $profileAssociations;
+    private Collection $profileAssociations;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private string $notes;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function __construct()
     {

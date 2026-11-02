@@ -39,7 +39,13 @@ class ClassAssociationController extends AbstractController
     }
 
     #[Route(path: '/parent-class-association/new/{childClass}', name: 'new_parent_class_form', requirements: ['childClass' => '^[0-9]+$'])]
-    public function newParentAction(Request $request, OntoClass $childClass, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository)
+    public function newParentAction(
+        Request $request, 
+        OntoClass $childClass, 
+        ClassRepository $classRepository, 
+        ClassVersionRepository $classVersionRepository, 
+        NamespaceRepository $namespaceRepository
+        )
     {
         $classAssociation = new ClassAssociation();
 

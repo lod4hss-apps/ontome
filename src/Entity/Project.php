@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -23,81 +25,82 @@ class Project
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_project')]
-    private $id;
+    #[ORM\Column(name: 'pk_project')]
+    private int $id;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private $startDate;
+    private ?DateTime $startDate = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private $endDate;
+    private ?DateTime $endDate = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
     #[ORM\Column(type: 'string', length: 500)]
-    private $standardLabel;
+    private string $standardLabel;
 
+    #[ORM\ManyToOne(inversedBy: 'childProjects')]
     #[ORM\JoinColumn(name: 'fk_is_subproject_of', referencedColumnName: 'pk_project', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'childProjects')]
-    private $parentProject;
+    private ?Project $parentProject = null;
 
-    #[ORM\OneToMany(targetEntity: \Profile::class, mappedBy: 'projectOfBelonging')]
-    private $ownedProfiles;
+    #[ORM\OneToMany(targetEntity: Profile::class, mappedBy: 'projectOfBelonging')]
+    private Collection $ownedProfiles;
 
-    #[ORM\OneToMany(targetEntity: \OntoNamespace::class, mappedBy: 'projectForTopLevelNamespace')]
-    private $managedNamespaces;
+    #[ORM\OneToMany(targetEntity: OntoNamespace::class, mappedBy: 'projectForTopLevelNamespace')]
+    private Collection $managedNamespaces;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'project', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[Assert\Valid]
     #[Assert\NotBlank]
     #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'project', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $labels;
+    private Collection $labels;
 
-    #[ORM\OneToMany(targetEntity: \Project::class, mappedBy: 'parentProject')]
-    private $childProjects;
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'parentProject')]
+    private Collection $childProjects;
 
     #[Assert\NotBlank]
-    #[ORM\OneToMany(targetEntity: \UserProjectAssociation::class, mappedBy: 'project')]
-    private $userProjectAssociations;
+    #[ORM\OneToMany(targetEntity: UserProjectAssociation::class, mappedBy: 'project')]
+    private Collection $userProjectAssociations;
 
     #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'project')]
-    private $projectAssociations;
+    private Collection $projectAssociations;
 
     #[ORM\OneToMany(targetEntity: ProjectThesaurusAssociation::class, mappedBy: 'project')]
-    private $projectThesaurusAssociations;
+    private Collection $projectThesaurusAssociations;
 
     #[Assert\Url(message: 'Please enter a valid URI')]
-    #[ORM\Column(type: 'string', nullable: true, unique: true)]
-    private $uriProject;
+    #[ORM\Column(nullable: true, unique: true)]
+    private ?string $uriProject = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $project_types = [];
+    private array $project_types = [];
 
-    #[ORM\OneToMany(targetEntity: \Container::class, mappedBy: 'project')]
-    private $containers;
+    #[ORM\OneToMany(targetEntity: Container::class, mappedBy: 'project')]
+    private Collection $containers;
 
     public function __construct()
     {

@@ -9,11 +9,12 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\SequenceGenerator;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Class ClassAssociation.
@@ -28,61 +29,60 @@ class ClassAssociation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_is_subclass_of')]
-    private $id;
+    #[ORM\Column(name: 'pk_is_subclass_of')]
+    private int $id;
 
-    #[ORM\JoinColumn(name: 'is_child_class', referencedColumnName: 'pk_class')]
     #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'childClassAssociations')]
-    private $childClass;
+    #[ORM\ManyToOne(inversedBy: 'childClassAssociations')]
+    #[ORM\JoinColumn(name: 'is_child_class', referencedColumnName: 'pk_class')]
+    private OntoClass $childClass;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_child_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
-    private $childClassNamespace;
+    private OntoNamespace $childClassNamespace;
 
+    #[ORM\ManyToOne(inversedBy: 'parentClassAssociations')]
     #[ORM\JoinColumn(name: 'is_parent_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'parentClassAssociations')]
-    private $parentClass;
+    private OntoClass $parentClass;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_parent_class_namespace', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: OntoNamespace::class)]
-    private $parentClassNamespace;
+    private OntoNamespace $parentClassNamespace;
 
+    #[ORM\ManyToOne(inversedBy: 'classAssociations')]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'classAssociations')]
-    private $namespaceForVersion;
+    private OntoNamespace $namespaceForVersion;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: SystemType::class)]
-    #[Assert\Type(type: SystemType::class)]
-    private $validationStatus;
+    private SystemType $validationStatus;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
     #[Assert\NotNull]
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'classAssociation', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'classAssociation')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $comments;
+    private Collection $comments;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $creator;
+    private User $creator;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private ?DateTime $modificationTime = null;
 
     /**
      * ClassAssociation constructor.

@@ -22,6 +22,7 @@ use App\Form\ClassEditUriIdentifierForm;
 use App\Form\ClassQuickAddForm;
 use App\Repository\ClassRepository;
 use App\Repository\NamespaceRepository;
+use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\DBALException;
 use Psr\Log\LoggerInterface;
@@ -231,7 +232,13 @@ class ClassController extends AbstractController
     #[Route(path: '/class/{id}', name: 'class_show', requirements: ['id' => '^[0-9]+$'])]
     #[Route(path: '/ontology/c{id}', name: 'class_uri_show', requirements: ['id' => '^[0-9]+$'])]
     #[Route(path: '/class/{id}/namespace/{namespaceFromUrlId}', name: 'class_show_with_version', requirements: ['id' => '^([0-9]+)|(classID){1}$', 'namespaceFromUrlId' => '^([0-9]+)|(namespaceFromUrlId){1}$'])]
-    public function showAction(OntoClass $class, $namespaceFromUrlId = null)
+    public function showAction(
+        OntoClass $class, 
+        ?int $namespaceFromUrlId = null,
+        NamespaceRepository $namespaceRepository,
+        ClassRepository $classRepository,
+        PropertyRepository $propertyRepository
+        )
     {
         // Vérifier si le namespace -si renseigné- est bien associé à la classe
         $namespaceFromUrl = null;
@@ -263,7 +270,7 @@ class ClassController extends AbstractController
 
         if (is_null($namespaceFromUrlId)) {
             if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
-                $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+                $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
             } else { // Utilisateur connecté et utilisant un autre projet
                 $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
             }
@@ -297,9 +304,9 @@ class ClassController extends AbstractController
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
         if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
         } else { // Utilisateur connecté et utilisant un projet
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
         // sauf ceux automatiquement activés par l'entité
         $namespacesIdFromUser = array_diff($namespacesIdFromUser, $namespacesIdFromClassVersion);
@@ -338,16 +345,16 @@ class ClassController extends AbstractController
         $isE55Descendant = false;
 
         try {
-            $ancestors = $em->getRepository(OntoClass::class)->findAncestorsByClassVersionAndNamespacesId($classVersion, $namespacesId);
-            $descendants = $em->getRepository(OntoClass::class)->findDescendantsByClassVersionAndNamespacesId($classVersion, $namespacesId);
-            $relations = $em->getRepository(OntoClass::class)->findRelationsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $ancestors = $classRepository->findAncestorsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $descendants = $classRepository->findDescendantsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $relations = $classRepository->findRelationsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $isE55Descendant = $classRepository->findE55ChildClasses($class->getId());
 
-            $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-            $outgoingInheritedProperties = $em->getRepository(Property::class)->findOutgoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-            $ingoingProperties = $em->getRepository(Property::class)->findIngoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-            $ingoingInheritedProperties = $em->getRepository(Property::class)->findIngoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $outgoingInheritedProperties = $propertyRepository->findOutgoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $ingoingProperties = $propertyRepository->findIngoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+            $ingoingInheritedProperties = $propertyRepository->findIngoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
 
-            $isE55Descendant = $em->getRepository(OntoClass::class)->findE55ChildClasses($class->getId());
         } catch (DBALException $e) {
             $error = $e->getMessage();
         }

@@ -9,6 +9,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -26,35 +27,35 @@ class Pathbuilder
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_pathbuilder')]
-    private $id;
+    #[ORM\Column(name: 'pk_pathbuilder')]
+    private int $id;
 
+    #[ORM\ManyToOne(inversedBy: 'pathbuilders')]
     #[ORM\JoinColumn(name: 'fk_container', referencedColumnName: 'pk_container', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Container::class, inversedBy: 'pathbuilders')]
-    private $container;
+    private Container $container;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    #[ORM\ManyToOne(targetEntity: \Label::class)]
-    private $label;
+    private Label $label;
 
-    #[ORM\Column(type: 'text', name: 'xml_content')]
-    private $xmlContent;
+    #[ORM\Column(type: 'text')]
+    private string $xmlContent;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function getId()
     {

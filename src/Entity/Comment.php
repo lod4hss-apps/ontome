@@ -9,8 +9,10 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Class Comment.
@@ -22,74 +24,74 @@ class Comment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_comment')]
-    private $id;
+    #[ORM\Column(name: 'pk_comment')]
+    private int $id;
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'text', nullable: false)]
-    private $comment;
+    private string $comment;
 
-    #[ORM\OneToMany(targetEntity: \Comment::class, mappedBy: 'commentedComment')]
-    private $answers;
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'commentedComment')]
+    private Collection $answers;
 
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     #[ORM\JoinColumn(name: 'fk_commented_comment', referencedColumnName: 'pk_comment')]
-    #[ORM\ManyToOne(targetEntity: \Comment::class, inversedBy: 'answers')]
-    private $commentedComment;
+    private Comment $commentedComment;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private $viewedBy = [];
+    #[ORM\Column(type: 'json')]
+    private array $viewedBy = [];
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
-    private $namespaceForVersion;
+    private OntoNamespace $namespaceForVersion;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'comments')]
-    private $class;
+    private OntoClass $class;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'comments')]
-    private $property;
+    private Property $property;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
-    #[ORM\ManyToOne(targetEntity: \ClassAssociation::class, inversedBy: 'comments')]
-    private $classAssociation;
+    private ClassAssociation $classAssociation;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
-    #[ORM\ManyToOne(targetEntity: \PropertyAssociation::class, inversedBy: 'comments')]
-    private $propertyAssociation;
+    private PropertyAssociation $propertyAssociation;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
-    #[ORM\ManyToOne(targetEntity: \EntityAssociation::class, inversedBy: 'comments')]
-    private $entityAssociation;
+    private EntityAssociation $entityAssociation;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_text_property', referencedColumnName: 'pk_text_property')]
-    #[ORM\ManyToOne(targetEntity: TextProperty::class, inversedBy: 'comments')]
-    private $textProperty;
+    private TextProperty $textProperty;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    #[ORM\ManyToOne(targetEntity: Label::class, inversedBy: 'comments')]
-    private $label;
+    private Label $label;
 
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'comments')]
-    private $namespace;
+    private OntoNamespace $namespace;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class, inversedBy: 'comments')]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', nullable: false, options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime', nullable: false)]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function getId()
     {

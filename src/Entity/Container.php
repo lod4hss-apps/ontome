@@ -9,10 +9,11 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use App\Repository\ContainerRepository;
 
 /**
  * Class Container.
@@ -27,44 +28,44 @@ class Container
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_container')]
-    private $id;
+    #[ORM\Column(name: 'pk_container')]
+    private int $id;
 
+    #[ORM\ManyToOne(inversedBy: 'containers')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'containers')]
-    private $project;
+    private Project $project;
 
+    #[ORM\ManyToMany(targetEntity: OntoNamespace::class, inversedBy: 'containers')]
     #[ORM\JoinTable(schema: 'che', name: 'associates_container_namespace')]
     #[ORM\JoinColumn(name: 'fk_container', referencedColumnName: 'pk_container')]
     #[ORM\InverseJoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
-    #[ORM\ManyToMany(targetEntity: \OntoNamespace::class, inversedBy: 'containers')]
-    private $namespaces;
+    private Collection $namespaces;
 
-    #[ORM\OneToMany(targetEntity: \Pathbuilder::class, mappedBy: 'container')]
+    #[ORM\OneToMany(targetEntity: Pathbuilder::class, mappedBy: 'container')]
     private $pathbuilders;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    #[ORM\ManyToOne(targetEntity: \Label::class)]
-    private $label;
+    private Label $label;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
-    private $isOngoing;
+    #[ORM\Column(options: ['default' => true])]
+    private bool $isOngoing;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne()]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function __construct()
     {

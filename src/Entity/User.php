@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -26,71 +28,65 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_user')]
-    private $id;
+    #[ORM\Column(name: 'pk_user')]
+    private int $id;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'string', unique: true)]
-    private $login;
+    #[ORM\Column(unique: true)]
+    private string $login;
 
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ORM\Column(type: 'string', unique: true)]
-    private $email;
+    #[ORM\Column(unique: true)]
+    private string $email;
 
-    /**
-     * The encoded password.
-     */
-    #[ORM\Column(type: 'string', nullable: true)]
-    private $password;
+    // The encoded password.
+    #[ORM\Column(nullable: true)]
+    private string $password;
 
-    /**
-     * A non-persisted field that's used to create the encoded password.
-     *
-     * @var string
-     */
+    // A non-persisted field that's used to create the encoded password.
     #[Assert\NotBlank(groups: ['Registration', 'ResetPassword'])]
     #[Assert\Length(min: 12, minMessage: 'Your password must be at least {{ limit }} characters long')]
     #[Assert\Regex(pattern: '/^(?:(?!.*[<>])(?:(?=.*[~!\[@#$%^&*()_,|`\]\{+=?.\}\\\\\\/<>-])(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]))).*$/', match: true, message: 'Your password must contain at least 1 special character, 1 digit, 1 lowercase and 1 uppercase letter')]
-    private $plainPassword;
+    private string $plainPassword;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'string', nullable: false)]
-    private $lastName;
+    #[ORM\Column(nullable: false)]
+    private string $lastName;
 
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'string', nullable: false)]
-    private $firstName;
+    #[ORM\Column(nullable: false)]
+    private string $firstName;
 
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true, 'comment' => 'Définit le statut de l\'utilisateur : 1 pour actif et 0 pour inactif'])]
-    private $status;
+    #[ORM\Column(nullable: false, options: ['default' => true, 'comment' => 'Définit le statut de l\'utilisateur : 1 pour actif et 0 pour inactif'])]
+    private bool $status;
 
     #[Assert\NotEqualTo(false, message: 'You must accept our term of service')]
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true])]
-    private $hasValidatedPolicy;
+    #[ORM\Column(nullable: false, options: ['default' => true])]
+    private bool $hasValidatedPolicy;
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private $institution;
+    #[ORM\Column(nullable: true)]
+    private string $institution;
 
     #[ORM\Column(type: 'json', nullable: true)]
-    private $roles = [];
+    private array $roles = [];
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private $token;
+    #[ORM\Column(nullable: true)]
+    private string $token;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $tokenDate;
+    private DateTime $tokenDate;
 
     #[Assert\NotBlank]
-    #[ORM\OneToMany(targetEntity: \UserProjectAssociation::class, mappedBy: 'user')]
-    private $userProjectAssociations;
+    #[ORM\OneToMany(targetEntity: UserProjectAssociation::class, mappedBy: 'user')]
+    private Collection $userProjectAssociations;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_current_active_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: Project::class)]
-    private $currentActiveProject;
+    private Project $currentActiveProject;
 
-    #[ORM\OneToMany(targetEntity: \Comment::class, mappedBy: 'creator')]
-    private $comments;
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'creator')]
+    private Collection $comments;
 
     /**
      * User constructor.

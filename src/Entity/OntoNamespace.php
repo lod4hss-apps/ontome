@@ -9,9 +9,10 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -24,103 +25,125 @@ class OntoNamespace
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_namespace')]
-    private $id;
+    #[ORM\Column(name: 'pk_namespace')]
+    private int $id;
 
     #[Assert\Url(message: 'Please enter a valid URI')]
     #[ORM\Column(type: 'text', nullable: true)]
-    private $namespaceURI;
+    private ?string $namespaceURI = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private $isExternalNamespace;
+    #[ORM\Column]
+    private bool $isExternalNamespace;
 
     #[Assert\Url]
     #[ORM\Column(type: 'text', nullable: true)]
-    private $originalNamespaceURI;
+    private ?string $originalNamespaceURI = null; 
 
-    #[Assert\Length(min: 1, max: 6, minMessage: 'Your class prefix must be at least {{ limit }} characters long', maxMessage: 'Your class prefix cannot be longer than {{ limit }} characters')]
+    #[Assert\Length(
+        min: 1, 
+        max: 6, 
+        minMessage: 'Your class prefix must be at least {{ limit }} characters long', 
+        maxMessage: 'Your class prefix cannot be longer than {{ limit }} characters'
+        )]
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
-    private $classPrefix;
+    private ?string $classPrefix = null;
 
-    #[Assert\Length(min: 1, max: 6, minMessage: 'Your property prefix must be at least {{ limit }} characters long', maxMessage: 'Your property prefix cannot be longer than {{ limit }} characters')]
+    #[Assert\Length(
+        min: 1, 
+        max: 6, 
+        minMessage: 'Your property prefix must be at least {{ limit }} characters long', 
+        maxMessage: 'Your property prefix cannot be longer than {{ limit }} characters'
+        )]
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
-    private $propertyPrefix;
+    private ?string $propertyPrefix = null;
 
-    #[Assert\GreaterThanOrEqual(value: 0, message: 'Your current class number should be greater than or equal to 0.')]
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private $currentClassNumber;
+    #[Assert\GreaterThanOrEqual(
+        value: 0, 
+        message: 'Your current class number should be greater than or equal to 0.'
+        )]
+    #[ORM\Column(nullable: true)]
+    private ?int $currentClassNumber = null;
 
-    #[Assert\GreaterThanOrEqual(value: 0, message: 'Your current property number should be greater than or equal to 0.')]
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private $currentPropertyNumber;
+    #[Assert\GreaterThanOrEqual(
+        value: 0, 
+        message: 'Your current property number should be greater than or equal to 0.'
+        )]
+    #[ORM\Column(nullable: true)]
+    private ?int $currentPropertyNumber = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private $importerInteger;
+    #[ORM\Column(nullable: true)]
+    private ?int $importerInteger = null;
 
+    #[ORM\ManyToOne(inversedBy: 'childVersions', cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'fk_is_version_of', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'childVersions', cascade: ['persist'])]
-    private $referencedVersion;
+    private OntoNamespace $referencedVersion;
 
+    #[ORM\ManyToOne(cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'fk_top_level_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, cascade: ['persist'])]
-    private $topLevelNamespace;
+    private OntoNamespace $topLevelNamespace;
 
-    #[ORM\Column(type: 'boolean')]
-    private $isTopLevelNamespace;
+    #[ORM\Column]
+    private bool $isTopLevelNamespace;
 
-    #[ORM\Column(type: 'boolean')]
-    private $isOngoing;
+    #[ORM\Column]
+    private bool $isOngoing;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isVisible;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isVisible = false;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private $hasPublication; // TODO: A quoi ça sert exactement ?
+    #[ORM\Column(nullable: true)]
+    private ?bool $hasPublication = null; // TODO: A quoi ça sert exactement ?
 
+    #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'managedNamespaces')]
     #[ORM\JoinColumn(name: 'fk_project_for_top_level_namespace', referencedColumnName: 'pk_project')]
-    #[ORM\ManyToOne(targetEntity: \Project::class, cascade: ['persist'], inversedBy: 'managedNamespaces')]
-    private $projectForTopLevelNamespace;
+    private Project $projectForTopLevelNamespace;
 
     #[ORM\Column(type: 'text')]
-    private $standardLabel;
+    private string $standardLabel;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $publishedAt;
+    #[ORM\Column(nullable: true)]
+    private ?DateTime $publishedAt = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $deprecatedAt;
+    #[ORM\Column(nullable: true)]
+    private ?DateTime $deprecatedAt = null;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'namespace')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $comments;
+    private Collection $comments;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
-    #[Assert\Length(min: 1, max: 10, minMessage: 'Your root namespace prefix must be at least {{ limit }} characters long', maxMessage: 'Your root namespace prefix cannot be longer than {{ limit }} characters')]
+    #[Assert\Length(
+        min: 1, 
+        max: 10, 
+        minMessage: 'Your root namespace prefix must be at least {{ limit }} characters long', 
+        maxMessage: 'Your root namespace prefix cannot be longer than {{ limit }} characters'
+        )]
+    #[Assert\Regex(
+        pattern: '/^[a-z0-9](-?[a-z0-9])*$/', 
+        match: true, 
+        message: 'Your prefix can only contain alphanumeric characters without accents and dashes'
+        )]
     #[Assert\NotNull(groups: ['RequirePrefix'])]
-    #[ORM\Column(type: 'string', length: 10, nullable: true)]
-    #[Assert\Regex(pattern: '/^[a-z0-9](-?[a-z0-9])*$/', match: true, message: 'Your prefix can only contain alphanumeric characters without accents and dashes')]
-    private $rootNamespacePrefix;
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private $uriParameter;
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $rootNamespacePrefix = null;
 
     /*
      * Pour les namespaces root (les namespaces versions n'auront pas besoin de champ = null)
@@ -129,55 +152,58 @@ class OntoNamespace
      * 2: camelCase
      * 3: No parameter
      */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $uriParameter;
+
     #[Assert\Valid]
     #[Assert\NotBlank]
     #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'namespace', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $labels;
+    private Collection $labels;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'namespace', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $classAssociations;
+    private Collection $classAssociations;
 
-    #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'namespaceForVersion')]
+    #[ORM\OneToMany(targetEntity: EntityAssociation::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $entityAssociations;
+    private Collection $entityAssociations;
 
-    #[ORM\OneToMany(targetEntity: \PropertyAssociation::class, mappedBy: 'namespaceForVersion')]
+    #[ORM\OneToMany(targetEntity: PropertyAssociation::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $propertyAssociations;
+    private Collection $propertyAssociations;
 
     #[ORM\OneToMany(targetEntity: \EntityUserProjectAssociation::class, mappedBy: 'namespace')]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private $namespaceUserProjectAssociation;
 
     #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'namespace')]
-    private $projectAssociations;
+    private Collection $projectAssociations;
 
-    #[ORM\OneToMany(targetEntity: \OntoNamespace::class, mappedBy: 'referencedVersion')]
-    private $childVersions;
+    #[ORM\OneToMany(targetEntity: OntoNamespace::class, mappedBy: 'referencedVersion')]
+    private Collection $childVersions;
 
-    #[ORM\OneToMany(targetEntity: \ReferencedNamespaceAssociation::class, mappedBy: 'namespace')]
+    #[ORM\OneToMany(targetEntity: ReferencedNamespaceAssociation::class, mappedBy: 'namespace')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $referencedNamespaceAssociations;
+    private Collection $referencedNamespaceAssociations;
 
     #[ORM\OneToMany(targetEntity: OntoClassVersion::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $classVersions;
+    private Collection $classVersions;
 
     #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'namespaceForVersion')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $propertyVersions;
+    private Collection $propertyVersions;
 
-    #[ORM\ManyToMany(targetEntity: \Container::class, mappedBy: 'namespaces')]
+    #[ORM\ManyToMany(targetEntity: Container::class, mappedBy: 'namespaces')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $containers;
+    private Collection $containers;
 
     public function getCurrentClassNumber()
     {

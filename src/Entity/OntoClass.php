@@ -10,7 +10,9 @@
 namespace App\Entity;
 
 use App\Utils\StringUtils;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -25,94 +27,91 @@ class OntoClass
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_class')]
-    private $id;
+    #[ORM\Column(name: 'pk_class')]
+    private int $id;
 
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
     #[ORM\Column(type: 'text')]
-    private $identifierInNamespace;
+    private string $identifierInNamespace;
 
-    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
     #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]
-    private $identifierInURI;
+    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
+    private string $identifierInURI;
 
-    /**
-     * @var bool
-     *           A non-persisted field that's used to know if the $identifierInNamespace field is manually set by the user
-     *           or automatically set by a trigger in the database
-     */
-    private $isManualIdentifier;
+    // A non-persisted field that's used to know if the $identifierInNamespace field is manually set by the user 
+    // or automatically set by a trigger in the database
+    private bool $isManualIdentifier;
 
     #[ORM\OneToMany(targetEntity: OntoClassVersion::class, mappedBy: 'class', cascade: ['persist'])]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $classVersions;
+    private Collection $classVersions;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $importerXmlField;
+    private ?string $importerXmlField = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $importerTextField;
+    private ?string $importerTextField = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'childClass')]
-    private $childClassAssociations;
+    private Collection $childClassAssociations;
 
     #[ORM\OneToMany(targetEntity: ClassAssociation::class, mappedBy: 'parentClass')]
-    private $parentClassAssociations;
+    private Collection $parentClassAssociations;
 
     #[ORM\OneToMany(targetEntity: EntityAssociation::class, mappedBy: 'sourceClass')]
-    private $sourceEntityAssociations;
+    private Collection $sourceEntityAssociations;
 
     #[ORM\OneToMany(targetEntity: EntityAssociation::class, mappedBy: 'targetClass')]
-    private $targetEntityAssociations;
+    private Collection $targetEntityAssociations;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'class', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $labels;
+    private Collection $labels;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'class', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC', 'creationTime' => 'DESC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'class')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $comments;
+    private Collection $comments;
 
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'class', cascade: ['persist'])]
     #[ORM\OrderBy(['systemType' => 'ASC'])]
-    private $profileAssociations;
+    private Collection $profileAssociations;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isRecursive;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isRecursive;
 
     #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'domain')]
-    private $propertiesAsDomain;
+    private Collection $propertiesAsDomain;
 
     #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'range')]
-    private $propertiesAsRange;
+    private Collection $propertiesAsRange;
 
     public function __construct()
     {

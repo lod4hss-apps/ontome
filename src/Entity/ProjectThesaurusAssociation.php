@@ -9,6 +9,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -20,33 +21,32 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ProjectThesaurusAssociation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
-    #[ORM\SequenceGenerator(sequenceName: 'che.associates_pro_the_seq', allocationSize: 1)]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: 'integer', name: 'pk_asso_project_thesaurus')]
     private $id;
 
+    #[ORM\ManyToOne(inversedBy: 'projectThesaurusAssociations')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'projectThesaurusAssociations')]
-    private $project;
+    private Project $project;
 
     #[Assert\Url(message: 'Please enter a valid URI')]
     #[Assert\NotBlank]
     #[ORM\Column(type: 'text', nullable: false)]
-    private $thesaurusURL;
+    private string $thesaurusURL;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function getId()
     {

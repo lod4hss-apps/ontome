@@ -9,6 +9,8 @@
 
 namespace App\Entity;
 
+use DateTime;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -26,47 +28,47 @@ class UserProjectAssociation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_associate_user_to_project')]
-    private $id;
+    #[ORM\Column(name: 'pk_associate_user_to_project')]
+    private int $id;
 
+    #[ORM\ManyToOne(inversedBy: 'userProjectAssociations')]
     #[ORM\JoinColumn(name: 'fk_user', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userProjectAssociations')]
-    private $user;
+    private User $user;
 
+    #[ORM\ManyToOne(inversedBy: 'userProjectAssociations')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'userProjectAssociations')]
-    private $project;
+    private Project $project;
 
-    #[ORM\Column(type: 'integer', name: 'has_permissions_in_project', nullable: false)]
     #[Assert\Choice([1, 2, 3])]
-    private $permission;
+    #[ORM\Column(name: 'has_permissions_in_project', nullable: false)]
+    private int $permission;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private $startDate;
+    private DateTime $startDate;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private $endDate;
+    private DateTime $endDate;
 
     #[ORM\OneToMany(targetEntity: EntityUserProjectAssociation::class, mappedBy: 'userProjectAssociation')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $entityUserProjectAssociations;
+    private Collection $entityUserProjectAssociations;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private string $notes;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $creator;
-
+    private User $creator;
+    
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', nullable: false, options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(nullable: false, options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $modificationTime;
+    #[ORM\Column(nullable: true)]
+    private DateTime $modificationTime;
 
     public function getId()
     {

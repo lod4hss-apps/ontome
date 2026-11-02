@@ -9,6 +9,8 @@
 
 namespace App\Entity;
 
+use DateTime;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\Index;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -31,67 +33,67 @@ class ProfileAssociation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_associates_profile')]
-    private $id;
+    #[ORM\Column(name: 'pk_associates_profile')]
+    private int $id;
 
+    #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'profileAssociations')]
-    private $profile;
+    private Profile $profile;
 
+    #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: Property::class, inversedBy: 'profileAssociations')]
-    private $property;
+    private Property $property;
 
+    #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class, inversedBy: 'profileAssociations')]
-    private $class;
+    private OntoClass $class;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
-    private $entityNamespaceForVersion;
+    private OntoNamespace $entityNamespaceForVersion;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_inheriting_domain_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
-    private $domain;
+    private OntoClass $domain;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
-    private $domainNamespace;
+    private OntoNamespace $domainNamespace;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_inheriting_range_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: OntoClass::class)]
-    private $range;
+    private OntoClass $range;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
-    private $rangeNamespace;
+    private OntoNamespace $rangeNamespace;
 
+    #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class, inversedBy: 'profileAssociations')]
-    private $systemType;
+    private SystemType $systemType;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'profileAssociation', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function getId()
     {

@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -25,77 +27,76 @@ class Label
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_label')]
-    private $id;
+    #[ORM\Column(name: 'pk_label')]
+    private int $id;
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'text', nullable: false)]
-    private $label;
+    private string $label;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $inverseLabel;
+    private string $inverseLabel;
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'string', nullable: false)]
-    private $languageIsoCode;
+    private string $languageIsoCode;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class)]
-    private $namespaceForVersion;
+    private ?OntoNamespace $namespaceForVersion = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private $importerInteger;
+    #[ORM\Column(nullable: true)]
+    private int $importerInteger;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private $isStandardLabelForLanguage;
+    #[ORM\Column(nullable: false)]
+    private bool $isStandardLabelForLanguage;
 
+    #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    #[ORM\ManyToOne(targetEntity: \OntoClass::class, inversedBy: 'labels')]
-    private $class;
+    private OntoClass $class;
 
+    #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    #[ORM\ManyToOne(targetEntity: \Property::class, inversedBy: 'labels')]
-    private $property;
+    private Property $property;
 
+    #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: \OntoNamespace::class, inversedBy: 'labels')]
-    private $namespace;
+    private OntoNamespace $namespace;
 
+    #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
-    #[ORM\ManyToOne(targetEntity: \Project::class, inversedBy: 'labels')]
-    private $project;
+    private Project $project;
 
+    #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    #[ORM\ManyToOne(targetEntity: \Profile::class, inversedBy: 'labels')]
-    private $profile;
+    private Profile $profile;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    #[ORM\ManyToOne(targetEntity: \SystemType::class)]
-    #[Assert\Type(type: 'App\Entity\SystemType')]
-    private $validationStatus;
+    private SystemType $validationStatus;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'label')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $comments;
+    private Collection $comments;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne()]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne()]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function __construct()
     {

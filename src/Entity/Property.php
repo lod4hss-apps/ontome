@@ -10,7 +10,9 @@
 namespace App\Entity;
 
 use App\Utils\StringUtils;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -24,88 +26,85 @@ class Property
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_property')]
-    private $id;
+    #[ORM\Column(name: 'pk_property')]
+    private int $id;
 
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
     #[ORM\Column(type: 'text')]
-    private $identifierInNamespace;
+    private string $identifierInNamespace;
 
-    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
     #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]
-    private $identifierInURI;
+    #[ORM\Column(type: 'text', name: 'identifier_in_uri')]
+    private string $identifierInURI;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $importerXmlField;
+    private string $importerXmlField;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $importerTextField;
+    private string $importerTextField;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: \User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
-    /**
-     * @var bool
-     *           A non-persisted field that's used to know if the $identifierInNamespace field is manually set by the user
-     *           or automatically set by a trigger in the database     *
-     */
-    private $isManualIdentifier;
+    // A non-persisted field that's used to know if the $identifierInNamespace field is manually set by the user
+    // or automatically set by a trigger in the database
+    private bool $isManualIdentifier;
 
     #[ORM\OneToMany(targetEntity: PropertyVersion::class, mappedBy: 'property', cascade: ['persist'])]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $propertyVersions;
+    private Collection $propertyVersions;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'property', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'property', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $labels;
+    private Collection $labels;
 
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'property', cascade: ['persist'])]
     #[ORM\OrderBy(['systemType' => 'ASC'])]
-    private $profileAssociations;
+    private Collection $profileAssociations;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'property')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
-    private $comments;
+    private Collection $comments;
 
     #[ORM\OneToMany(targetEntity: \PropertyAssociation::class, mappedBy: 'childProperty')]
-    private $childPropertyAssociations;
+    private Collection $childPropertyAssociations;
 
     #[ORM\OneToMany(targetEntity: \PropertyAssociation::class, mappedBy: 'parentProperty')]
-    private $parentPropertyAssociations;
+    private Collection $parentPropertyAssociations;
 
     #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'sourceProperty')]
-    private $sourceEntityAssociations;
+    private Collection $sourceEntityAssociations;
 
     #[ORM\OneToMany(targetEntity: \EntityAssociation::class, mappedBy: 'targetProperty')]
-    private $targetEntityAssociations;
+    private Collection $targetEntityAssociations;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isRecursive;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isRecursive;
 
     #[ORM\Column(nullable: false, options: ['default' => false])]
     private ?bool $isDomainIdentification = null;

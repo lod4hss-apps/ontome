@@ -9,7 +9,9 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\Property;
@@ -31,92 +33,92 @@ class Profile
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_profile')]
-    private $id;
+    #[ORM\Column(name: 'pk_profile')]
+    private int $id;
 
-    #[ORM\Column(type: 'string', length: 500)]
-    private $standardLabel;
-
-    #[ORM\Column(type: 'date', nullable: true)]
-    private $startDate;
+    #[ORM\Column(length: 500)]
+    private string $standardLabel;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private $endDate;
+    private ?DateTime $startDate = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?DateTime $endDate = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $wasClosedAt;
+    private ?DateTime $wasClosedAt = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
-    private $isOngoing;
+    #[ORM\Column(options: ['default' => true])]
+    private bool $isOngoing = true;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isVisible;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isVisible = false;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isRootProfile;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isRootProfile = false;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private $version;
+    #[ORM\Column(nullable: true)]
+    private ?int $version = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $isForcedPublication;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isForcedPublication = false;
 
+    #[ORM\ManyToOne(inversedBy: 'childProfiles')]
     #[ORM\JoinColumn(name: 'fk_root_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'childProfiles')]
-    private $rootProfile;
+    private Profile $rootProfile;
 
+    #[ORM\ManyToOne(inversedBy: 'ownedProfiles')]
     #[ORM\JoinColumn(name: 'fk_project_of_belonging', referencedColumnName: 'pk_project')]
-    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'ownedProfiles')]
-    private $projectOfBelonging;
+    private Project $projectOfBelonging;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private ?string $notes = null;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $creator;
+    private User $creator;
 
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[Assert\NotBlank]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     #[ORM\OneToMany(targetEntity: Profile::class, mappedBy: 'rootProfile')]
-    private $childProfiles;
+    private Collection $childProfiles;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: TextProperty::class, mappedBy: 'profile', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $textProperties;
+    private Collection $textProperties;
 
     #[Assert\Valid]
     #[Assert\NotNull]
     #[ORM\OneToMany(targetEntity: Label::class, mappedBy: 'profile', cascade: ['persist'])]
     #[ORM\OrderBy(['languageIsoCode' => 'ASC'])]
-    private $labels;
+    private Collection $labels;
 
     #[ORM\OneToMany(targetEntity: ProjectAssociation::class, mappedBy: 'profile')]
-    private $projectAssociations;
+    private Collection $projectAssociations;
 
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: ProfileAssociation::class, mappedBy: 'profile', cascade: ['persist'])]
     #[ORM\OrderBy(['systemType' => 'ASC'])]
-    private $profileAssociations;
+    private Collection $profileAssociations;
 
     #[ORM\OneToMany(targetEntity: EntityUserProjectAssociation::class, mappedBy: 'profile')]
     #[ORM\OrderBy(['id' => 'ASC'])]
-    private $profileUserProjectAssociation;
+    private Collection $profileUserProjectAssociation;
 
     #[ORM\OneToMany(targetEntity: ReferencedNamespaceAssociation::class, mappedBy: 'profile')]
-    private $referencedNamespaceAssociations;
+    private Collection $referencedNamespaceAssociations;
 
     public function __construct()
     {

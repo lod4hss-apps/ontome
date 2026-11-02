@@ -9,6 +9,7 @@
 
 namespace App\Entity;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Project;
 use App\Entity\OntoNamespace;
@@ -28,41 +29,41 @@ class ProjectAssociation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    #[ORM\Column(type: 'integer', name: 'pk_associates_project')]
-    private $id;
+    #[ORM\Column(name: 'pk_associates_project')]
+    private int $id;
 
+    #[ORM\ManyToOne(inversedBy: 'projectAssociations')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'projectAssociations')]
-    private $project;
+    private Project $project;
 
+    #[ORM\ManyToOne(inversedBy: 'projectAssociations')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: OntoNamespace::class, inversedBy: 'projectAssociations')]
-    private $namespace;
+    private OntoNamespace $namespace;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_system_type', referencedColumnName: 'pk_system_type', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: SystemType::class)]
-    private $systemType;
+    private SystemType $systemType;
 
+    #[ORM\ManyToOne(inversedBy: 'projectAssociations')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile', nullable: true)]
-    #[ORM\ManyToOne(targetEntity: Profile::class, inversedBy: 'projectAssociations')]
-    private $profile;
+    private Profile $profile;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $notes;
+    private string $notes;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'creator', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $creator;
+    private User $creator;
 
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'modifier', referencedColumnName: 'pk_user', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private $modifier;
+    private User $modifier;
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'now'])]
-    private $creationTime;
+    #[ORM\Column(options: ['default' => 'now'])]
+    private DateTime $creationTime;
 
-    #[ORM\Column(type: 'datetime')]
-    private $modificationTime;
+    #[ORM\Column]
+    private DateTime $modificationTime;
 
     public function getId()
     {
@@ -159,7 +160,7 @@ class ProjectAssociation
     }
 
     /**
-     * @param \DateTime $creationTime
+     * @param DateTime $creationTime
      */
     public function setCreationTime($creationTime)
     {
@@ -167,7 +168,7 @@ class ProjectAssociation
     }
 
     /**
-     * @param \DateTime $modificationTime
+     * @param DateTime $modificationTime
      */
     public function setModificationTime($modificationTime)
     {
