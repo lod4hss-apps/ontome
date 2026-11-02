@@ -96,7 +96,7 @@ class UserProjectAssociation
     }
 
     /**
-     * @return Date
+     * @return DateTime
      */
     public function getStartDate()
     {

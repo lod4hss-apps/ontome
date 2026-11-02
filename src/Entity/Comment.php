@@ -159,7 +159,7 @@ class Comment
     }
 
     /**
-     * @return PropertyAssociation
+     * @return EntityAssociation
      */
     public function getEntityAssociation()
     {

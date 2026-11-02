@@ -494,10 +494,19 @@ class Property
         // Avec le filtre IsOngoing ci dessus, si un NS root n'en possède pas, cvCollection est maintenant vide, il faut donc le réinitialiser
         $pvCollection = $this->getPropertyVersions();
         // filtrer que les NS qui ont bien published_at rempli
-        $pvCollection = $pvCollection->filter(fn (PropertyVersion $propertyVersion) => !is_null($propertyVersion->getNamespaceForVersion()->getPublishedAt()));
-        $iterator = $pvCollection->getIterator();
-        $iterator->uasort(fn ($a, $b) => ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1);
-        $collection = new ArrayCollection(iterator_to_array($iterator));
+        $pvCollection = $pvCollection->filter(
+            fn (PropertyVersion $propertyVersion) =>
+                !is_null($propertyVersion->getNamespaceForVersion()->getPublishedAt())
+        );
+
+        $items = $pvCollection->toArray();
+
+        uasort($items, fn ($a, $b) =>
+            $b->getNamespaceForVersion()->getPublishedAt()
+                <=> $a->getNamespaceForVersion()->getPublishedAt()
+        );
+
+        $collection = new ArrayCollection($items);
 
         return $collection->first();
     }
@@ -515,20 +524,23 @@ class Property
         $parentPropertyAssociations = $this->getParentPropertyAssociations()->filter(fn ($v) => $v->getNamespaceForVersion() == $namespace);
 
         // Trier d'abord CRM les autres puis par identifier
-        $iterator = $parentPropertyAssociations->getIterator();
-        $iterator->uasort(function ($a, $b) {
-            if ($a->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7 and $b->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7) {
-                return strnatcmp($a->getChildProperty()->getIdentifierInNamespace(), $b->getChildProperty()->getIdentifierInNamespace());
-            } elseif ($a->getChildPropertyNamespace()->getTopLevelNamespace()->getId() != 7 and $b->getChildPropertyNamespace()->getTopLevelNamespace()->getId() != 7) {
-                // C'est la même chose que le premier if mais plus clair à la lecture.
-                return strnatcmp($a->getChildProperty()->getIdentifierInNamespace(), $b->getChildProperty()->getIdentifierInNamespace());
-            } elseif ($a->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7 and $b->getChildPropertyNamespace()->getTopLevelNamespace()->getId() != 7) {
-                return false;
-            } elseif ($a->getChildPropertyNamespace()->getTopLevelNamespace()->getId() != 7 and $b->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7) {
-                return true;
+        $items = $parentPropertyAssociations->toArray();
+
+        uasort($items, function ($a, $b) {
+            $aIsNamespace7 = $a->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7;
+            $bIsNamespace7 = $b->getChildPropertyNamespace()->getTopLevelNamespace()->getId() == 7;
+
+            if ($aIsNamespace7 !== $bIsNamespace7) {
+                return $aIsNamespace7 ? -1 : 1;
             }
+
+            return strnatcmp(
+                $a->getChildProperty()->getIdentifierInNamespace(),
+                $b->getChildProperty()->getIdentifierInNamespace()
+            );
         });
-        $parentPropertyAssociations = new ArrayCollection(iterator_to_array($iterator));
+
+        $parentPropertyAssociations = new ArrayCollection($items);
 
         foreach ($parentPropertyAssociations as $parentPropertyAssociation) {
             $tree->add([$parentPropertyAssociation->getChildProperty(), $depth, $parentPropertyAssociation->getChildPropertyNamespace()]);

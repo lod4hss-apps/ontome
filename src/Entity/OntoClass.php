@@ -468,10 +468,19 @@ class OntoClass
         // Avec le filtre IsOngoing ci dessus, si un NS root n'en possède pas, cvCollection est maintenant vide, il faut donc le réinitialiser
         $cvCollection = $this->getClassVersions();
         // filtrer que les NS qui ont bien published_at rempli
-        $cvCollection = $cvCollection->filter(fn (OntoClassVersion $classVersion) => !is_null($classVersion->getNamespaceForVersion()->getPublishedAt()));
-        $iterator = $cvCollection->getIterator();
-        $iterator->uasort(fn ($a, $b) => ($a->getNamespaceForVersion()->getPublishedAt() > $b->getNamespaceForVersion()->getPublishedAt()) ? -1 : 1);
-        $collection = new ArrayCollection(iterator_to_array($iterator));
+        $cvCollection = $cvCollection->filter(
+            fn (OntoClassVersion $classVersion) => 
+            !is_null($classVersion->getNamespaceForVersion()->getPublishedAt())
+            );
+
+       $items = $cvCollection->toArray();
+
+        uasort($items, fn ($a, $b) =>
+            $b->getNamespaceForVersion()->getPublishedAt()
+                <=> $a->getNamespaceForVersion()->getPublishedAt()
+        );
+
+        $collection = new ArrayCollection($items);
 
         return $collection->first();
     }

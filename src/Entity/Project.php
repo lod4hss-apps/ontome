@@ -163,7 +163,7 @@ class Project
     }
 
     /**
-     * @return ArrayCollection|Container[]
+     * @return User
      */
     public function getCreator()
     {
@@ -260,7 +260,7 @@ class Project
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getPermissionForUser(?User $user = null)
     {
