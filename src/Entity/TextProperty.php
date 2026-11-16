@@ -65,12 +65,12 @@ class TextProperty implements GroupSequenceProviderInterface
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: true)]
     private ?OntoNamespace $namespaceForVersion = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_associates_profile', referencedColumnName: 'pk_associates_profile', nullable: true)]
     private ?ProfileAssociation $profileAssociation = null;
 
     #[Assert\Valid]
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class', nullable: true)]
     private ?OntoClass $class = null;
 
