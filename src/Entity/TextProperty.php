@@ -424,7 +424,7 @@ class TextProperty implements GroupSequenceProviderInterface
      *
      * @return array An array of validation groups
      */
-    public function getGroupSequence()
+    public function getGroupSequence(): array
     {
         if (!is_null($this->systemType) && $this->systemType->getId() == 16) {
             return ['TextProperty', 'Description'];

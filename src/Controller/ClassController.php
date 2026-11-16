@@ -33,7 +33,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class ClassController extends AbstractController
 {
@@ -234,10 +234,10 @@ class ClassController extends AbstractController
     #[Route(path: '/class/{id}/namespace/{namespaceFromUrlId}', name: 'class_show_with_version', requirements: ['id' => '^([0-9]+)|(classID){1}$', 'namespaceFromUrlId' => '^([0-9]+)|(namespaceFromUrlId){1}$'])]
     public function showAction(
         OntoClass $class, 
-        ?int $namespaceFromUrlId = null,
         NamespaceRepository $namespaceRepository,
         ClassRepository $classRepository,
-        PropertyRepository $propertyRepository
+        PropertyRepository $propertyRepository,
+        ?int $namespaceFromUrlId = null,
         )
     {
         // Vérifier si le namespace -si renseigné- est bien associé à la classe

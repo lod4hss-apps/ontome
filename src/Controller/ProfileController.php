@@ -41,7 +41,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class ProfileController extends AbstractController
 {
@@ -601,9 +601,14 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @Route("/selectable-classes/profile/{profile}/json", name="selectable_classes_profile_json", requirements={"profile"="^([0-9]+)|(profileID){1}$"}, methods={"GET"})
      * @return JsonResponse a Json formatted list representation of OntoClasses selectable by Profile
      */
+    #[Route(
+        '/selectable-classes/profile/{profile}/json',
+        name: 'selectable_classes_profile_json',
+        requirements: ['profile' => '^([0-9]+)|(profileID){1}$'],
+        methods: ['GET']
+    )]
     public function getSelectableClassesByProfile(Profile $profile, ClassRepository $classRepository)
     {
         try {

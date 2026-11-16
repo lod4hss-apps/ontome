@@ -30,9 +30,5 @@ services:
     #    class: App\Directory\ClassName
     #    arguments: ['@another_service_name', 'plain_value', '%parameter_name%']
 
-    App\Doctrine\HashPasswordListener:
-        tags:
-            - { name: doctrine.event_subscriber }
-
     App\Controller\UserController:
         $recaptchaSecret: '%env(RECAPTCHA_SECRET)%'

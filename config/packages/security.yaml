@@ -1,8 +1,6 @@
 # To get started with security, check out the documentation:
 # http://symfony.com/doc/current/security.html
 security:
-    enable_authenticator_manager: true
-
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: bcrypt
         # http://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
