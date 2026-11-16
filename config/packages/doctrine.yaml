@@ -25,6 +25,8 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
                 alias: App
+        report_fields_where_declared: true
+        enable_lazy_ghost_objects: true
 
 when@test:
     doctrine:

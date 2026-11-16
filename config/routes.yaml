@@ -1,6 +1,6 @@
 app:
     resource: "../src/Controller/"
-    type: annotation
+    type: attribute
 
 home:
     path: /
@@ -9,6 +9,6 @@ home:
 
 api:
     resource: "../src/Controller/ApiController.php"
-    type: annotation
+    type: attribute
     defaults:
         _format: json
