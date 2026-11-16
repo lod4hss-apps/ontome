@@ -51,12 +51,12 @@ class ProjectRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_owl_classes_and_properties_for_profiles(:lang, 0, :project) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'project' => $project,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('project', $project);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -75,12 +75,12 @@ class ProjectRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_owl_wisski_from_project(:lang, :project) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'project' => $project,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('project', $project);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -103,10 +103,9 @@ class ProjectRepository extends ServiceEntityRepository
         // Request the database to find the namespace corresponding to the namespaceUri and get its id (if it exists and is not a top level namespace)
         $sql = 'SELECT pk_namespace FROM che.namespace WHERE namespace_uri = :namespaceUri AND is_top_level_namespace = FALSE;';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'namespaceUri' => $namespaceUri,
-        ]);
-        $result = $stmt->fetchAll();
+        $stmt->bindValue('namespaceUri', $namespaceUri);
+        $resultQ = $stmt->executeQuery();
+        $result = $resultQ->fetchAllAssociative();
 
         $idNamespaces = !empty($result) ? array_column($result, 'pk_namespace') : null;
 
@@ -119,11 +118,10 @@ class ProjectRepository extends ServiceEntityRepository
                     AND cv.fk_namespace_for_version IN ('.implode(',', $idNamespaces).')';
 
             $stmt = $conn->prepare($sql);
-            $stmt->execute([
-                'identifierInUri' => $identifierInUri,
-            ]);
+            $stmt->bindValue('identifierInUri', $identifierInUri);
+            $resultQ = $stmt->executeQuery();
 
-            $result = $stmt->fetchAll();
+            $result = $resultQ->fetchAllAssociative();
 
             // If there is something, return the (first) result, otherwise continue with properties
             if (!empty($result)) {
@@ -138,11 +136,10 @@ class ProjectRepository extends ServiceEntityRepository
                     AND pv.fk_namespace_for_version IN ('.implode(',', $idNamespaces).')';
 
             $stmt = $conn->prepare($sql);
-            $stmt->execute([
-                'identifierInUri' => $identifierInUri,
-            ]);
+            $stmt->bindValue('identifierInUri', $identifierInUri);
+            $resultQ = $stmt->executeQuery();
 
-            $result = $stmt->fetchAll();
+            $result = $resultQ->fetchAllAssociative();
 
             if (!empty($result)) {
                 return 'https://ontome.net/ontology/p'.array_column($result, 'pk_property')[0];
@@ -156,11 +153,10 @@ class ProjectRepository extends ServiceEntityRepository
                         AND ns.pk_namespace IN ('.implode(',', $idNamespaces).')';
 
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([
-                    'namespaceUri' => $namespaceUri,
-                ]);
+                $stmt->bindValue('namespaceUri', $namespaceUri);
+                $resultQ = $stmt->executeQuery();
 
-                $result = $stmt->fetchAll();
+                $result = $resultQ->fetchAllAssociative();
 
                 if (!empty($result)) {
                     return 'https://ontome.net/project/'.array_column($result, 'fk_project_for_top_level_namespace')[0];
@@ -174,11 +170,10 @@ class ProjectRepository extends ServiceEntityRepository
                 WHERE pr.uri_project = :uri;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'uri' => $officialUri,
-        ]);
+        $stmt->bindValue('uri', $officialUri);
+        $resultQ = $stmt->executeQuery();
 
-        $result = $stmt->fetchAll();
+        $result = $resultQ->fetchAllAssociative();
         if (!empty($result)) {
             return 'https://ontome.net/project/'.array_column($result, 'pk_project')[0];
         }

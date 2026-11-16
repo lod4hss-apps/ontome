@@ -149,9 +149,15 @@ class PropertyRepository extends ServiceEntityRepository
                      t_ascendants_properties.fk_namespace_for_version;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge($namespacesId, [$propertyVersion->getProperty()->getId()]));
+        $params = array_merge($namespacesId, [$propertyVersion->getProperty()->getId()]);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -192,7 +198,7 @@ class PropertyRepository extends ServiceEntityRepository
                        (SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS \"rootNamespaceLabel\",
                        nsp.pk_namespace AS \"propertyNamespaceId\",
                        nsp.standard_label AS \"propertyNamespaceLabel\"
-                    FROM che.descendant_property_hierarchy(?, ARRAY[".$in.']::integer[]) t_descendants_properties,
+                    FROM che.descendant_property_hierarchy(?, ARRAY[".$in."]::integer[]) t_descendants_properties,
                          che.property p JOIN che.property_version pv ON p.pk_property = pv.fk_property,
                          che.namespace nsp,
                          che.class domain_class JOIN che.class_version domain_cv ON domain_class.pk_class = domain_cv.fk_class,
@@ -201,14 +207,20 @@ class PropertyRepository extends ServiceEntityRepository
                     AND   nsp.pk_namespace = pv.fk_namespace_for_version
                     AND pv.has_domain = domain_class.pk_class
                     AND pv.has_range = range_class.pk_class
-                    AND pv.fk_namespace_for_version IN ('.$in.')
-                    AND domain_cv.fk_namespace_for_version IN ('.$in.')
-                    AND range_cv.fk_namespace_for_version IN ('.$in.');';
+                    AND pv.fk_namespace_for_version IN (".$in.")
+                    AND domain_cv.fk_namespace_for_version IN (".$in.")
+                    AND range_cv.fk_namespace_for_version IN (".$in.");";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$propertyVersion->getProperty()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$propertyVersion->getProperty()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -267,9 +279,15 @@ class PropertyRepository extends ServiceEntityRepository
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -301,18 +319,24 @@ class PropertyRepository extends ServiceEntityRepository
                   che.get_root_namespace_prefix(che.get_root_namespace(fk_namespace_for_version)) AS \"propertyRootNamespacePrefix\",
                   replace(ancestors, '|', '→') AS ancestors,
                   (SELECT label FROM che.get_namespace_labels(fk_namespace_for_version) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS namespace
-                FROM che.class_outgoing_inherited_properties(?, ARRAY[".$in.']::integer[]) v
+                FROM che.class_outgoing_inherited_properties(?, ARRAY[".$in."]::integer[]) v
                 LEFT JOIN che.asso_referenced_namespace asrefns ON v.fk_namespace_for_version = asrefns.fk_namespace
-                WHERE fk_namespace_for_version IN ('.$in.')
-                AND v.fk_range_namespace_for_version IN ('.$in.')
-                AND v.fk_domain_namespace_for_version IN ('.$in.')
-                GROUP BY v.present_class_identifier, v.present_class_label, v.pk_domain_class, v.domain_identifier_in_namespace, v.domain_standard_label, v.standard_label, v.range_standard_label, v.ancestors, v.identifier_in_namespace, v.pk_property, v.fk_namespace_for_version, v.pk_range_class, v.range_identifier_in_namespace, v.fk_domain_namespace_for_version, v.fk_range_namespace_for_version;';
+                WHERE fk_namespace_for_version IN (".$in.")
+                AND v.fk_range_namespace_for_version IN (".$in.")
+                AND v.fk_domain_namespace_for_version IN (".$in.")
+                GROUP BY v.present_class_identifier, v.present_class_label, v.pk_domain_class, v.domain_identifier_in_namespace, v.domain_standard_label, v.standard_label, v.range_standard_label, v.ancestors, v.identifier_in_namespace, v.pk_property, v.fk_namespace_for_version, v.pk_range_class, v.range_identifier_in_namespace, v.fk_domain_namespace_for_version, v.fk_range_namespace_for_version;";
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -363,9 +387,14 @@ class PropertyRepository extends ServiceEntityRepository
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -395,20 +424,25 @@ class PropertyRepository extends ServiceEntityRepository
                     FROM che.get_all_references_namespaces_for_namespace(v.fk_namespace_for_version)
                   ) AS \"allSelectedNamespacesId\",
                   (SELECT label FROM che.get_namespace_labels(nsp.pk_namespace) WHERE language_iso_code = 'en' ORDER BY is_standard_label_for_language DESC LIMIT 1 OFFSET 0) AS namespace
-                FROM che.class_ingoing_inherited_properties(?, ARRAY[".$in.']::integer[]) v,
+                FROM che.class_ingoing_inherited_properties(?, ARRAY[".$in."]::integer[]) v,
                   che.property_version pv,
                   che.namespace nsp 
                 WHERE pv.fk_property = pk_property
                 AND nsp.pk_namespace = pv.fk_namespace_for_version
-                AND pv.fk_namespace_for_version IN ('.$in.')
-                AND v.fk_range_namespace_for_version IN ('.$in.')
-                AND v.fk_domain_namespace_for_version IN ('.$in.');';
+                AND pv.fk_namespace_for_version IN (".$in.")
+                AND v.fk_range_namespace_for_version IN (".$in.")
+                AND v.fk_domain_namespace_for_version IN (".$in.");";
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -438,9 +472,15 @@ class PropertyRepository extends ServiceEntityRepository
                 AND pv.fk_namespace_for_version IN (".$in.');';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$propertyVersion->getProperty()->getId()], $namespacesId));
+        $params = array_merge([$propertyVersion->getProperty()->getId()], $namespacesId);
 
-        return $stmt->fetch();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAssociative();
     }
 
     /**
@@ -454,9 +494,9 @@ class PropertyRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_properties_with_css_color(155) tree';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -470,9 +510,9 @@ class PropertyRepository extends ServiceEntityRepository
         $sql = "SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = 'ontologies_properties_tree' ORDER BY pk_css_color) legend;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -486,9 +526,10 @@ class PropertyRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_property_profile_project WHERE pk_project = :project ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -561,9 +602,11 @@ class PropertyRepository extends ServiceEntityRepository
                 ";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
+        $stmt->bindValue('class', $class->getId());
+        $stmt->bindValue('profile', $profile->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -615,9 +658,11 @@ class PropertyRepository extends ServiceEntityRepository
                 ";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
+        $stmt->bindValue('class', $class->getId());
+        $stmt->bindValue('profile', $profile->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -703,9 +748,11 @@ class PropertyRepository extends ServiceEntityRepository
                 WHERE aspro.fk_profile = :profile AND aspro.fk_system_type = 5 AND aspro.fk_inheriting_domain_class = :class;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
+        $stmt->bindValue('class', $class->getId());
+        $stmt->bindValue('profile', $profile->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -794,9 +841,11 @@ class PropertyRepository extends ServiceEntityRepository
                 WHERE aspro.fk_profile = :profile AND aspro.fk_system_type = 5 AND aspro.fk_inheriting_range_class = :class;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['class' => $class->getId(), 'profile' => $profile->getId()]);
+        $stmt->bindValue('class', $class->getId());
+        $stmt->bindValue('profile', $profile->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -821,12 +870,11 @@ class PropertyRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_properties_list(:lang, :availableInProfile, :selectedByProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'availableInProfile' => $availableInProfile,
-            'selectedByProject' => $selectedByProject,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('availableInProfile', $availableInProfile);
+        $stmt->bindValue('selectedByProject', $selectedByProject);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 }

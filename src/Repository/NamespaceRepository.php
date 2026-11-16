@@ -55,9 +55,9 @@ class NamespaceRepository extends ServiceEntityRepository
                      modification_time";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -81,9 +81,11 @@ class NamespaceRepository extends ServiceEntityRepository
                 AND is_top_level_namespace;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['profile' => $profile->getId()]);
+        $stmt->bindValue('profile', $profile->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -107,9 +109,10 @@ class NamespaceRepository extends ServiceEntityRepository
                 AND is_top_level_namespace;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['namespace' => $namespace->getId()]);
+        $stmt->bindValue('namespace', $namespace->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     public function findAllowedOngoingNamespaceByUser($user)
@@ -280,9 +283,10 @@ class NamespaceRepository extends ServiceEntityRepository
         $sql = 'SELECT get_webvowl_json_for_namespace AS json FROM che.get_webvowl_json_for_namespace(:namespace)';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['namespace' => $namespace->getId()]);
+        $stmt->bindValue('namespace', $namespace->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -301,9 +305,9 @@ class NamespaceRepository extends ServiceEntityRepository
                 WHERE aspro.fk_project = 21 AND aspro.fk_system_type = 17;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -334,9 +338,10 @@ class NamespaceRepository extends ServiceEntityRepository
                 GROUP BY nsp.pk_namespace, nsp.standard_label, aspro.pk_associates_project";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['id_project' => $project->getId()]);
+        $stmt->bindValue('id_project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -399,12 +404,11 @@ class NamespaceRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_export_namespace_owl(:lang, :namespace) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'namespace' => $namespace,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('namespace', $namespace);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -421,12 +425,11 @@ class NamespaceRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_export_namespace_owl_wisski(:lang, :namespace) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'namespace' => $namespace,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('namespace', $namespace);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -444,14 +447,14 @@ class NamespaceRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_export_namespace_rdfs(:lang, :namespace, :withInverseProperties, :withSpecificUri) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
+        $result = $stmt->executeQuery([
             'lang' => $lang,
             'namespace' => $namespace,
             'withInverseProperties' => $withInverseProperties ? true : 0,
             'withSpecificUri' => $withSpecificUri ? true : 0,
         ]);
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -481,9 +484,9 @@ class NamespaceRepository extends ServiceEntityRepository
                                         FROM publicNamespacesId);';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        return $result->fetchFirstColumn();
     }
 
     /**
@@ -521,9 +524,10 @@ class NamespaceRepository extends ServiceEntityRepository
                 WHERE pk_namespace IN (SELECT pk_namespace FROM che.get_all_references_namespaces_for_namespace(s.fk_namespace));';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['userId' => $user->getId()]);
+        $stmt->bindValue('userId', $user->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        return $result->fetchFirstColumn();
     }
 
     /**
@@ -563,9 +567,10 @@ class NamespaceRepository extends ServiceEntityRepository
         $sql = 'SELECT che.publish_namespace(:namespaceId);';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['namespaceId' => $namespace->getId()]);
+        $stmt->bindValue('namespaceId', $namespace->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchColumn();
+        return $result->fetchOne();
     }
 
     /**
@@ -610,9 +615,10 @@ class NamespaceRepository extends ServiceEntityRepository
                                 , 'sha256')
                                , 'hex');";
             $stmt = $conn->prepare($sqlOngoing);
-            $stmt->execute(['namespaceId' => $namespace->getId()]);
+            $stmt->bindValue('namespaceId', $namespace->getId());
+            $result = $stmt->executeQuery();
 
-            $hashOngoing = $stmt->fetchColumn();
+            $hashOngoing = $result->fetchOne();
 
             $sqlLatest = "SELECT encode(
                                 digest(
@@ -640,9 +646,10 @@ class NamespaceRepository extends ServiceEntityRepository
                                 , 'sha256')
                                , 'hex');";
             $stmt = $conn->prepare($sqlLatest);
-            $stmt->execute(['namespaceId' => $latestNamespace->getId()]);
+            $stmt->bindValue('namespaceId', $latestNamespace->getId());
+            $result = $stmt->executeQuery();
 
-            $hashLatest = $stmt->fetchColumn();
+            $hashLatest = $result->fetchOne();
 
             if ($hashOngoing != $hashLatest) {
                 $change = true;
@@ -678,8 +685,10 @@ class NamespaceRepository extends ServiceEntityRepository
                 WHERE root_nsp.namespace_uri = 'https://ontome.net/ns/' || :name || '/';";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['identifier' => $identifierInNamespace, 'name' => $name]);
+        $stmt->bindValue('identifier', $identifierInNamespace);
+        $stmt->bindValue('name', $name);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 }

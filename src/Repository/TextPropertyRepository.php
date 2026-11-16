@@ -189,9 +189,10 @@ class TextPropertyRepository extends ServiceEntityRepository
                   AND to_tsvector('english', txtp.text_property) @@ plainto_tsquery('english', :query);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['query' => $query]);
+        $stmt->bindValue('query', $query);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -208,8 +209,9 @@ class TextPropertyRepository extends ServiceEntityRepository
             ->getConnection();
         $sql = "SELECT CAST(plainto_tsquery('english', :query) AS text);";
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['query' => $query]);
+        $stmt->bindValue('query', $query);
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 }

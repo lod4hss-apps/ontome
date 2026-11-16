@@ -37,9 +37,14 @@ class PropertyVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$property->getId()], $namespacesId));
+        $params = array_merge([$property->getId()], $namespacesId);
 
-        return $em->getRepository(PropertyVersion::class)->find($stmt->fetch()['pk_property_version']);
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+        return $em->getRepository(PropertyVersion::class)->find($result->fetchAssociative()['pk_property_version']);
     }
 
     /**
@@ -60,9 +65,10 @@ class PropertyVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$propertyId]);
+        $stmt->bindValue(1, $propertyId);
+        $result = $stmt->executeQuery();
 
-        return $em->getRepository(PropertyVersion::class)->find($stmt->fetch()['pk_property_version']);
+        return $em->getRepository(PropertyVersion::class)->find($result->fetchAssociative()['pk_property_version']);
     }
 
     public function findIdAndStandardLabelOfPropertiesVersionByNamespacesId(array $namespacesId)
@@ -79,8 +85,12 @@ class PropertyVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute($namespacesId);
+        foreach ($namespacesId as $index => $id) {
+            $stmt->bindValue($index + 1, $id);
+        }
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

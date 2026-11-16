@@ -79,9 +79,11 @@ class ProfileRepository extends ServiceEntityRepository
         $sql = 'SELECT get_webvowl_json_for_profile AS json FROM che.get_webvowl_json_for_profile(:profile)';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['profile' => $profile->getId()]);
+        $stmt->bindValue('profile', $profile->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -97,13 +99,13 @@ class ProfileRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_profiles_list(:lang, :selectingProject, :owningProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'selectingProject' => $selectingProjectId,
-            'owningProject' => $owningProjectId,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('selectingProject', $selectingProjectId);
+        $stmt->bindValue('owningProject', $owningProjectId);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -128,9 +130,10 @@ class ProfileRepository extends ServiceEntityRepository
                   WHERE fk_project = :project
                   );';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -155,9 +158,10 @@ class ProfileRepository extends ServiceEntityRepository
                   WHERE fk_project = :project
                   );';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -176,12 +180,12 @@ class ProfileRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_owl_classes_and_properties_for_profiles(:lang, :profile, 0) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'profile' => $profile,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('profile', $profile);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -200,12 +204,12 @@ class ProfileRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_rdfs_classes_and_properties_for_profiles(:lang, :profile, 0) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'profile' => $profile,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('profile', $profile);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -219,11 +223,11 @@ class ProfileRepository extends ServiceEntityRepository
         $sql = 'SELECT api.get_shacl_profile(:lang::TEXT, :profileId::INTEGER) AS shacl';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => (string) $lang,
-            'profileId' => (int) $profileId,
-        ]);
+        $stmt->bindValue('lang', (string) $lang);
+        $stmt->bindValue('profileId', (int) $profileId);
 
-        return $stmt->fetch()['shacl'];
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAssociative()['shacl'];
     }
 }

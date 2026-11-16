@@ -125,9 +125,14 @@ class ClassRepository extends ServiceEntityRepository
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId);
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -162,9 +167,15 @@ class ClassRepository extends ServiceEntityRepository
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -218,9 +229,15 @@ class ClassRepository extends ServiceEntityRepository
 
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$classVersion->getClass()->getId()], $namespacesId, [$classVersion->getClass()->getId()], $namespacesId));
+        $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, [$classVersion->getClass()->getId()], $namespacesId);
 
-        return $stmt->fetchAll();
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -236,9 +253,9 @@ class ClassRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_classes_with_css_color(214) tree';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute();
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -254,9 +271,11 @@ class ClassRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(tree)) AS json FROM che.tree_filtered_classes_with_css_color(214,:fk_user,:fk_project) tree';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['fk_user' => $user->getId(), 'fk_project' => $user->getCurrentActiveProject()->getId()]);
+        $stmt->bindValue('fk_user', $user->getId());
+        $stmt->bindValue('fk_project', $user->getCurrentActiveProject()->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -272,9 +291,11 @@ class ClassRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = :context ORDER BY notes) legend;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['context' => $context]);
+        $stmt->bindValue('context', $context);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -300,9 +321,12 @@ class ClassRepository extends ServiceEntityRepository
                 FROM che.get_classes_rows_for_graph(:class, :namespace)) result;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['class' => $class->getId(), 'namespace' => $namespace->getId()]);
+        $stmt->bindValue('class', $class->getId());
+        $stmt->bindValue('namespace', $namespace->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -318,9 +342,11 @@ class ClassRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.v_classes_all_profile_project WHERE pk_project = :project ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -346,9 +372,11 @@ class ClassRepository extends ServiceEntityRepository
                 LEFT JOIN che.text_property txtp ON txtp.fk_associates_profile = aspro.pk_associates_profile
                 GROUP BY pk_class, class_standard_label, identifier_in_namespace, namespace, profile_association_type, fk_class_namespace_for_version, pk_associates_profile;';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['profile' => $profile->getId()]);
+        $stmt->bindValue('profile', $profile->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -372,9 +400,11 @@ class ClassRepository extends ServiceEntityRepository
                 SELECT pk_class, identifier_in_namespace, class_standard_label, fk_class_namespace_for_version, namespace
                 FROM che.get_all_classes_for_profile(:profile) WHERE profile_association_type = 'Selected';";
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['profile' => $profile->getId()]);
+        $stmt->bindValue('profile', $profile->getId());
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -411,9 +441,12 @@ class ClassRepository extends ServiceEntityRepository
                 JOIN che.class cls ON aspro.fk_inheriting_range_class = cls.pk_class
                 WHERE aspro.fk_profile = :profile AND aspro.fk_property IS NOT NULL AND aspro.fk_system_type = 5 AND cls.pk_class = :class;';
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['profile' => $profile->getId(), 'class' => $class->getId()]);
+        $stmt->bindValue('profile', $profile->getId());
+        $stmt->bindValue('class', $class->getId());
 
-        return $stmt->fetchColumn();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchOne();
     }
 
     /**
@@ -476,9 +509,14 @@ class ClassRepository extends ServiceEntityRepository
         // echo $sql;die;
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute($queryParams);
 
-        return $stmt->fetchAll();
+        foreach ($queryParams as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -542,9 +580,14 @@ class ClassRepository extends ServiceEntityRepository
                 WHERE TRUE".$iLike.';';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute($queryParams);
 
-        return $stmt->fetchAll();
+        foreach ($queryParams as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -562,13 +605,13 @@ class ClassRepository extends ServiceEntityRepository
         $sql = 'SELECT array_to_json(array_agg(result)) AS json FROM (SELECT * FROM api.get_classes_list(:lang, :availableInProfile, :selectedByProject) ) result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'availableInProfile' => $availableInProfile,
-            'selectedByProject' => $selectedByProject,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('availableInProfile', $availableInProfile);
+        $stmt->bindValue('selectedByProject', $selectedByProject);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -596,11 +639,11 @@ class ClassRepository extends ServiceEntityRepository
                 ) result;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'label' => '%'.$label.'%',
-        ]);
+        $stmt->bindValue('label', '%'.$label.'%');
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -621,10 +664,10 @@ class ClassRepository extends ServiceEntityRepository
                 GROUP BY pk_child;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'class' => $class,
-        ]);
+        $stmt->bindValue('class', $class);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

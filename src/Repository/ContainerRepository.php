@@ -30,12 +30,12 @@ class ContainerRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_owl_wisski_from_container(:lang, :container) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'lang' => $lang,
-            'container' => $container,
-        ]);
+        $stmt->bindValue('lang', $lang);
+        $stmt->bindValue('container', $container);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -53,10 +53,10 @@ class ContainerRepository extends ServiceEntityRepository
         $sql = 'SELECT result::text FROM api.get_xml_api_container(:container) as result;';
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            'container' => $container,
-        ]);
+        $stmt->bindValue('container', $container);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

@@ -38,9 +38,15 @@ class ClassVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge([$class->getId()], $namespacesId));
+        $params = array_merge([$class->getId()], $namespacesId);
 
-        return $em->getRepository(OntoClassVersion::class)->find($stmt->fetch()['pk_class_version']);
+        foreach ($params as $index => $value) {
+            $stmt->bindValue($index + 1, $value);
+        }
+
+        $result = $stmt->executeQuery();
+
+        return $em->getRepository(OntoClassVersion::class)->find($result->fetchAssociative()['pk_class_version']);
     }
 
     /**
@@ -61,9 +67,10 @@ class ClassVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$classId]);
+        $stmt->bindValue(1, $classId);
+        $result = $stmt->executeQuery();
 
-        return $em->getRepository(OntoClassVersion::class)->find($stmt->fetch()['pk_class_version']);
+        return $em->getRepository(OntoClassVersion::class)->find($result->fetchAssociative()['pk_class_version']);
     }
 
     public function findIdAndStandardLabelOfClassesVersionByNamespacesId(array $namespacesId)
@@ -81,8 +88,12 @@ class ClassVersionRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
         $stmt = $conn->prepare($sql);
-        $stmt->execute($namespacesId);
+        foreach ($namespacesId as $index => $id) {
+            $stmt->bindValue($index + 1, $id);
+        }
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

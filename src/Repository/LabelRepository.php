@@ -76,8 +76,10 @@ class LabelRepository extends ServiceEntityRepository
                   AND to_tsvector('english', CONCAT(lbl.label, ' ', lbl.inverse_label)) @@ plainto_tsquery('english', :query);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['query' => $query]);
+        $stmt->bindValue('query', $query);
 
-        return $stmt->fetchAll();
+        $result = $stmt->executeQuery();
+
+        return $result->fetchAllAssociative();
     }
 }

@@ -36,9 +36,10 @@ class UserRepository extends ServiceEntityRepository
                 WHERE usr.pk_user NOT IN (SELECT fk_user FROM che.associate_user_to_project WHERE fk_project = :project);";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 
     /**
@@ -59,8 +60,9 @@ class UserRepository extends ServiceEntityRepository
                 WHERE aup.fk_project = :project;";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute(['project' => $project->getId()]);
+        $stmt->bindValue('project', $project->getId());
+        $result = $stmt->executeQuery();
 
-        return $stmt->fetchAll();
+        return $result->fetchAllAssociative();
     }
 }
