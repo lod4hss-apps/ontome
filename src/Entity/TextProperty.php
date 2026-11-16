@@ -92,7 +92,7 @@ class TextProperty implements GroupSequenceProviderInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    private SystemType $validationStatus;
+    private ?SystemType $validationStatus = null;
 
     #[Assert\Valid]
     #[ORM\ManyToOne(inversedBy: 'textProperties')]

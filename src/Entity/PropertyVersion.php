@@ -78,7 +78,7 @@ class PropertyVersion
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    private SystemType $validationStatus;
+    private ?SystemType $validationStatus = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;

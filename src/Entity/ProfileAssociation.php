@@ -42,11 +42,11 @@ class ProfileAssociation
 
     #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    private Property $property;
+    private ?Property $property = null;
 
     #[ORM\ManyToOne(inversedBy: 'profileAssociations')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    private OntoClass $class;
+    private ?OntoClass $class = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_entity_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
@@ -54,7 +54,7 @@ class ProfileAssociation
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_inheriting_domain_class', referencedColumnName: 'pk_class')]
-    private OntoClass $domain;
+    private ?OntoClass $domain = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_domain_namespace', referencedColumnName: 'pk_namespace', nullable: true)]
@@ -62,7 +62,7 @@ class ProfileAssociation
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_inheriting_range_class', referencedColumnName: 'pk_class')]
-    private OntoClass $range;
+    private ?OntoClass $range = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_range_namespace', referencedColumnName: 'pk_namespace', nullable: true)]

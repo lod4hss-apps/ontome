@@ -73,7 +73,7 @@ class Label
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    private SystemType $validationStatus;
+    private ?SystemType $validationStatus = null;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'label')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]

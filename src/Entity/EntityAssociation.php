@@ -33,15 +33,15 @@ class EntityAssociation
 
     #[ORM\ManyToOne(inversedBy: 'sourceEntityAssociations')]
     #[ORM\JoinColumn(name: 'fk_source_class', referencedColumnName: 'pk_class')]
-    private OntoClass $sourceClass;
+    private ?OntoClass $sourceClass = null;
 
     #[ORM\ManyToOne(inversedBy: 'targetEntityAssociations')]
     #[ORM\JoinColumn(name: 'fk_target_class', referencedColumnName: 'pk_class')]
-    private OntoClass $targetClass;
+    private ?OntoClass $targetClass = null;
 
     #[ORM\ManyToOne(inversedBy: 'sourceEntityAssociations')]
     #[ORM\JoinColumn(name: 'fk_source_property', referencedColumnName: 'pk_property')]
-    private Property $sourceProperty;
+    private ?Property $sourceProperty = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_source_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
@@ -49,7 +49,7 @@ class EntityAssociation
 
     #[ORM\ManyToOne(inversedBy: 'targetEntityAssociations')]
     #[ORM\JoinColumn(name: 'fk_target_property', referencedColumnName: 'pk_property')]
-    private Property $targetProperty;
+    private ?Property $targetProperty = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_target_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]
@@ -61,7 +61,7 @@ class EntityAssociation
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
-    private SystemType $validationStatus;
+    private ?SystemType $validationStatus = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $directed;

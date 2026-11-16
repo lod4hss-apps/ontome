@@ -25,6 +25,7 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,7 +39,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ClassController extends AbstractController
 {
     #[Route(path: '/class')]
-    public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository): Response
+    public function listAction(NamespaceRepository $namespaceRepository, ClassRepository $classRepository, ManagerRegistry $managerRegistry): Response
     {
         // FILTRAGE : Récupérer les namespaces
         if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
@@ -103,13 +104,13 @@ class ClassController extends AbstractController
      * @throws \Exception
      */
     #[Route(path: 'class/new/{namespace}', name: 'class_new', requirements: ['namespace' => '^[0-9]+$'])]
-    public function newAction(Request $request, OntoNamespace $namespace)
+    public function newAction(Request $request, OntoNamespace $namespace, ManagerRegistry $managerRegistry)
     {
         $class = new OntoClass();
 
         $this->denyAccessUnlessGranted('edit', $namespace);
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
         $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); // systemType 1 = scope note
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 1 = scope note
 
@@ -205,7 +206,7 @@ class ClassController extends AbstractController
                 $class->getTextProperties()[1]->setClass($class);
             }
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $managerRegistry->getManager();
             $em->persist($class);
             $em->flush();
 
@@ -214,7 +215,7 @@ class ClassController extends AbstractController
             ]);
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
 
         return $this->render('class/new.html.twig', [
             'class' => $class,
@@ -237,6 +238,7 @@ class ClassController extends AbstractController
         NamespaceRepository $namespaceRepository,
         ClassRepository $classRepository,
         PropertyRepository $propertyRepository,
+        ManagerRegistry $managerRegistry,
         ?int $namespaceFromUrlId = null,
         )
     {
@@ -263,7 +265,7 @@ class ClassController extends AbstractController
             throw $this->createNotFoundException('The class n°'.$class->getId().' has no version. Please contact an administrator.');
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
 
         // Si le namespace n'est pas specifié dans l'url mais dans My Current Namespace, rediriger
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
@@ -473,7 +475,7 @@ class ClassController extends AbstractController
      * @throws DBALException
      */
     #[Route(path: '/class/{id}/edit', name: 'class_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(OntoClass $class, Request $request, LoggerInterface $logger)
+    public function editAction(OntoClass $class, Request $request, ManagerRegistry $managerRegistry, LoggerInterface $logger)
     {
         // Récupérer la version de la classe demandée
         // En mode Edit on a besoin de la version ongoing
@@ -485,7 +487,7 @@ class ClassController extends AbstractController
             throw $this->createNotFoundException('The class n°'.$class->getId().' has no version. Please contact an administrator.');
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
 
         // $namespacesIdFromClassVersion : Ensemble de namespaces provenant de la classe affiché (namespaceForVersion + references)
         // $rootNamespacesFromClassVersion : Ensemble des versions racines (pour contrôle en dessous)
@@ -706,7 +708,7 @@ class ClassController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/class-version/{id}/edit-validity/{validationStatus}', name: 'class_version_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^26|27|28|37$'])]
-    public function editValidationStatusAction(OntoClassVersion $classVersion, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(OntoClassVersion $classVersion, SystemType $validationStatus, ManagerRegistry $managerRegistry): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
         if (is_null($classVersion)) {
@@ -731,7 +733,7 @@ class ClassController extends AbstractController
         $isMinimumRequirementReached = $txtpValides->count() > 0 && $lblValides->count() > 0;
 
         try {
-            $em = $this->getDoctrine()->getManager();
+            $em = $managerRegistry->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
@@ -899,9 +901,9 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
     #[Route(path: '/classes-tree/json', name: 'classes_tree_json', methods: ['GET'])]
-    public function getTreeJson(): JsonResponse
+    public function getTreeJson(ManagerRegistry $managerRegistry): JsonResponse
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
 
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
             $classes = $em->getRepository(OntoClass::class)
@@ -918,7 +920,7 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted legend for the OntoClasses tree
      */
     #[Route(path: '/classes-tree-legend/json', name: 'classes_tree_legend_json', methods: ['GET'])]
-    public function getTreeLegendJson(): JsonResponse
+    public function getTreeLegendJson(ManagerRegistry $managerRegistry): JsonResponse
     {
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
             $context = 'public_namespace_classes_tree';
@@ -926,7 +928,7 @@ class ClassController extends AbstractController
             $context = 'public_namespace_classes_tree';
         }
 
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
         $legend = $em->getRepository(OntoClass::class)
             ->findClassesTreeLegend($context);
 
@@ -937,9 +939,9 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
     #[Route(path: '/class/{class}/{namespace}/graph/json', name: 'class_graph_json', requirements: ['class' => '^[0-9]+$'], methods: ['GET'])]
-    public function getGraphJson(OntoClass $class, OntoNamespace $namespace): JsonResponse
+    public function getGraphJson(OntoClass $class, OntoNamespace $namespace, ManagerRegistry $managerRegistry): JsonResponse
     {
-        $em = $this->getDoctrine()->getManager();
+        $em = $managerRegistry->getManager();
         $classes = $em->getRepository(OntoClass::class)
             ->findClassesGraphById($class, $namespace);
 
@@ -950,10 +952,10 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted list representation of OntoClasses related to a Project
      */
     #[Route(path: '/api/classes/project/{project}/json', name: 'classes_project_json', requirements: ['project' => '^[0-9]+$'], methods: ['GET'])]
-    public function getClassesByProject(Project $project): JsonResponse
+    public function getClassesByProject(Project $project, ManagerRegistry $managerRegistry): JsonResponse
     {
         try {
-            $em = $this->getDoctrine()->getManager();
+            $em = $managerRegistry->getManager();
             $classes = $em->getRepository(OntoClass::class)
                 ->findClassesByProjectId($project);
         } catch (NotFoundHttpException $e) {

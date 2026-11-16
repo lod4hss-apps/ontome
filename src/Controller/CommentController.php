@@ -113,7 +113,7 @@ class CommentController extends AbstractController
     }
 
     #[Route(path: '/comment/new/{object}/{objectId}', name: 'comment_new', requirements: ['object' => '^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['POST'])]
-    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
+    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, ManagerRegistry $managerRegistry)
     {
         $em = $this->doctrine->getManager();
 
@@ -215,7 +215,7 @@ class CommentController extends AbstractController
             $comment->setModificationTime(new \DateTime('now'));
             $comment->setNamespaceForVersion($namespaceForVersion);
 
-            $em = $this->getDoctrine()->getManager();
+            $em = $managerRegistry->getManager();
             $em->persist($comment);
             $em->flush();
 

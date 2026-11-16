@@ -124,6 +124,7 @@ class ClassRepository extends ServiceEntityRepository
                 ORDER BY depth DESC;';
 
         $conn = $this->getEntityManager()->getConnection();
+
         $stmt = $conn->prepare($sql);
         $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId);
         foreach ($params as $index => $value) {
@@ -147,18 +148,18 @@ class ClassRepository extends ServiceEntityRepository
         $in = str_repeat('?,', count($namespacesId) - 1).'?';
 
         $sql = 'SELECT pk_child AS id,
-                  child_identifier AS identifier,
-                  depth,
-                  che.get_root_namespace(nsp.pk_namespace) AS \"rootNamespaceId\",
-                  ( SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = \'en\') AS \"rootNamespaceLabel\",
-                  nsp.pk_namespace AS \"classNamespaceId\",
-                  nsp.standard_label AS \"classNamespaceLabel\",
-                  fk_namespace_for_version,
-                  ARRAY_TO_STRING(descendants,'|') AS \"descendants\",
-                  ARRAY_TO_STRING(pk_descendants,'|') AS \"pk_descendants\",
-                  ARRAY_TO_STRING(pk_version_descendants,'|') AS \"pk_version_descendants\"
-                  FROM che.descendant_class_hierarchy(?, ARRAY['.$in.']::integer[]) cls,
-                  che.namespace nsp
+                    child_identifier AS identifier,
+                    depth,
+                    che.get_root_namespace(nsp.pk_namespace) AS "rootNamespaceId",
+                    ( SELECT label FROM che.get_namespace_labels(che.get_root_namespace(nsp.pk_namespace)) WHERE language_iso_code = \'en\') AS "rootNamespaceLabel",
+                    nsp.pk_namespace AS "classNamespaceId",
+                    nsp.standard_label AS "classNamespaceLabel",
+                    fk_namespace_for_version,
+                    ARRAY_TO_STRING(descendants,\'|\') AS "descendants",
+                    ARRAY_TO_STRING(pk_descendants,\'|\') AS "pk_descendants",
+                    ARRAY_TO_STRING(pk_version_descendants,\'|\') AS "pk_version_descendants"
+                FROM che.descendant_class_hierarchy(?, ARRAY['.$in.']::integer[]) cls,
+                che.namespace nsp
                 WHERE nsp.pk_namespace = cls.fk_namespace_for_version
                 AND nsp.pk_namespace IN ('.$in.')
                 AND cls.fk_namespace_for_version IN ('.$in.')
@@ -168,7 +169,7 @@ class ClassRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare($sql);
         $params = array_merge([$classVersion->getClass()->getId()], $namespacesId, $namespacesId, $namespacesId);
-
+        
         foreach ($params as $index => $value) {
             $stmt->bindValue($index + 1, $value);
         }
