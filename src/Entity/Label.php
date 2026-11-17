@@ -65,11 +65,11 @@ class Label
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_project', referencedColumnName: 'pk_project')]
-    private Project $project;
+    private ?Project $project = null;
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    private Profile $profile;
+    private ?Profile $profile = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]

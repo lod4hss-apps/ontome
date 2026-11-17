@@ -23,6 +23,8 @@ class TextPropertyForm extends AbstractType
     private $tokenStorage;
 
     private $em;
+    
+    private $st_transformer;
 
     public function __construct(UserToNumberTransformer $transformer, SystemTypeToNumberTransformer $st_transformer, TokenStorageInterface $tokenStorage, EntityManagerInterface $em)
     {

@@ -88,7 +88,7 @@ class TextProperty implements GroupSequenceProviderInterface
 
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_text_property_type', referencedColumnName: 'pk_system_type', options: ['comment' => 'Typed by a system type'])]
-    private SystemType $systemType;
+    private ?SystemType $systemType = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'validation_status', referencedColumnName: 'pk_system_type')]
@@ -97,22 +97,22 @@ class TextProperty implements GroupSequenceProviderInterface
     #[Assert\Valid]
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_profile', referencedColumnName: 'pk_profile')]
-    private Profile $profile;
+    private ?Profile $profile = null;
 
     #[Assert\Valid]
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
-    private ClassAssociation $classAssociation;
+    private ?ClassAssociation $classAssociation = null;
 
     #[Assert\Valid]
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
-    private EntityAssociation $entityAssociation;
+    private ?EntityAssociation $entityAssociation = null;
 
     #[Assert\Valid]
     #[ORM\ManyToOne(inversedBy: 'textProperties')]
     #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
-    private PropertyAssociation $propertyAssociation;
+    private ?PropertyAssociation $propertyAssociation = null;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'textProperty')]
     #[ORM\OrderBy(['creationTime' => 'DESC'])]
