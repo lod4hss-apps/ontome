@@ -96,7 +96,7 @@ class OntoNamespace
 
     #[ORM\ManyToOne(cascade: ['persist'], inversedBy: 'managedNamespaces')]
     #[ORM\JoinColumn(name: 'fk_project_for_top_level_namespace', referencedColumnName: 'pk_project')]
-    private Project $projectForTopLevelNamespace;
+    private ?Project $projectForTopLevelNamespace = null;
 
     #[ORM\Column(type: 'text')]
     private string $standardLabel;

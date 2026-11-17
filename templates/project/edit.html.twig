@@ -586,8 +586,7 @@
                 <h3>Add a new thesaurus</h3>
                 {% if app.user %}
                     <div class="new-project-thesaurus-association-form" id="new-project-thesaurus-association-form">
-                        {{ render(controller('App:ProjectThesaurusAssociation:new', {'projectId' : project.id})) }}
-                    </div>
+                    {{ render(controller('App\\Controller\\ProjectThesaurusAssociationController::newAction', {'projectId': project.id})) }}                    </div>
                 {% endif %}
             </div>
             <div id="members" class="tab-pane fade">

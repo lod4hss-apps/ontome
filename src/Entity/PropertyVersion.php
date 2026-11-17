@@ -70,7 +70,7 @@ class PropertyVersion
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fk_property_of_origin', referencedColumnName: 'pk_property')]
-    private Property $propertyOfOrigin;
+    private ?Property $propertyOfOrigin = null;
 
     #[ORM\ManyToOne(inversedBy: 'propertyVersions')]
     #[ORM\JoinColumn(name: 'fk_namespace_for_version', referencedColumnName: 'pk_namespace', nullable: false)]

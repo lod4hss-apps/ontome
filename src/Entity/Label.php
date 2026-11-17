@@ -53,11 +53,11 @@ class Label
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    private OntoClass $class;
+    private ?OntoClass $class = null;
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    private Property $property;
+    private ?Property $property = null;
 
     #[ORM\ManyToOne(inversedBy: 'labels')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace', nullable: true)]

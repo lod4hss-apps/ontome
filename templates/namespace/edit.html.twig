@@ -2218,7 +2218,7 @@
                         var url = "{{ path('namespace_toggle_identifier_management', {'id': namespace.id, '_fragment': 'identifiers'}) }}";
                         $.ajax({
                             url: url,
-                            type: 'GET',
+                            type: 'POST',
                             dataType: 'json',
                             statusCode: {
                                 204: function () {
