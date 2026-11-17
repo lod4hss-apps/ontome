@@ -47,35 +47,35 @@ class Comment
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_class', referencedColumnName: 'pk_class')]
-    private OntoClass $class;
+    private ?OntoClass $class = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_property', referencedColumnName: 'pk_property')]
-    private Property $property;
+    private ?Property $property = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_is_subclass_of', referencedColumnName: 'pk_is_subclass_of')]
-    private ClassAssociation $classAssociation;
+    private ?ClassAssociation $classAssociation = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_is_subproperty_of', referencedColumnName: 'pk_is_subproperty_of')]
-    private PropertyAssociation $propertyAssociation;
+    private ?PropertyAssociation $propertyAssociation = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_entity_association', referencedColumnName: 'pk_entity_association')]
-    private EntityAssociation $entityAssociation;
+    private ?EntityAssociation $entityAssociation = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_text_property', referencedColumnName: 'pk_text_property')]
-    private TextProperty $textProperty;
+    private ?TextProperty $textProperty = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_label', referencedColumnName: 'pk_label')]
-    private Label $label;
+    private ?Label $label = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(name: 'fk_namespace', referencedColumnName: 'pk_namespace')]
-    private OntoNamespace $namespace;
+    private ?OntoNamespace $namespace = null;
 
     #[Assert\NotBlank]
     #[ORM\ManyToOne(inversedBy: 'comments')]

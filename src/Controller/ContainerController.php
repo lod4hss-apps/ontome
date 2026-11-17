@@ -143,6 +143,7 @@ class ContainerController extends AbstractController
         $newLabel = new Label();
         $newLabel->setLabel($label);
         $newLabel->setLanguageIsoCode('en');
+        $newLabel->setIsStandardLabelForLanguage(true);
         $newLabel->setCreator($this->getUser());
         $newLabel->setModifier($this->getUser());
         $newLabel->setCreationTime(new \DateTime());

@@ -16,6 +16,7 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Doctrine\ORM\QueryBuilder;
@@ -581,8 +582,11 @@ class NamespaceRepository extends ServiceEntityRepository
     public function checkNamespaceChange(OntoNamespace $namespace)
     {
         $change = false;
-        $criteria = Criteria::create()
-            ->orderBy(['id' => Criteria::DESC]);
+        $criteria = new Criteria(
+            null,
+            ['id' => Order::Descending],
+            accessRawFieldValues: true
+        );
         if (count($namespace->getTopLevelNamespace()->getChildVersions()) <= 1) {
             $change = true;
         } else {
