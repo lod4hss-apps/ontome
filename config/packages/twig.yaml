@@ -8,6 +8,7 @@ twig:
         - bootstrap_3_layout.html.twig
         - _formTheme.html.twig
     exception_controller: null
+    file_name_pattern: '*.twig'
 
 when@test:
     twig:
