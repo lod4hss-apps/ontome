@@ -7,7 +7,7 @@ use App\Entity\Label;
 use App\Repository\ContainerRepository;
 use App\Repository\NamespaceRepository;
 use App\Repository\ProjectRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use  Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +23,7 @@ class ContainerController extends AbstractController
     #[Route(path: '/container/{id}/fetch', name: 'container', methods: ['GET'])]
     public function getContainer(Request $request, ContainerRepository $containerRepository): JsonResponse
     {
-        $id = $request->get('id');
+        $id = $request->query->get('id');
 
         $container = $containerRepository->find($id);
 
@@ -79,7 +79,7 @@ class ContainerController extends AbstractController
     #[Route(path: '/container/{id}/root-namespaces-not-associated/fetch', name: 'container_root_namespaces_not_associated', methods: ['GET'])]
     public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $id = $request->get('id');
+        $id = $request->query->get('id');
 
         $container = $containerRepository->find($id);
 
@@ -128,8 +128,8 @@ class ContainerController extends AbstractController
     #[Route(path: '/container/create', name: 'container_create', methods: ['POST'])]
     public function createContainer(Request $request, EntityManagerInterface $em, ProjectRepository $projectRepository): JsonResponse
     {
-        $projectId = $request->get('project_id');
-        $label = $request->get('label');
+        $projectId = $request->query->get('project_id');
+        $label = $request->query->get('label');
         $project = $projectRepository->find($projectId);
 
         $newLabel = new Label();
@@ -166,8 +166,8 @@ class ContainerController extends AbstractController
     #[Route(path: '/association_container_namespace/create', name: 'association_container_namespace_create', methods: ['POST'])]
     public function createAssociationContainerNamespace(Request $request, EntityManagerInterface $em, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $containerId = $request->get('container_id');
-        $namespaceId = $request->get('namespace_id');
+        $containerId = $request->query->get('container_id');
+        $namespaceId = $request->query->get('namespace_id');
 
         $container = $containerRepository->find($containerId);
         $namespace = $namespaceRepository->find($namespaceId);
@@ -200,8 +200,8 @@ class ContainerController extends AbstractController
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
 
-        $containerId = $request->get('containerId');
-        $namespaceId = $request->get('namespaceId');
+        $containerId = $request->query->get('containerId');
+        $namespaceId = $request->query->get('namespaceId');
 
         $container = $containerRepository->find($containerId);
         $namespace = $namespaceRepository->find($namespaceId);

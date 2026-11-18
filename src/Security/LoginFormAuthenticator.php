@@ -58,12 +58,12 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         $session = $request->getSession();
         if (
-            null !== $request->get('_target_path')
+            null !== $request->query->get('_target_path', $request->request->get('_target_path'))
             && explode('#', basename((string) $request->request->get('_target_path')))[0] !== ''
             && null === $session->get('trueReferer')
             && null === $session->get('_security.main.target_path')
         ) {
-            $session->set('trueReferer', $request->get('_target_path'));
+            $session->set('trueReferer', $request->query->get('_target_path', $request->request->get('_target_path')));
         }
 
         $form = $this->formFactory->create(LoginForm::class);
@@ -117,11 +117,11 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             }
         }
 
-        if (is_null($targetPath) && !is_null($request->get('_target_path'))
-            && explode('#', basename($request->get('_target_path')))[0] != ''
+        if (is_null($targetPath) && !is_null($request->query->get('_target_path', $request->request->get('_target_path')))
+            && explode('#', basename($request->query->get('_target_path', $request->request->get('_target_path'))))[0] != ''
             && is_null($targetPath)) {
-            if (explode('#', basename($request->get('_target_path')))[0] != 'login') {
-                $targetPath = $request->get('_target_path');
+            if (explode('#', basename($request->query->get('_target_path', $request->request->get('_target_path'))))[0] != 'login') {
+                $targetPath = $request->query->get('_target_path', $request->request->get('_target_path'));
             }
         }
 

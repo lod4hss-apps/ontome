@@ -66,7 +66,7 @@ class UserController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid() && $this->captchaVerify($request->get('g-recaptcha-response'))) {
+        if ($form->isSubmitted() && $form->isValid() && $this->captchaVerify($request->request->get('g-recaptcha-response'))) {
             /** @var User $user */
             $user = $form->getData();
             $user->setStatus(true);
@@ -99,7 +99,7 @@ class UserController extends AbstractController
             );
         }
 
-        if ($form->isSubmitted() && $form->isValid() && !$this->captchaVerify($request->get('g-recaptcha-response'))) {
+        if ($form->isSubmitted() && $form->isValid() && !$this->captchaVerify($request->request->get('g-recaptcha-response'))) {
             $this->addFlash(
                 'error',
                 'Are you a human or a machine?'

@@ -787,9 +787,9 @@ class NamespaceController extends AbstractController
             return $string;
         }
 
-        $optionCardinality = $request->get('optCardinality', 'cardinality-opt-uml'); // cardinality-opt-er est l'autre option
-        $optionTextCardinality = filter_var($request->get('optTextCardinality', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
-        $optionFol = filter_var($request->get('optFol', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
+        $optionCardinality = $request->query->get('optCardinality', 'cardinality-opt-uml'); // cardinality-opt-er est l'autre option
+        $optionTextCardinality = filter_var($request->query->get('optTextCardinality', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
+        $optionFol = filter_var($request->quert->get('optFol', true), FILTER_VALIDATE_BOOLEAN); // false est l'autre option
 
         $allNamespacesReferences = $namespace->getAllReferencedNamespaces();
         $allNamespacesReferences->add($namespace);

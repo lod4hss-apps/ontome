@@ -71,9 +71,9 @@ class ApiController extends AbstractController
     public function getProfiles(Request $request, ProfileRepository $profileRepository): JsonResponse
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $selectingProject = intval($request->get('selected-by-project', 0));
-            $owningProject = intval($request->get('owned-by-project', 0));
+            $lang = $request->query->get('lang', 'en');
+            $selectingProject = intval($request->query->get('selected-by-project', 0));
+            $owningProject = intval($request->query->get('owned-by-project', 0));
 
             $profiles = $profileRepository->findProfilesApi($lang, $selectingProject, $owningProject);
         } catch (\Exception $e) {
@@ -101,9 +101,9 @@ class ApiController extends AbstractController
     public function getClassesWithProfile(Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $availableInProfile = intval($request->get('available-in-profile', 0));
-            $selectedByProject = intval($request->get('selected-by-project', 0));
+            $lang = $request->query->get('lang', 'en');
+            $availableInProfile = intval($request->query->get('available-in-profile', 0));
+            $selectedByProject = intval($request->query->get('selected-by-project', 0));
 
             $classes = $classRepository->findClassesWithProfileApi($lang, $availableInProfile, $selectedByProject);
         } catch (\Exception $e) {
@@ -131,9 +131,9 @@ class ApiController extends AbstractController
     public function getPropertiesWithProfile(Request $request, PropertyRepository $propertyRepository): JsonResponse
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $availableInProfile = intval($request->get('available-in-profile', 0));
-            $selectedByProject = intval($request->get('selected-by-project', 0));
+            $lang = $request->query->get('lang', 'en');
+            $availableInProfile = intval($request->query->get('available-in-profile', 0));
+            $selectedByProject = intval($request->query->get('selected-by-project', 0));
 
             $properties = $propertyRepository->findPropertiesWithProfileApi($lang, $availableInProfile, $selectedByProject);
         } catch (\Exception $e) {
@@ -158,8 +158,8 @@ class ApiController extends AbstractController
     public function getShaclWithProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $profileId = intval($request->get('profile-id', 0));
+            $lang = $request->query->get('lang', 'en');
+            $profileId = intval($request->query->get('profile-id', 0));
 
             $output = $profileRepository->findShaclWithProfile($lang, $profileId);
         } catch (\Exception $e) {
@@ -179,8 +179,8 @@ class ApiController extends AbstractController
     public function getClassesAndPropertiesByNamespace(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $namespaceId = intval($request->get('namespace', 0));
+            $lang = $request->query->get('lang', 'en');
+            $namespaceId = intval($request->query->get('namespace', 0));
             $xml = $namespaceRepository->findClassesAndPropertiesByNamespaceIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -208,11 +208,11 @@ class ApiController extends AbstractController
         }
 
         try {
-            $lang = $request->get('lang', 'en');
-            $namespaceId = intval($request->get('namespace', 0));
+            $lang = $request->query->get('lang', 'en');
+            $namespaceId = intval($request->query->get('namespace', 0));
 
             // Check if we need to reload the file (so with a query SQL)
-            $reload = boolval($request->get('reload', false));
+            $reload = boolval($request->query->get('reload', false));
 
             // Build the path to the expected file (web/documents/files-owl/namespace-<id>.owl)
             $owlFilePath = 'documents/files-owl/namespace-'.$namespaceId.'.owl';
@@ -267,8 +267,8 @@ class ApiController extends AbstractController
     public function getClassesAndPropertiesByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $projectId = intval($request->get('project', 0));
+            $lang = $request->query->get('lang', 'en');
+            $projectId = intval($request->query->get('project', 0));
             $xml = $projectRepository->findClassesAndPropertiesByProjectIdApi($lang, $projectId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -292,8 +292,8 @@ class ApiController extends AbstractController
     public function getClassesAndPropertiesByProfile(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $profileId = intval($request->get('profile', 0));
+            $lang = $request->query->get('lang', 'en');
+            $profileId = intval($request->query->get('profile', 0));
             $xml = $profileRepository->findClassesAndPropertiesByProfileIdApi($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -314,10 +314,10 @@ class ApiController extends AbstractController
     public function getClassesAndPropertiesByNamespaceRdfs(Request $request, NamespaceRepository $namespaceRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $namespaceId = intval($request->get('namespace', 0));
-            $withInverseProperties = intval($request->get('withInverseProperties', 0));
-            $withSpecificUri = intval($request->get('withSpecificUri', 0));
+            $lang = $request->query->get('lang', 'en');
+            $namespaceId = intval($request->query->get('namespace', 0));
+            $withInverseProperties = intval($request->query->get('withInverseProperties', 0));
+            $withSpecificUri = intval($request->query->get('withSpecificUri', 0));
             $xml = $namespaceRepository->findClassesAndPropertiesByNamespaceIdApiRdfs($lang, $namespaceId, $withInverseProperties, $withSpecificUri);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -344,8 +344,8 @@ class ApiController extends AbstractController
     public function getClassesAndPropertiesByProfileRdfs(Request $request, ProfileRepository $profileRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $profileId = intval($request->get('profile', 0));
+            $lang = $request->query->get('lang', 'en');
+            $profileId = intval($request->query->get('profile', 0));
             $xml = $profileRepository->findClassesAndPropertiesByProfileIdApiRdfs($lang, $profileId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -370,8 +370,8 @@ class ApiController extends AbstractController
     public function getOwlWisskiByProject(Request $request, ProjectRepository $projectRepository): Response
     {
         try {
-            $lang = $request->get('lang', 'en');
-            $namespaceId = intval($request->get('project', 0));
+            $lang = $request->query->get('lang', 'en');
+            $namespaceId = intval($request->query->get('project', 0));
             $xml = $projectRepository->findNamespacesByProjectIdApi($lang, $namespaceId);
         } catch (\Exception $e) {
             $xml = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -396,10 +396,10 @@ class ApiController extends AbstractController
     {
         try {
             // Langue par défaut: en, sinon celle passée en paramètre
-            $lang = $request->get('lang', 'en');
+            $lang = $request->query->get('lang', 'en');
 
             // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
-            $containerId = intval($request->get('container', 0));
+            $containerId = intval($request->query->get('container', 0));
 
             // Récupérer le container
             $xml = $containerRepository->findNamespacesByContainerIdApi($lang, $containerId);
@@ -432,7 +432,7 @@ class ApiController extends AbstractController
     {
         try {
             // Container ID passé en paramètre, sinon 0 (ce qui ne correspond à aucun container et donc renverra une erreur ou un résultat vide)
-            $containerId = intval($request->get('container', 0));
+            $containerId = intval($request->query->get('container', 0));
 
             // Récupérer le container
             $xml = $containerRepository->findContainerApi($containerId);

@@ -1028,7 +1028,7 @@ class ProfileController extends AbstractController
     public function getSelectableDescendentClassByClassAndProfile(OntoClass $class, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
-            $searchTerm = $request->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
+            $searchTerm = $request->query->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $classes = $classRepository->findDescendantsByProfileAndClassId($profile, $class, $property, $searchTerm);
             $data['results'] = $classes;
@@ -1051,7 +1051,7 @@ class ProfileController extends AbstractController
     public function getSelectableDescendentDomain(EntityManagerInterface $em, OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
-            $searchTerm = $request->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
+            $searchTerm = $request->query->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $classes = $classRepository->findDescendantsDomainByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
@@ -1074,7 +1074,7 @@ class ProfileController extends AbstractController
     public function getSelectableDescendentRange(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
-            $searchTerm = $request->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
+            $searchTerm = $request->query->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
             $classes = $classRepository->findDescendantsRangeByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
