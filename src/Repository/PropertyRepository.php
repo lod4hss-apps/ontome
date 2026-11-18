@@ -16,6 +16,7 @@ use App\Entity\Project;
 use App\Entity\Property;
 use App\Entity\PropertyVersion;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 class PropertyRepository extends ServiceEntityRepository
@@ -43,15 +44,40 @@ class PropertyRepository extends ServiceEntityRepository
     /**
      * @return Property[]
      */
-    public function findPropertiesByNamespacesIdQueryBuilder(array $namespacesId)
+    public function findPropertiesByNamespacesIdQueryBuilder(array $namespacesId, ?int $offset = null, ?int $length = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder('property')
+            ->select('property')
+            ->join('property.propertyVersions', 'pv')
+            ->join('pv.namespaceForVersion', 'nfv')
+            ->where('nfv.id IN (:namespacesId)')
+            ->groupBy('property.id')          // indispensable : sinon doublons (1 ligne par version)
+            ->orderBy('property.label', 'ASC') // indispensable avec LIMIT/OFFSET : ordre déterministe
+            ->setParameter('namespacesId', $namespacesId);
+
+        if (!is_null($length)) {
+            $qb->setMaxResults($length);
+            $qb->setFirstResult($offset ?? 0);
+        }
+
+        return $qb;
+    }
+
+    public function countPropertiesByNamespacesId(array $namespacesId, string $search = ''): int
+    {
+        $qb = $this->createQueryBuilder('property')
+            ->select('COUNT(DISTINCT property.id)')
             ->join('property.propertyVersions', 'pv')
             ->join('pv.namespaceForVersion', 'nfv')
             ->where('nfv.id IN (:namespacesId)')
             ->setParameter('namespacesId', $namespacesId);
 
-        return $qb;
+        if ($search !== '') {
+            $qb->andWhere('property.label LIKE :search OR property.identifierInUri LIKE :search')
+            ->setParameter('search', '%' . $search . '%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
     /**

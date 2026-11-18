@@ -41,17 +41,25 @@ class PropertyController extends AbstractController
     #[Route(path: '/property')]
     public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): Response
     {
+        return $this->render('property/list.html.twig');
+    }
+
+    #[Route('/property/datatable', name: 'property_datatable', methods: ['GET'])]
+    public function datatableAction(
+        Request $request,
+        NamespaceRepository $namespaceRepository,
+        PropertyRepository $propertyRepository
+    ): JsonResponse {
         // FILTRAGE : Récupérer les namespaces
-        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
+        if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
             $namespacesId = $namespaceRepository->findPublicProjectNamespacesId();
-        } else { // Utilisateur connecté et utilisant un autre projet
+        } else {
             $namespacesId = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
 
         // Compléter avec les références parents (directs/indirects)
         $refsNsId = [];
-        foreach ($namespacesId as $nsId) {
-            $ns = $namespaceRepository->find($nsId);
+        foreach ($namespaceRepository->findBy(['id' => $namespacesId]) as $ns) {
             foreach ($ns->getAllReferencedNamespaces() as $refNs) {
                 if (!in_array($refNs->getId(), $refsNsId)) {
                     $refsNsId[] = $refNs->getId();
@@ -60,41 +68,123 @@ class PropertyController extends AbstractController
         }
         $namespacesId = array_merge($namespacesId, $refsNsId);
 
-        // Récupérer l'ensemble des namespaces root déjà utilisé pour le filtrage
+        // Namespaces root déjà utilisés
         $rootNamespacesId = [];
-        foreach ($namespacesId as $namespaceId) {
-            $rootNamespacesId[] = $namespaceRepository->find($namespaceId)->getTopLevelNamespace()->getId();
+        foreach ($namespaceRepository->findBy(['id' => $namespacesId]) as $namespace) {
+            $rootNamespacesId[] = $namespace->getTopLevelNamespace()->getId();
         }
 
-        // Récupérer toutes les classes sans le filtrage
-        // N'afficher que les classes/propriétés de la version choisie par l'utilisateur sinon dernière publiée d'un espace de noms ou,
-        // si l'espace n'a pas de version publiée, la version ongoing.
-        // 1- Récuperer tous les roots
-        $allRootNamespaces = $namespaceRepository->findBy(['isTopLevelNamespace' => true]);
-        // 2- Récupérer la bonne version (choisie par l'utilisateur sinon dernière publiée sinon ongoing)
+        // Ajouter la bonne version (dernière publiée, sinon ongoing) des autres roots
         $allNamespacesId = $namespacesId;
-
-        // Enlever ceux déjà utilisés
-        $filteredRootNamespaces = array_filter($allRootNamespaces, fn ($v) => !in_array($v->getId(), $rootNamespacesId));
-        foreach ($filteredRootNamespaces as $rootNamespace) {
+        foreach ($namespaceRepository->findBy(['isTopLevelNamespace' => true]) as $rootNamespace) {
+            if (in_array($rootNamespace->getId(), $rootNamespacesId)) {
+                continue;
+            }
             $defaultNamespace = null;
             foreach ($rootNamespace->getChildVersions() as $childVersion) {
-                if ($childVersion->getIsOngoing() and !$rootNamespace->getHasPublication()) {
+                if ($childVersion->getIsOngoing() && !$rootNamespace->getHasPublication()) {
                     $defaultNamespace = $childVersion;
-                } elseif (is_null($defaultNamespace) || $defaultNamespace->getPublishedAt() < $childVersion->getPublishedAt()) {
+                } elseif (
+                    is_null($defaultNamespace)
+                    || (!is_null($defaultNamespace->getPublishedAt())
+                        && !is_null($childVersion->getPublishedAt())
+                        && $defaultNamespace->getPublishedAt() < $childVersion->getPublishedAt())
+                ) {
                     $defaultNamespace = $childVersion;
                 }
             }
-            $allNamespacesId[] = $defaultNamespace->getId();
+            if (!is_null($defaultNamespace)) {
+                $allNamespacesId[] = $defaultNamespace->getId();
+            }
         }
 
-        // Récupérer toutes les propriétés
-        $allProperties = $propertyRepository->findAll(); // ->findPropertiesByNamespacesId($allNamespacesId);
+        $draw    = (int) $request->query->get('draw', 1);
+        $start   = max(0, (int) $request->query->get('start', 0));
+        $length  = min(max((int) $request->query->get('length', 50), 10), 200);
+        $showAll = $request->query->get('showAll', '0') === '1';
 
-        return $this->render('property/list.html.twig', [
-            'properties' => $allProperties,
-            'allNamespacesId' => $allNamespacesId,
-            'namespacesId' => $namespacesId,
+        $searchBag = $request->query->all('search');
+        $search = is_array($searchBag) ? trim((string) ($searchBag['value'] ?? '')) : '';
+
+        // Le bouton "Show all namespaces" devient un choix de namespaces côté serveur
+        $baseNamespacesId = $showAll ? $allNamespacesId : $namespacesId;
+
+        $total    = $propertyRepository->countPropertiesByNamespacesId($allNamespacesId, $search);
+        $filtered = $propertyRepository->countPropertiesByNamespacesId($baseNamespacesId, $search);
+
+        $qb = $propertyRepository->findPropertiesByNamespacesIdQueryBuilder($baseNamespacesId, $start, $length);
+        if ($search !== '') {
+            $qb->andWhere('property.label LIKE :search OR property.identifierInNamespace LIKE :search')
+            ->setParameter('search', '%' . $search . '%');
+        }
+        // Tri autorisé uniquement sur les colonnes 2 (identifier) et 3 (label)
+        $orderable = [2 => 'property.identifierInNamespace', 3 => 'property.label'];
+        $orderBag = $request->query->all('order');
+        $orderCol = (int) ($orderBag[0]['column'] ?? 2);
+        $orderDir = strtolower((string) ($orderBag[0]['dir'] ?? 'asc')) === 'desc' ? 'DESC' : 'ASC';
+        $qb->orderBy($orderable[$orderCol] ?? 'property.identifierInNamespace', $orderDir);
+
+        $user = $this->getUser();
+
+        // Rend le lien Domain/Range (avec classe text-danger en cas de mismatch), comme dans le Twig
+        $renderClassLink = function ($class, $classNamespace, $namespaceForVersion) {
+            if (is_null($class) || is_null($classNamespace)) {
+                return '';
+            }
+            $isGood = in_array($classNamespace->getId(), $namespaceForVersion->getSelectedNamespacesId());
+            $route = $isGood
+                ? ['class_show_with_version', ['id' => $class->getId(), 'namespaceFromUrlId' => $classNamespace->getId()]]
+                : ['namespace_show', ['id' => $namespaceForVersion->getId(), '_fragment' => 'mismatches']];
+            $label = $class->getClassVersionForDisplay($classNamespace);
+            return '<a href="' . $this->generateUrl($route[0], $route[1]) . '"'
+                . ($isGood ? '' : ' class="text-danger"') . '>'
+                . htmlspecialchars((string) $label) . '</a>';
+        };
+
+        $data = [];
+        foreach ($qb->getQuery()->getResult() as $property) {
+            foreach ($property->getPropertyVersions() as $pv) {
+                $ns = $pv->getNamespaceForVersion();
+                // Même condition que le filtre Twig + restriction aux namespaces actifs
+                if (!in_array($ns->getId(), $baseNamespacesId)) {
+                    continue;
+                }
+                $hasAccess = $ns->getIsVisible() || (
+                    !is_null($user)
+                    && null !== $ns->getProjectForTopLevelNamespace()
+                    && count(array_filter(
+                        $ns->getProjectForTopLevelNamespace()->getUserProjectAssociations()->toArray(),
+                        fn ($a) => $a->getUser()->getId() === $user->getId()
+                    )) === 1
+                );
+                if (!$hasAccess) {
+                    continue;
+                }
+
+                $updated = $pv->getModificationTime() ?? $pv->getCreationTime();
+
+                $data[] = [
+                    'domain'       => $renderClassLink($pv->getDomain(), $pv->getDomainNamespace(), $ns),
+                    'domainQuant'  => htmlspecialchars((string) $pv->getDomainQuantifiers()),
+                    'identifier'   => htmlspecialchars((string) $property->getIdentifierInNamespace()),
+                    'label'        => '<a href="' . $this->generateUrl('property_show_with_version', [
+                            'id' => $property->getId(),
+                            'namespaceFromUrlId' => $ns->getId(),
+                        ]) . '">' . htmlspecialchars((string) $pv->getStandardLabel()) . '</a>',
+                    'rangeQuant'   => htmlspecialchars((string) $pv->getRangeQuantifiers()),
+                    'range'        => $renderClassLink($pv->getRange(), $pv->getRangeNamespace(), $ns),
+                    'namespace'    => htmlspecialchars((string) $ns),
+                    'updated'      => $updated ? $updated->format('Y-m-d') : '',
+                    'nsId'         => (string) $ns->getId(), // colonne cachée, plus utilisée mais conservée
+                ];
+            }
+        }
+
+        return $this->json([
+            'draw' => $draw,
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filtered,
+            'data' => $data,
         ]);
     }
 

@@ -4,12 +4,11 @@
 
 {% block stylesheets %}
     {{ parent() }}
-
-{%  endblock %}
+{% endblock %}
 
 {% block body %}
     <p class="pull-right">
-        <button type="button" class="btn btn-default"  id="btn-show-all-namespaces">Show all namespaces</button>
+        <button type="button" class="btn btn-default" id="btn-show-all-namespaces">Show all namespaces</button>
     </p>
     <h3>Properties</h3>
     <table class="table table-striped" id="property-table">
@@ -26,140 +25,50 @@
                 <th>id_namespace</th>
             </tr>
         </thead>
-        <tbody>
-            {# Rappel : "properties" est déjà filtrée : toutes ces propriétés ont au moins une propertyVersion compatible avec le filtrage #}
-            {# Inutile donc de refiltrer sur properties #}
-            {% for property in properties %}
-                {# Une version par root est activé pour filtrage, donc pas possible d'avoir 2 propriétés identiques affichées #}
-                {# Donc l'utilisation de la boucle est justifiée par la condition if, et qui ne retournera qu'une propriété #}
-                {% for propertyVersion in property.propertyVersions|filter(pv => pv.namespaceForVersion.isVisible or (app.user is not null and pv.namespaceForVersion.projectForTopLevelNamespace.userProjectAssociations|filter(v => v.user.id == app.user.id)|length == 1)) %}
-                <tr>
-                    <td class="text-right small">
-                        {% if propertyVersion.domain is not null and propertyVersion.domainNamespace is not null %}
-                            {# Initialisation #}
-                            {% set isGoodNamespace = true %}
-                            {% set route = 'class_show_with_version' %}
-                            {% set route_params = {'id': propertyVersion.domain.id,  'namespaceFromUrlId': propertyVersion.domainNamespace.id } %}
-
-                            {# Vérification #}
-                            {% if propertyVersion.domainNamespace.id not in propertyVersion.namespaceForVersion.selectedNamespacesId %}
-                                {% set isGoodNamespace = false %}
-                                {% set route = 'namespace_show' %}
-                                {% set route_params = {'id': propertyVersion.namespaceForVersion.id,  '_fragment': 'mismatches' } %}
-                            {% endif %}
-
-                            <a href="{{ path(route, route_params) }}" {% if not isGoodNamespace %}class="text-danger"{% endif %}>
-                                {{ propertyVersion.domain.classVersionForDisplay(propertyVersion.domainNamespace) }}
-                            </a>
-                        {% endif %}
-                    </td>
-                    <td class="text-center small" style="padding-left: 30px;">
-                        {{ propertyVersion.domainQuantifiers }}
-                    </td>
-                    <td>
-                        {{ propertyVersion.property.identifierInNamespace }}
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ path('property_show_with_version', {
-                            'id': property.id,
-                            'namespaceFromUrlId': propertyVersion.namespaceForVersion.id
-                        }) }}">
-                            {{ propertyVersion.standardLabel }}
-                        </a>
-                    </td>
-                    <td class="text-center small" style="padding-right: 30px;">
-                        {{ propertyVersion.rangeQuantifiers }}
-                    </td>
-                    <td class="small">
-                        {% if propertyVersion.range is not null and propertyVersion.rangeNamespace is not null %}
-                            {# Initialisation #}
-                            {% set isGoodNamespace = true %}
-                            {% set route = 'class_show_with_version' %}
-                            {% set route_params = {'id': propertyVersion.range.id,  'namespaceFromUrlId': propertyVersion.rangeNamespace.id } %}
-
-                            {# Vérification #}
-                            {% if propertyVersion.rangeNamespace.id not in propertyVersion.namespaceForVersion.selectedNamespacesId %}
-                                {% set isGoodNamespace = false %}
-                                {% set route = 'namespace_show' %}
-                                {% set route_params = {'id': propertyVersion.namespaceForVersion.id,  '_fragment': 'mismatches' } %}
-                            {% endif %}
-
-                            <a href="{{ path(route, route_params) }}" {% if not isGoodNamespace %}class="text-danger"{% endif %}>
-                                {{ propertyVersion.range.classVersionForDisplay(propertyVersion.rangeNamespace) }}
-                            </a>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{ propertyVersion.namespaceForVersion }}
-                    </td>
-                    <td>
-                        {% if propertyVersion.modificationTime is not null %}
-                            {{ propertyVersion.modificationTime|date('Y-m-d') }}
-                        {% else %}
-                            {{ propertyVersion.creationTime|date('Y-m-d') }}
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{ propertyVersion.namespaceForVersion.id }}
-                    </td>
-                </tr>
-                {% endfor %}
-            {% endfor %}
-        </tbody>
+        <tbody></tbody>
     </table>
 {% endblock %}
+
 {% block javascripts %}
     {{ parent() }}
-
     <script>
-        // Filtrer la table selon le bouton show/hide
-        $.fn.dataTable.ext.search.push(
-            function( settings, data, dataIndex ) {
-                // Don't filter on anything other than "class-table"
-                if ( settings.nTable.id !== 'property-table' ) {
-                    return true;
-                }
-                var propertyNamespacesForVersion = data[8]; // use data for comparaison
-                var vnamespacesId = [{{ ('"' ~ namespacesId|join('","') ~ '"')|raw }}];
-
-                if($('#btn-show-all-namespaces').hasClass('btn-primary')) {
-                    return true;
-                }
-                else{
-                    return vnamespacesId.includes(propertyNamespacesForVersion);
-                }
-            }
-        );
         $(document).ready(function() {
+            var showAll = false;
             var tableProperties = $('#property-table').DataTable({
-                "order": [[2, 'asc']],
-                "pageLength":50,
-                "columnDefs": [
-                    { type: 'natural-ci', targets: 2, className: 'text-right' },
-                    { "orderable": false, "targets": 1 },
-                    { "orderable": false, "targets": 4 },
-                    { "visible": false, "targets": 8 }]
+                serverSide: true,
+                ajax: {
+                    url: '{{ path('property_datatable') }}',
+                    data: function (d) { d.showAll = showAll ? '1' : '0'; }
+                },
+                columns: [
+                    { data: 'domain' },
+                    { data: 'domainQuant' },
+                    { data: 'identifier' },
+                    { data: 'label' },
+                    { data: 'rangeQuant' },
+                    { data: 'range' },
+                    { data: 'namespace' },
+                    { data: 'updated' },
+                    { data: 'nsId' }
+                ],
+                order: [[2, 'asc']],
+                pageLength: 50,
+                columnDefs: [
+                    { orderable: false, targets: [0, 1, 4, 5, 6, 7] },
+                    { visible: false, targets: 8 }
+                ]
             });
 
-            $('#btn-show-all-namespaces').click(function (){
-                    if($('#btn-show-all-namespaces').hasClass('btn-primary')){
-                        $('#btn-show-all-namespaces').removeClass('btn-primary');
-                        $('#btn-show-all-namespaces').addClass('btn-default');
-                        $('#btn-show-all-namespaces').html("Show all namespaces");
-                        tableProperties.draw();
-                    }
-                    else{
-                        $('#btn-show-all-namespaces').removeClass('btn-default');
-                        $('#btn-show-all-namespaces').addClass('btn-primary');
-                        $('#btn-show-all-namespaces').html("Hide unselected namespaces");
-                        tableProperties.draw();
-                    }
-                }
-            );
+            $('#btn-show-all-namespaces').click(function () {
+                showAll = !showAll;
+                $(this).toggleClass('btn-primary btn-default')
+                       .html(showAll ? 'Hide unselected namespaces' : 'Show all namespaces');
+                tableProperties.ajax.reload();
+            });
 
             $('.dataTables_paginate').click(function () {
                 $([document.documentElement, document.body]).animate({
-                    scrollTop: $(this).closest('.dataTables_wrapper').prevAll("h3").offset().top
+                    scrollTop: $(this).closest('.dataTables_wrapper').prevAll('h3').offset().top
                 }, 1000);
             });
         });
