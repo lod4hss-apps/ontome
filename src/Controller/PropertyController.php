@@ -26,6 +26,7 @@ use App\Repository\ClassVersionRepository;
 use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -107,7 +108,7 @@ class PropertyController extends AbstractController
     }
 
     #[Route(path: 'property/{type}/new/{class}', name: 'property_new', requirements: ['type' => '^(ingoing|outgoing){1}$', 'class' => '^[0-9]+$'])]
-    public function newAction(string $type, Request $request, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
+    public function newAction(string $type, Request $request, EntityManagerInterface $em, OntoClass $class, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         $property = new Property();
 
@@ -120,7 +121,6 @@ class PropertyController extends AbstractController
             throw $this->createNotFoundException('The requested property type "'.$type.'" does not exist!');
         }
 
-        $em = $this->doctrine->getManager();
         $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); // systemType 1 = scope note
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 1 = scope note
 
@@ -165,8 +165,6 @@ class PropertyController extends AbstractController
         $property->setIsManualIdentifier(is_null($this->getUser()->getCurrentOngoingNamespace()->getTopLevelNamespace()->getPropertyPrefix()));
         $property->setCreator($this->getUser());
         $property->setModifier($this->getUser());
-
-        $em = $this->doctrine->getManager();
 
         // Filtrage
         $namespaceForPropertyVersion = $propertyVersion->getNamespaceForVersion();
@@ -271,8 +269,7 @@ class PropertyController extends AbstractController
                 $property->getTextProperties()[1]->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
                 $property->getTextProperties()[1]->setProperty($property);
             }
-
-            $em = $this->doctrine->getManager();
+            
             $em->persist($property);
             $em->flush();
 
@@ -280,9 +277,7 @@ class PropertyController extends AbstractController
                 'id' => $property->getId(),
             ]);
         }
-
-        $em = $this->doctrine->getManager();
-
+        
         $template = null;
         if ($type == 'outgoing') {
             $template = 'property/newOutgoing.html.twig';
@@ -293,7 +288,8 @@ class PropertyController extends AbstractController
         return $this->render($template, [
             'property' => $property,
             'type' => $type,
-            'propertyForm' => $form->createView(),
+            'propertyForm' => $form,
+            'class' => $class
         ]);
     }
 
@@ -513,7 +509,7 @@ class PropertyController extends AbstractController
      * @throws \Exception
      */
     #[Route(path: '/property/{id}/edit', name: 'property_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Property $property, Request $request, LoggerInterface $logger, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
+    public function editAction(Property $property, Request $request, EntityManagerInterface $em, LoggerInterface $logger, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository, ClassVersionRepository $classVersionRepository, ClassRepository $classRepository)
     {
         // Récupérer la version de la propriété demandée
         $propertyVersion = $property->getPropertyVersionForDisplay();
@@ -599,7 +595,6 @@ class PropertyController extends AbstractController
             $propertyVersion->setRange($range);
             $rangeNamespace = $classVersionRepository->findClassVersionByClassAndNamespacesId($range, $namespacesId)->getNamespaceForVersion();
             $propertyVersion->setRangeNamespace($rangeNamespace);
-            $em = $this->doctrine->getManager();
             $em->persist($propertyVersion);
             $em->flush();
 
@@ -622,7 +617,7 @@ class PropertyController extends AbstractController
             } else {
                 $property->updateIdentifierInUri();
             }
-            $em = $this->doctrine->getManager();
+            
             $em->persist($property);
             $em->persist($propertyVersion);
             $em->flush();
@@ -638,7 +633,7 @@ class PropertyController extends AbstractController
         $formUriIdentifier = $this->createForm(PropertyEditUriIdentifierForm::class, $property);
         $formUriIdentifier->handleRequest($request);
         if ($formUriIdentifier->isSubmitted() && $formUriIdentifier->isValid()) {
-            $em = $this->doctrine->getManager();
+            
             $em->persist($property);
             $em->flush();
 
@@ -764,9 +759,9 @@ class PropertyController extends AbstractController
             'parentPropertyAssociations' => $parentPropertyAssociations,
             'childPropertyAssociations' => $childPropertyAssociations,
             'entityAssociations' => $entityAssociations,
-            'propertyForm' => $form->createView(),
-            'propertyIdentifierForm' => $formIdentifier->createView(),
-            'propertyUriIdentifierForm' => $formUriIdentifier->createView(),
+            'propertyForm' => $form,
+            'propertyIdentifierForm' => $formIdentifier,
+            'propertyUriIdentifierForm' => $formUriIdentifier,
             'namespacesId' => $namespacesId,
             'namespacesIdFromPropertyVersion' => $namespacesIdFromPropertyVersion,
             'namespacesIdFromUser' => $namespacesIdFromUser,
@@ -779,7 +774,7 @@ class PropertyController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/property-version/{id}/edit-validity/{validationStatus}', name: 'property_version_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(PropertyVersion $propertyVersion, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(EntityManagerInterface $em, PropertyVersion $propertyVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
         if (is_null($propertyVersion)) {
@@ -818,7 +813,6 @@ class PropertyController extends AbstractController
         $isMinimumRequirementReached = $txtpValides->count() > 0 && $lblValides->count() > 0;
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {

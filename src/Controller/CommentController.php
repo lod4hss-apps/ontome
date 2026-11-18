@@ -21,6 +21,7 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use App\Repository\TextPropertyRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,10 +45,8 @@ class CommentController extends AbstractController
      * @return JsonResponse a Json formatted comments list
      */
     #[Route(path: '/comment/{objectType}/{objectId}/json', name: 'comment_show_json', requirements: ['objectType' => '^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['GET'])]
-    public function getCommentsAction(string $objectType, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function getCommentsAction(string $objectType, string $objectId, EntityManagerInterfa $em, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $em = $this->doctrine->getManager();
-
         // $objectType = 'class';
         // $objectId = 268;
         if ($objectType === 'class') {
@@ -113,10 +112,8 @@ class CommentController extends AbstractController
     }
 
     #[Route(path: '/comment/new/{object}/{objectId}', name: 'comment_new', requirements: ['object' => '^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['POST'])]
-    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, ManagerRegistry $managerRegistry)
+    public function newAction(string $object, string $objectId, Request $request, EntityManagerInterface $em, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, ManagerRegistry $managerRegistry)
     {
-        $em = $this->doctrine->getManager();
-
         $comment = new Comment();
 
         if ($object === 'class-version') {
@@ -221,7 +218,7 @@ class CommentController extends AbstractController
 
             $html = $this->renderView('comment/new.html.twig', [
                 'comment' => $comment,
-                'commentForm' => $form->createView(),
+                'commentForm' => $form,
             ]);
 
             try {
@@ -244,7 +241,7 @@ class CommentController extends AbstractController
             $message = 'Invalid form validation';
             $html = $this->renderView('comment/new.html.twig', [
                 'comment' => $comment,
-                'commentForm' => $form->createView(),
+                'commentForm' => $form,
             ]);
             $response = [
                 'status' => $status,
@@ -257,15 +254,13 @@ class CommentController extends AbstractController
 
         return $this->render('comment/new.html.twig', [
             'comment' => $comment,
-            'commentForm' => $form->createView(),
+            'commentForm' => $form,
         ]);
     }
 
     #[Route(path: '/comment/{object}/{objectId}/viewedby/json', name: 'viewed_by_json', requirements: ['object' => '^(class|property|class-association|property-association|entity-association|text-property|label|namespace|selectedObject){1}$', 'objectId' => '^([0-9]+)|(selectedValue){1}$'], methods: ['GET'])]
-    public function viewedByJson(string $object, string $objectId, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function viewedByJson(string $object, string $objectId, EntityManagerInterface $em, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $em = $this->doctrine->getManager();
-
         if ($object === 'class') {
             $associatedEntity = $classRepository->find($objectId);
             if (!$associatedEntity) {

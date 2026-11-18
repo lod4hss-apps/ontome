@@ -26,11 +26,11 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="pull-right reset-div">
-                    <a href="{{ path('property_new', {'type':type,'class': app.request.get('class').id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
+                    <a href="{{ path('property_new', {'type':type,'class': class.id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
                 </div>
                 <h2>
-                    Create a new property with {{ app.request.get('class').classVersionForDisplay() }} as range
-                    <a href="{{ path('class_show', {'id': app.request.get('class').id}) }}#properties" class="pull-right btn btn-link">
+                    Create a new property with {{ class.classVersionForDisplay() }} as range
+                    <a href="{{ path('class_show', {'id': class.id}) }}#properties" class="pull-right btn btn-link">
                         <i class="fas fa-arrow-left"></i><span>&nbsp;Back</span>
                     </a>
                 </h2>
@@ -73,7 +73,7 @@
                     </div>
                     <div class="col-lg-2">
                         <p class="text-center"><label>Range</label></p>
-                        <p class="text-center">{{ app.request.get('class').classVersionForDisplay() }}</p>
+                        <p class="text-center">{{ class.classVersionForDisplay() }}</p>
                     </div>
                 </div>
                 <div class="js-text-property-wrapper"

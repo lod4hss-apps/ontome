@@ -26,11 +26,11 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="pull-right reset-div">
-                    <a href="{{ path('class_new', {'namespace': app.request.get('namespace').id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
+                    <a href="{{ path('class_new', {'namespace': namespace.id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
                 </div>
                 <h2>
-                    Add new class in the {{ app.request.get('namespace') }} namespace
-                    <a href="{{ path('namespace_show', {'id': app.request.get('namespace').id}) }}#classes" class="pull-right btn btn-link">
+                    Add new class in the {{ namespace.id }} namespace
+                    <a href="{{ path('namespace_show', {'id': namespace.id}) }}#classes" class="pull-right btn btn-link">
                         <i class="fas fa-arrow-left"></i><span>&nbsp;Back</span>
                     </a>
                 </h2>
@@ -43,7 +43,7 @@
                         {{ form_widget(classForm.identifierInNamespace, { 'attr': {'style': 'display:none'} }) }}
                     {% endif %}
                     {{ form_row(classForm.labels) }}
-                    {% if app.request.get('namespace').topLevelNamespace.isExternalNamespace %}
+                    {% if namespace.topLevelNamespace.isExternalNamespace %}
                     {{ form_row(classForm.identifierInUri, {
                         help: 'This field is automatically pre-filled according to the default settings of the root namespace, but can be modified if necessary.'
                     }) }}

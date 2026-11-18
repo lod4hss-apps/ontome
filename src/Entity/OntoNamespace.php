@@ -410,8 +410,13 @@ class OntoNamespace
         $classes = new ArrayCollection();
 
         foreach ($this->classVersions as $classVersion) {
-            $classes->add($classVersion->getClass());
+            $class = $classVersion->getClass();
+
+            if (!$classes->contains($class)) {
+                $classes->add($class);
+            }
         }
+
         return $classes;
     }
 
@@ -738,10 +743,6 @@ class OntoNamespace
             return;
         }
         $this->classVersions[] = $classVersion;
-
-        if (!$this->classes->contains($classVersion->getClass())) {
-            $this->classes[] = $classVersion->getClass();
-        }
     }
 
     public function addPropertyVersion(PropertyVersion $propertyVersion)
@@ -750,10 +751,6 @@ class OntoNamespace
             return;
         }
         $this->propertyVersions[] = $propertyVersion;
-
-        if (!$this->properties->contains($propertyVersion->getProperty())) {
-            $this->properties[] = $propertyVersion->getProperty();
-        }
     }
 
     public function addReferenceNamespaceAssociation(ReferencedNamespaceAssociation $referencedNamespaceAssociation)

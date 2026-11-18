@@ -20,6 +20,7 @@ use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,10 +41,8 @@ class EntityAssociationController extends AbstractController
     }
 
     #[Route(path: '/entity-association/new/{object}/{objectId}', name: 'new_entity_association_form', requirements: ['object' => '^(class|property){1}$', 'objectId' => '^[0-9]+$'])]
-    public function newEntityAssociationAction(Request $request, string $object, string $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
+    public function newEntityAssociationAction(Request $request, EntityManagerInterface $em, string $object, string $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
-        $em = $this->doctrine->getManager();
-
         $entityAssociation = new EntityAssociation();
 
         if ($object == 'class') {
@@ -169,7 +168,7 @@ class EntityAssociationController extends AbstractController
         return $this->render('entityAssociation/new.html.twig', [
             'object' => $object,
             'source' => $source,
-            'entityAssociationForm' => $form->createView(),
+            'entityAssociationForm' => $form,
         ]);
     }
 
@@ -193,14 +192,12 @@ class EntityAssociationController extends AbstractController
 
     #[Route(path: '/entity-association/{id}/edit', name: 'entity_association_edit', requirements: ['id' => '^[0-9]+$'])]
     #[Route(path: '/entity-association/{id}/inverse/edit', name: 'entity_association_inverse_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Request $request, EntityAssociation $entityAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
+    public function editAction(Request $request, EntityManagerInterface $em, EntityAssociation $entityAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {
         $inverse = false;
         if ($request->attributes->get('_route') == 'entity_association_inverse_edit') {
             $inverse = true;
         }
-
-        $em = $this->doctrine->getManager();
 
         if ($entityAssociation->getSourceObjectType() == 'class' and !$inverse) {
             $firstEntity = $classRepository->find($entityAssociation->getSourceClass()->getId());
@@ -283,7 +280,6 @@ class EntityAssociationController extends AbstractController
             $entityAssociation->setModifier($this->getUser());
             $entityAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->doctrine->getManager();
             $em->persist($entityAssociation);
             $em->flush();
 
@@ -305,7 +301,7 @@ class EntityAssociationController extends AbstractController
         return $this->render('entityAssociation/edit.html.twig', [
             'entityAssociation' => $entityAssociation,
             'inverse' => $inverse,
-            'entityAssociationForm' => $form->createView(),
+            'entityAssociationForm' => $form,
         ]);
     }
 
@@ -315,7 +311,7 @@ class EntityAssociationController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/entity-association/{id}/edit-validity/{validationStatus}', name: 'entity_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(EntityAssociation $entityAssociation, SystemType $validationStatus, Request $request): RedirectResponse
+    public function editValidationStatusAction( EntityManagerInterface $em,EntityAssociation $entityAssociation, SystemType $validationStatus, Request $request): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if (is_null($entityAssociation)) {
@@ -344,7 +340,6 @@ class EntityAssociationController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
@@ -380,11 +375,10 @@ class EntityAssociationController extends AbstractController
     }
 
     #[Route(path: '/entity-association/{id}/delete', name: 'entity_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
-    public function deleteAction(Request $request, EntityAssociation $entityAssociation): JsonResponse
+    public function deleteAction(Request $request, EntityManagerInterface $em, EntityAssociation $entityAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $entityAssociation);
 
-        $em = $this->doctrine->getManager();
         foreach ($entityAssociation->getTextProperties() as $textProperty) {
             $em->remove($textProperty);
         }

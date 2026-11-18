@@ -13,6 +13,7 @@ use App\Entity\Project;
 use App\Entity\ProjectThesaurusAssociation;
 use App\Form\ProjectThesaurusAssociationForm;
 use App\Repository\ProjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -65,7 +66,7 @@ class ProjectThesaurusAssociationController extends AbstractController
      * , methods={"POST"}).
      */
     #[Route(path: '/project-thesaurus-association/new/project/{projectId}', name: 'project_thesaurus_association_new', requirements: ['projectId' => '^[0-9]+$'])]
-    public function newAction(string $projectId, Request $request, ProjectRepository $projectRepository)
+    public function newAction(string $projectId, Request $request, EntityManagerInterface $em, ProjectRepository $projectRepository)
     {
         $projectThesaurusAssociation = new ProjectThesaurusAssociation();
 
@@ -100,13 +101,12 @@ class ProjectThesaurusAssociationController extends AbstractController
             $projectThesaurusAssociation->setCreationTime(new \DateTime('now'));
             $projectThesaurusAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->doctrine->getManager();
             $em->persist($projectThesaurusAssociation);
             $em->flush();
 
             $html = $this->renderView('projectThesaurusAssociation/new.html.twig', [
                 'projectThesaurusAssociation' => $projectThesaurusAssociation,
-                'projectThesaurusAssociationForm' => $form->createView(),
+                'projectThesaurusAssociationForm' => $form,
             ]);
 
             try {
@@ -130,7 +130,7 @@ class ProjectThesaurusAssociationController extends AbstractController
             $message = 'Invalid form validation';
             $html = $this->renderView('projectThesaurusAssociation/new.html.twig', [
                 'projectThesaurusAssociation' => $projectThesaurusAssociation,
-                'projectThesaurusAssociationForm' => $form->createView(),
+                'projectThesaurusAssociationForm' => $form,
             ]);
             $response = [
                 'status' => $status,
@@ -143,7 +143,7 @@ class ProjectThesaurusAssociationController extends AbstractController
 
         return $this->render('projectThesaurusAssociation/new.html.twig', [
             'projectThesaurusAssociation' => $projectThesaurusAssociation,
-            'projectThesaurusAssociationForm' => $form->createView(),
+            'projectThesaurusAssociationForm' => $form,
         ]);
     }
 
@@ -151,13 +151,12 @@ class ProjectThesaurusAssociationController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/project-thesaurus-association/{id}/delete', name: 'project_thesaurus_association_delete', requirements: ['id' => '^([0-9]+)|(associationID){1}$'])]
-    public function deleteAction(ProjectThesaurusAssociation $projectThesaurusAssociation): JsonResponse
+    public function deleteAction(EntityManagerInterface $em, ProjectThesaurusAssociation $projectThesaurusAssociation): JsonResponse
     {
         $project = $projectThesaurusAssociation->getProject();
 
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
-        $em = $this->doctrine->getManager();
         $em->remove($projectThesaurusAssociation);
         $em->flush();
 

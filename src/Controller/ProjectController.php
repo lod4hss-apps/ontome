@@ -37,6 +37,7 @@ use App\Repository\ProfileRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -77,17 +78,16 @@ class ProjectController extends AbstractController
     }
 
     #[Route(path: '/project/new', name: 'project_new_user')]
-    public function newUserProjectAction(Request $request, TokenStorageInterface $tokenStorage, ProjectRepository $projectRepository)
+    public function newUserProjectAction(Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, ProjectRepository $projectRepository)
     {
         $tokenInterface = $tokenStorage->getToken();
-        $isAuthenticated = $tokenInterface->isAuthenticated();
+        $isAuthenticated = $tokenInterface->getUser() !== null;
         if (!$isAuthenticated) {
             throw new AccessDeniedException('You must be an authenticated user to access this page.');
         }
 
         $project = new Project();
 
-        $em = $this->doctrine->getManager();
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); // systemType 16 = Description
 
         $description = new TextProperty();
@@ -162,7 +162,6 @@ class ProjectController extends AbstractController
 
             $this->getUser()->setCurrentActiveProject($project);
 
-            $em = $this->doctrine->getManager();
             $em->persist($project);
             $em->persist($userProjectAssociation);
             $em->persist($this->getUser());
@@ -173,12 +172,10 @@ class ProjectController extends AbstractController
             ]);
         }
 
-        $em = $this->doctrine->getManager();
-
         return $this->render('project/new.html.twig', [
             'errors' => $form->getErrors(),
             'project' => $project,
-            'projectForm' => $form->createView(),
+            'projectForm' => $form,
         ]);
     }
 
@@ -204,7 +201,7 @@ class ProjectController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/project/{id}/edit', name: 'project_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Project $project, Request $request, UserRepository $userRepository, NamespaceRepository $namespaceRepository)
+    public function editAction(Project $project, Request $request, EntityManagerInterface $em, UserRepository $userRepository, NamespaceRepository $namespaceRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
@@ -303,7 +300,6 @@ class ProjectController extends AbstractController
                 }
 
                 // On prépare les system types nécessaires
-                $em = $this->doctrine->getManager();
                 $systemTypeScopeNote = $em->getRepository(SystemType::class)->find(1); // systemType 1 = scope note
                 $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // example
                 $systemTypeVersion = $em->getRepository(SystemType::class)->find(31); // owl:versionInfo
@@ -1479,7 +1475,7 @@ class ProjectController extends AbstractController
 
         return $this->render('project/edit.html.twig', [
             'project' => $project,
-            'formImport' => $formImport->createView(),
+            'formImport' => $formImport,
             'namespacesPublicProject' => $namespacesPublicProject,
             'associatedNamespacesForAPIProject' => $associatedNamespacesForAPIProject,
             'rootNamespaces' => $rootNamespaces,
@@ -1538,11 +1534,10 @@ class ProjectController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/project/{project}/user/{user}/add', name: 'project_user_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'user' => '^([0-9]+)|(id){1}$'], methods: ['POST'])]
-    public function newProjectUserAssociationAction(Project $project, User $user, Request $request): JsonResponse
+    public function newProjectUserAssociationAction(EntityManagerInterface $em, Project $project, User $user, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
 
-        $em = $this->doctrine->getManager();
         $userProjectAssociation = $em->getRepository(UserProjectAssociation::class)
             ->findOneBy(['project' => $project->getId(), 'user' => $user->getId()]);
 
@@ -1550,8 +1545,6 @@ class ProjectController extends AbstractController
             $status = 'Error';
             $message = 'This user is already member of this project.';
         } else {
-            $em = $this->doctrine->getManager();
-
             $userProjectAssociation = new UserProjectAssociation();
             $userProjectAssociation->setProject($project);
             $userProjectAssociation->setUser($user);
@@ -1584,11 +1577,9 @@ class ProjectController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/project/{project}/namespace/{namespace}/add', name: 'project_namespace_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
-    public function newProjectNamespaceAssociationAction(Project $project, OntoNamespace $namespace, Request $request): JsonResponse
+    public function newProjectNamespaceAssociationAction(EntityManagerInterface $em, Project $project, OntoNamespace $namespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $project);
-
-        $em = $this->doctrine->getManager();
 
         $systemTypeAPISelected = $em->getRepository(SystemType::class)->find(38); // systemType 38 = Associated namespace for API Project
 
@@ -1599,8 +1590,6 @@ class ProjectController extends AbstractController
             $status = 'Error';
             $message = 'This namespace is already associated with this project.';
         } else {
-            $em = $this->doctrine->getManager();
-
             $projectAssociation = new ProjectAssociation();
             $projectAssociation->setProject($project);
             $projectAssociation->setNamespace($namespace);
@@ -1634,7 +1623,7 @@ class ProjectController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/user-project-association/{id}/permission/{permission}/edit', name: 'project_member_permission_edit', requirements: ['id' => '^([0-9]+)|(associationId){1}$', 'permission' => '^([1-4])|(permissionToken){1}$'], methods: ['POST'])]
-    public function editProjectUserAssociationPermissionAction(UserProjectAssociation $userProjectAssociation, string $permission, Request $request): JsonResponse
+    public function editProjectUserAssociationPermissionAction(EntityManagerInterface $em, UserProjectAssociation $userProjectAssociation, string $permission, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('full_edit', $userProjectAssociation->getProject());
 
@@ -1644,8 +1633,6 @@ class ProjectController extends AbstractController
             $message = 'The current user cannot change his own permissions.';
         } else {
             try {
-                $em = $this->doctrine->getManager();
-
                 $userProjectAssociation->setPermission($permission);
                 $userProjectAssociation->setModifier($this->getUser());
                 $em->persist($userProjectAssociation);
@@ -1671,11 +1658,10 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/user-project-association/{id}/delete', name: 'project_member_disassociation', requirements: ['id' => '^([0-9]+)|(associationId){1}$'], methods: ['POST'])]
-    public function deleteProjectUserAssociationAction(UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository): JsonResponse
+    public function deleteProjectUserAssociationAction(EntityManagerInterface $em, UserProjectAssociation $userProjectAssociation, Request $request, ProjectRepository $projectRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit_manager', $userProjectAssociation->getProject());
         try {
-            $em = $this->doctrine->getManager();
             $project = $userProjectAssociation->getProject();
             $user = $userProjectAssociation->getUser();
 
@@ -1704,10 +1690,9 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json formatted list representation of Profiles selectable by Project
      */
     #[Route(path: '/selectable-profiles/project/{project}/json', name: 'selectable_profiles_project_json', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['GET'])]
-    public function getSelectableProfilesByProject(Project $project, ProfileRepository $profileRepository): JsonResponse
+    public function getSelectableProfilesByProject(EntityManagerInterface $em, Project $project, ProfileRepository $profileRepository): JsonResponse
     {
         try {
-            $em = $this->doctrine->getManager();
             $profiles = $profileRepository->findProfilesForAssociationWithProjectByProjectId($project);
             $data['data'] = $profiles;
             $data = json_encode($data);
@@ -1752,11 +1737,10 @@ class ProjectController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/project/{project}/profile/{profile}/add', name: 'project_profile_association', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'profile' => '^([0-9]+)|(profileID){1}$'], methods: ['POST'])]
-    public function newProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
+    public function newProjectProfileAssociationAction(EntityManagerInterface $em, Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
 
-        $em = $this->doctrine->getManager();
         $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(['project' => $project->getId(), 'profile' => $profile->getId()]);
 
@@ -1775,8 +1759,6 @@ class ProjectController extends AbstractController
                 $message = 'Profile successfully re-associated';
             }
         } else {
-            $em = $this->doctrine->getManager();
-
             $projectAssociation = new ProjectAssociation();
             $projectAssociation->setProject($project);
             $projectAssociation->setProfile($profile);
@@ -1808,10 +1790,9 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/project/{project}/profile/{profile}/delete', name: 'project_profile_disassociation', requirements: ['project' => '^([0-9]+)|(projectID){1}$', 'profile' => '^([0-9]+)|(profileID){1}$'], methods: ['POST'])]
-    public function deleteProjectProfileAssociationAction(Profile $profile, Project $project, Request $request): JsonResponse
+    public function deleteProjectProfileAssociationAction(EntityManagerInterface $em, Profile $profile, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
-        $em = $this->doctrine->getManager();
 
         $projectAssociation = $em->getRepository(ProjectAssociation::class)
             ->findOneBy(['project' => $project->getId(), 'profile' => $profile->getId()]);
@@ -1828,10 +1809,9 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json response with the new project URI
      */
     #[Route(path: '/project-uri-edit/{project}', name: 'project_uri_edit', requirements: ['project' => '^([0-9]+)|(projectID){1}$'], methods: ['POST'])]
-    public function editProjectURIAction(Project $project, Request $request): JsonResponse
+    public function editProjectURIAction(EntityManagerInterface $em, Project $project, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $project);
-        $em = $this->doctrine->getManager();
 
         $newURI = $request->request->get('newUriProject');
 
@@ -1929,11 +1909,10 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json response with the id and label of the created pathbuilder
      */
     #[Route(path: '/container/{container}/pathbuilder/create', name: 'association_container_pathbuilder_create', requirements: ['container' => '^([0-9]+)|(containerID){1}$'], methods: ['POST'])]
-    public function createAssociationContainerPathbuilderAction(Container $container, Request $request): JsonResponse
+    public function createAssociationContainerPathbuilderAction(EntityManagerInterface $em, Container $container, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
 
-        $em = $this->doctrine->getManager();
         $pathbuilderLabel = trim((string) $request->request->get('label', ''));
         if ($pathbuilderLabel === '') {
             $pathbuilderLabel = $container->getLabel()->getLabel();
@@ -2034,11 +2013,9 @@ class ProjectController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/container/{container}/pathbuilder/{pathbuilder}/delete', name: 'association_container_pathbuilder_delete', requirements: ['container' => '^([0-9]+)|(containerID){1}$', 'pathbuilder' => '^([0-9]+)|(pathbuilderID){1}$'], methods: ['DELETE'])]
-    public function deleteAssociationContainerPathbuilderAction(Container $container, Pathbuilder $pathbuilder, Request $request): JsonResponse
+    public function deleteAssociationContainerPathbuilderAction(EntityManagerInterface $em, Container $container, Pathbuilder $pathbuilder, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $container->getProject());
-
-        $em = $this->doctrine->getManager();
 
         $em->remove($pathbuilder);
         $em->flush();

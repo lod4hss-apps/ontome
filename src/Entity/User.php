@@ -106,12 +106,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->login;
     }
 
-    // S'en débarasser à Symfony 6 (remplacé par getUserIdentifier)
-    public function getUsername(): string
-    {
-        return $this->login;
-    }
-
     public function getUserIdentifier(): string
     {
         return $this->login;
@@ -150,11 +144,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEmail()
     {
         return $this->email;
-    }
-
-    public function getSalt(): ?string
-    {
-        return null;
     }
 
     public function eraseCredentials(): void

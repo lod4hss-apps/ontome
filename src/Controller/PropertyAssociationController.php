@@ -18,6 +18,7 @@ use App\Form\PropertyAssociationEditForm;
 use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -39,13 +40,12 @@ class PropertyAssociationController extends AbstractController
     }
 
     #[Route(path: '/parent-property-association/new/{childProperty}', name: 'new_parent_property_form', requirements: ['childProperty' => '^[0-9]+$'])]
-    public function newParentAction(Request $request, Property $childProperty, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
+    public function newParentAction(EntityManagerInterface $em, Request $request, Property $childProperty, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
     {
         $propertyAssociation = new PropertyAssociation();
 
         $this->denyAccessUnlessGranted('add_associations', $childProperty->getPropertyVersionForDisplay()->getNamespaceForVersion());
 
-        $em = $this->doctrine->getManager();
         $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); // systemType 15 = justification
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 7 = example
 
@@ -113,7 +113,6 @@ class PropertyAssociationController extends AbstractController
                 $propertyAssociation->getTextProperties()[1]->setPropertyAssociation($propertyAssociation);
             }
 
-            $em = $this->doctrine->getManager();
             $em->persist($propertyAssociation);
             $em->flush();
 
@@ -122,8 +121,6 @@ class PropertyAssociationController extends AbstractController
                 '_fragment' => 'property-hierarchy',
             ]);
         }
-
-        $em = $this->doctrine->getManager();
 
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) { // Utilisateur non connecté OU connecté et utilisant le projet public
@@ -136,7 +133,7 @@ class PropertyAssociationController extends AbstractController
 
         return $this->render('propertyAssociation/newParent.html.twig', [
             'childProperty' => $childProperty,
-            'parentPropertyAssociationForm' => $form->createView(),
+            'parentPropertyAssociationForm' => $form,
             'ancestors' => $ancestors,
         ]);
     }
@@ -156,7 +153,7 @@ class PropertyAssociationController extends AbstractController
     }
 
     #[Route(path: '/property-association/{id}/edit', name: 'property_association_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Request $request, PropertyAssociation $propertyAssociation, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
+    public function editAction(Request $request, EntityManagerInterface $em, PropertyAssociation $propertyAssociation, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
     {
         // Récupérer la version de la propriété demandée
         $childPropertyVersion = $propertyAssociation->getChildProperty()->getPropertyVersionForDisplay();
@@ -168,7 +165,6 @@ class PropertyAssociationController extends AbstractController
 
         $this->denyAccessUnlessGranted('edit', $propertyAssociation);
 
-        $em = $this->doctrine->getManager();
         /*
         // FILTRAGE : Récupérer les clés de namespaces à utiliser
         if(is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21){ // Utilisateur non connecté OU connecté et utilisant le projet public
@@ -219,7 +215,6 @@ class PropertyAssociationController extends AbstractController
             $propertyAssociation->setModifier($this->getUser());
             $propertyAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->doctrine->getManager();
             $em->persist($propertyAssociation);
             $em->flush();
 
@@ -230,12 +225,10 @@ class PropertyAssociationController extends AbstractController
             ]);
         }
 
-        $em = $this->doctrine->getManager();
-
         return $this->render('propertyAssociation/edit.html.twig', [
             'property' => $propertyAssociation->getChildProperty(),
             'propertyAssociation' => $propertyAssociation,
-            'propertyAssociationForm' => $form->createView(),
+            'propertyAssociationForm' => $form,
         ]);
     }
 
@@ -243,11 +236,10 @@ class PropertyAssociationController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/property-association/{id}/delete', name: 'property_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
-    public function deleteAction(PropertyAssociation $propertyAssociation): JsonResponse
+    public function deleteAction(EntityManagerInterface $em, PropertyAssociation $propertyAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $propertyAssociation);
 
-        $em = $this->doctrine->getManager();
         foreach ($propertyAssociation->getTextProperties() as $textProperty) {
             $em->remove($textProperty);
         }
@@ -266,7 +258,7 @@ class PropertyAssociationController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/property-association/{id}/edit-validity/{validationStatus}', name: 'property_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(PropertyAssociation $propertyAssociation, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(EntityManagerInterface $em, PropertyAssociation $propertyAssociation, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if (is_null($propertyAssociation)) {
@@ -295,7 +287,6 @@ class PropertyAssociationController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {

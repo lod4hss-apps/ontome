@@ -22,6 +22,7 @@ use App\Repository\ProfileRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,7 +61,7 @@ class TextPropertyController extends AbstractController
      */
     #[Route(path: '/text-property/{id}/edit', name: 'text_property_edit', requirements: ['id' => '^[0-9]+$'])]
     #[Route(path: '/text-property/{id}/inverse/edit', name: 'text_property_inverse_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(TextProperty $textProperty, Request $request)
+    public function editAction(EntityManagerInterface $em, TextProperty $textProperty, Request $request)
     {
         $this->denyAccessUnlessGranted('edit', $textProperty);
         if (!is_null($textProperty->getClassAssociation())) {
@@ -130,7 +131,6 @@ class TextPropertyController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->doctrine->getManager();
             $textProperty->setModifier($this->getUser());
             $em->persist($textProperty);
             $em->flush();
@@ -151,7 +151,7 @@ class TextPropertyController extends AbstractController
         }
 
         return $this->render('textProperty/edit.html.twig', [
-            'textPropertyForm' => $form->createView(),
+            'textPropertyForm' => $form,
             'associatedObject' => $object,
             'textProperty' => $textProperty,
         ]);
@@ -159,10 +159,8 @@ class TextPropertyController extends AbstractController
 
     #[Route(path: '/text-property/{type}/new/{object}/{objectId}', name: 'text_property_new', requirements: ['type' => '^(scope-note|example|justification|internal-note|definition|dct:contributor|owl:versionInfo){1}$', 'object' => '^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$', 'objectId' => '^[0-9]+$'])]
     #[Route(path: '/text-property/{type}/new/{object}/{objectId}/inverse', name: 'text_property_inverse_new', requirements: ['type' => '^(scope-note|example|justification|additional-note|definition|dct:contributor|owl:versionInfo){1}$', 'object' => '^(class-association|property-association|class|class-version|property|property-version|project|profile|namespace|entity-association){1}$', 'objectId' => '^[0-9]+$'])]
-    public function newAction(string $type, string $object, string $objectId, Request $request, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
+    public function newAction(string $type, string $object, string $objectId, Request $request, EntityManagerInterface $em, ClassRepository $classRepository, PropertyRepository $propertyRepository, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, LoggerInterface $logger)
     {
-        $em = $this->doctrine->getManager();
-
         $textProperty = new TextProperty();
 
         if ($object === 'class-association') {
@@ -379,8 +377,7 @@ class TextPropertyController extends AbstractController
             $textProperty->setModifier($this->getUser());
             $textProperty->setCreationTime(new \DateTime('now'));
             $textProperty->setModificationTime(new \DateTime('now'));
-
-            $em = $this->doctrine->getManager();
+            
             $em->persist($textProperty);
             $em->flush();
 
@@ -402,7 +399,7 @@ class TextPropertyController extends AbstractController
 
         return $this->render('textProperty/new.html.twig', [
             'textProperty' => $textProperty,
-            'textPropertyForm' => $form->createView(),
+            'textPropertyForm' => $form,
         ]);
     }
 
@@ -412,7 +409,7 @@ class TextPropertyController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/text-property/{id}/edit-validity/{validationStatus}', name: 'text_property_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(TextProperty $textProperty, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(EntityManagerInterface $em, TextProperty $textProperty, SystemType $validationStatus): RedirectResponse
     {
         $object = null;
         if (!is_null($textProperty->getClassAssociation())) {
@@ -446,7 +443,6 @@ class TextPropertyController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {

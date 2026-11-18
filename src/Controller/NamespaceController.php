@@ -28,6 +28,7 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
@@ -68,10 +69,10 @@ class NamespaceController extends AbstractController
     }
 
     #[Route(path: '/namespace/new/{project}', name: 'namespace_new', requirements: ['project' => '^[0-9]+$'])]
-    public function newNamespaceAction(Project $project, Request $request, TokenStorageInterface $tokenStorage, NamespaceRepository $namespaceRepository)
+    public function newNamespaceAction(Project $project, Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, NamespaceRepository $namespaceRepository)
     {
         $tokenInterface = $tokenStorage->getToken();
-        $isAuthenticated = $tokenInterface->isAuthenticated();
+        $isAuthenticated = $tokenInterface->getUser() !== null;
         if (!$isAuthenticated) {
             throw new AccessDeniedException('You must be an authenticated user to access this page.');
         }
@@ -87,7 +88,6 @@ class NamespaceController extends AbstractController
         $namespaceLabel = new Label();
         $ongoingNamespaceLabel = new Label();
 
-        $em = $this->doctrine->getManager();
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); // systemType 16 = Description
         $systemTypeContributors = $em->getRepository(SystemType::class)->find(2); // systemType 2 = Contributors
 
@@ -232,7 +232,6 @@ class NamespaceController extends AbstractController
                 $em->persist($eupa);
             }
 
-            $em = $this->doctrine->getManager();
             $em->persist($namespace);
             $em->persist($ongoingNamespace);
             $em->flush();
@@ -247,8 +246,9 @@ class NamespaceController extends AbstractController
 
         return $this->render('namespace/new.html.twig', [
             'namespace' => $namespace,
-            'namespaceForm' => $form->createView(),
+            'namespaceForm' => $form,
             'rootNamespaces' => $rootNamespaces,
+            'project' => $project
         ]);
     }
 
@@ -272,7 +272,7 @@ class NamespaceController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/namespace/{id}/edit', name: 'namespace_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository, TextPropertyRepository $textPropertyRepository)
+    public function editAction(OntoNamespace $namespace, Request $request, EntityManagerInterface $em, NamespaceRepository $namespaceRepository, TextPropertyRepository $textPropertyRepository)
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
@@ -281,8 +281,6 @@ class NamespaceController extends AbstractController
         $this->denyAccessUnlessGranted('edit', $namespace);
 
         $namespace->setModifier($this->getUser());
-
-        $em = $this->doctrine->getManager();
 
         $rootNamespacesBrut = $namespaceRepository->findAllNonAssociatedToNamespaceByNamespaceId($namespace);
 
@@ -338,7 +336,6 @@ class NamespaceController extends AbstractController
             $formIdentifiers = $this->createForm(NamespaceEditIdentifiersForm::class, $namespace);
             $formIdentifiers->handleRequest($request);
             if ($formIdentifiers->isSubmitted() && $formIdentifiers->isValid()) {
-                $em = $this->doctrine->getManager();
                 $em->persist($namespace);
                 $em->flush();
 
@@ -353,7 +350,6 @@ class NamespaceController extends AbstractController
             $formUriParameter = $this->createForm(NamespaceUriParameterForm::class, $namespace, ['default_choice' => $namespace->getUriParameter()]);
             $formUriParameter->handleRequest($request);
             if ($formUriParameter->isSubmitted() && $formUriParameter->isValid()) {
-                $em = $this->doctrine->getManager();
                 $ongoingNamespace = $namespace->getChildVersions()->filter(fn ($v) => $v->getIsOngoing())->first();
                 if ($ongoingNamespace instanceof OntoNamespace) {
                     foreach ($ongoingNamespace->getClasses() as $class) {
@@ -377,9 +373,9 @@ class NamespaceController extends AbstractController
             }
 
             return $this->render('namespace/edit.html.twig', [
-                'namespaceForm' => $form->createView(),
-                'namespaceIdentifiersForm' => $formIdentifiers->createView(),
-                'namespaceUriParameterForm' => $formUriParameter->createView(),
+                'namespaceForm' => $form,
+                'namespaceIdentifiersForm' => $formIdentifiers,
+                'namespaceUriParameterForm' => $formUriParameter,
                 'namespace' => $namespace,
                 'rootNamespaces' => $rootNamespaces,
                 'textProperties' => $textProperties,
@@ -417,7 +413,7 @@ class NamespaceController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/namespace/{id}/validate-publication', name: 'namespace_validate_publication', requirements: ['id' => '^[0-9]+$'])]
-    public function validatePublicationAction(OntoNamespace $namespace, Request $request, NamespaceRepository $namespaceRepository): RedirectResponse
+    public function validatePublicationAction(OntoNamespace $namespace, Request $request, EntityManagerInterface $em, NamespaceRepository $namespaceRepository): RedirectResponse
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
@@ -448,7 +444,6 @@ class NamespaceController extends AbstractController
         $newNamespace->setIsExternalNamespace($namespace->getIsExternalNamespace());
         $newNamespace->setIsVisible(true);
 
-        $em = $this->doctrine->getManager();
         $em->persist($namespace);
         $em->persist($newNamespace);
         $em->flush();
@@ -459,7 +454,7 @@ class NamespaceController extends AbstractController
     }
 
     #[Route(path: '/namespace/{id}/toggle-automatic-identifier-management', name: 'namespace_toggle_identifier_management', requirements: ['id' => '^[0-9]+$'], methods: ['POST'])]
-    public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request): JsonResponse
+    public function toggleAutomaticIdentifierManagement(OntoNamespace $namespace, Request $request, EntityManagerInterface $em,): JsonResponse
     {
         if (is_null($namespace)) {
             throw $this->createNotFoundException('The namespace n° '.$namespace->getId().' does not exist. Please contact an administrator.');
@@ -484,7 +479,6 @@ class NamespaceController extends AbstractController
             $namespace->setCurrentPropertyNumber(0);
         }
 
-        $em = $this->doctrine->getManager();
         $em->persist($namespace);
         $em->flush();
 
@@ -589,11 +583,9 @@ class NamespaceController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/add', name: 'namespace_referenced_namespace_association', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
-    public function newReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
+    public function newReferencedNamespaceAssociationAction(EntityManagerInterface $em,OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
-
-        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
@@ -634,11 +626,9 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $referencedNamespace The referenced namespace to be disassociated from a namespace
      */
     #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/delete', name: 'namespace_referenced_namespace_disassociation', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
-    public function deleteReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
+    public function deleteReferencedNamespaceAssociationAction(EntityManagerInterface $em, OntoNamespace $namespace, OntoNamespace $referencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
-
-        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
@@ -661,11 +651,9 @@ class NamespaceController extends AbstractController
      * @param OntoNamespace $referencedNamespace The referenced namespace to be changed from a namespace
      */
     #[Route(path: '/namespace/{namespace}/referenced-namespace/{referencedNamespace}/new-referenced-namespace/{newReferencedNamespace}/change', name: 'namespace_referenced_namespace_change', requirements: ['namespace' => '^([0-9]+)|(namespaceID){1}$', 'referencedNamespace' => '^([0-9]+)|(oldRefNsId){1}$', 'newReferencedNamespace' => '^([0-9]+)|(newRefNsId){1}$'], methods: ['GET'])]
-    public function changeReferencedNamespaceAssociationAction(OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request): JsonResponse
+    public function changeReferencedNamespaceAssociationAction(EntityManagerInterface $em,OntoNamespace $namespace, OntoNamespace $referencedNamespace, OntoNamespace $newReferencedNamespace, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
-
-        $em = $this->doctrine->getManager();
 
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)
             ->findOneBy(['namespace' => $namespace, 'referencedNamespace' => $referencedNamespace]);
@@ -1702,12 +1690,11 @@ class NamespaceController extends AbstractController
     }
 
     #[Route(path: '/namespace/{id}/makevisible', name: 'namespace_make_visible', requirements: ['id' => '^([0-9]+)|(namespaceID){1}$'])]
-    public function makeVisibleAction(OntoNamespace $namespace): JsonResponse
+    public function makeVisibleAction(EntityManagerInterface $em,OntoNamespace $namespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $namespace);
         try {
             $namespace->setIsVisible(true);
-            $em = $this->doctrine->getManager();
             $em->persist($namespace);
             $em->flush();
         } catch (\Exception $e) {

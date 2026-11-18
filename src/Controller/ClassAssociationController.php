@@ -18,6 +18,7 @@ use App\Form\ParentClassAssociationForm;
 use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
 use App\Repository\NamespaceRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +42,7 @@ class ClassAssociationController extends AbstractController
     #[Route(path: '/parent-class-association/new/{childClass}', name: 'new_parent_class_form', requirements: ['childClass' => '^[0-9]+$'])]
     public function newParentAction(
         Request $request, 
+        EntityManagerInterface $em,
         OntoClass $childClass, 
         ClassRepository $classRepository, 
         ClassVersionRepository $classVersionRepository, 
@@ -50,8 +52,6 @@ class ClassAssociationController extends AbstractController
         $classAssociation = new ClassAssociation();
 
         $this->denyAccessUnlessGranted('add_associations', $childClass->getClassVersionForDisplay()->getNamespaceForVersion());
-
-        $em = $this->doctrine->getManager();
 
         $systemTypeJustification = $em->getRepository(SystemType::class)->find(15); // systemType 15 = justification
         $systemTypeExample = $em->getRepository(SystemType::class)->find(7); // systemType 1 = example
@@ -132,7 +132,7 @@ class ClassAssociationController extends AbstractController
 
         return $this->render('classAssociation/newParent.html.twig', [
             'childClass' => $childClass,
-            'parentClassAssociationForm' => $form->createView(),
+            'parentClassAssociationForm' => $form,
             'ancestors' => $ancestors,
         ]);
     }
@@ -152,7 +152,7 @@ class ClassAssociationController extends AbstractController
     }
 
     #[Route(path: '/class-association/{id}/edit', name: 'class_association_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Request $request, ClassAssociation $classAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository)
+    public function editAction(Request $request, EntityManagerInterface $em, ClassAssociation $classAssociation, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository)
     {
         // Récupérer la version de la classe demandée
         $childClassVersion = $classAssociation->getChildClass()->getClassVersionForDisplay();
@@ -192,7 +192,6 @@ class ClassAssociationController extends AbstractController
             $classAssociation->setModifier($this->getUser());
             $classAssociation->setModificationTime(new \DateTime('now'));
 
-            $em = $this->doctrine->getManager();
             $em->persist($classAssociation);
             $em->flush();
 
@@ -206,7 +205,7 @@ class ClassAssociationController extends AbstractController
         return $this->render('classAssociation/edit.html.twig', [
             'class' => $classAssociation->getChildClass(),
             'classAssociation' => $classAssociation,
-            'classAssociationForm' => $form->createView(),
+            'classAssociationForm' => $form,
         ]);
     }
 
@@ -216,7 +215,7 @@ class ClassAssociationController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/class-association/{id}/edit-validity/{validationStatus}', name: 'class_association_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(ClassAssociation $classAssociation, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(ClassAssociation $classAssociation, EntityManagerInterface $em, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de l'association sinon on lance une exception.
         if (is_null($classAssociation)) {
@@ -245,7 +244,6 @@ class ClassAssociationController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {
@@ -284,11 +282,10 @@ class ClassAssociationController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/class-association/{id}/delete', name: 'class_association_delete', requirements: ['id' => '^([0-9]+)|(associationId){1}$'])]
-    public function deleteAction(ClassAssociation $classAssociation): JsonResponse
+    public function deleteAction(ClassAssociation $classAssociation, EntityManagerInterface $em): JsonResponse
     {
         $this->denyAccessUnlessGranted('delete', $classAssociation);
 
-        $em = $this->doctrine->getManager();
         foreach ($classAssociation->getTextProperties() as $textProperty) {
             $em->remove($textProperty);
         }

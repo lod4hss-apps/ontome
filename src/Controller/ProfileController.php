@@ -32,6 +32,7 @@ use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -57,13 +58,9 @@ class ProfileController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/profile/{id}', name: 'profile_show', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
-    public function showAction(Profile $profile, ClassRepository $classRepository): Response
+    public function showAction(Profile $profile, EntityManagerInterface $em, ClassRepository $classRepository): Response
     {
-        $em = $this->doctrine->getManager();
-
         $classes = $classRepository->findClassesByProfileId($profile);
-
-        // $properties = $em->getRepository(Property::class)->findPropertiesByProfileId($profile);
 
         $profileAssociations = $em->getRepository(ProfileAssociation::class)
             ->findBy(['profile' => $profile]);
@@ -71,7 +68,6 @@ class ProfileController extends AbstractController
         return $this->render('profile/show.html.twig', [
             'profile' => $profile,
             'classes' => $classes,
-            // 'properties' => $properties,
             'profileAssociations' => $profileAssociations,
         ]);
     }
@@ -87,11 +83,9 @@ class ProfileController extends AbstractController
     }
 
     #[Route(path: 'profile/new/{project}', name: 'profile_new', requirements: ['project' => '^[0-9]+$'])]
-    public function newAction(Request $request, Project $project, ProfileRepository $profileRepository)
+    public function newAction(Request $request, EntityManagerInterface $em, Project $project, ProfileRepository $profileRepository)
     {
         $this->denyAccessUnlessGranted('edit', $project);
-
-        $em = $this->doctrine->getManager();
 
         $systemTypeDescription = $em->getRepository(SystemType::class)->find(16); // systemType 16 = description
 
@@ -190,7 +184,6 @@ class ProfileController extends AbstractController
             $ongoingDescription->setProfile($ongoingProfile);
             $ongoingProfile->addTextProperty($ongoingDescription);
 
-            $em = $this->doctrine->getManager();
             $em->persist($rootProfile);
             $em->persist($ongoingProfile);
             $em->flush();
@@ -202,7 +195,8 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/new.html.twig', [
             'profile' => $rootProfile,
-            'profileForm' => $form->createView(),
+            'profileForm' => $form,
+            'project' => $project
         ]);
     }
 
@@ -210,7 +204,7 @@ class ProfileController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/profile/{id}/edit', name: 'profile_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(Profile $profile, Request $request, ClassRepository $classRepository, NamespaceRepository $namespaceRepository)
+    public function editAction(Profile $profile, Request $request, EntityManagerInterface $em, ClassRepository $classRepository, NamespaceRepository $namespaceRepository)
     {
         if (is_null($profile)) {
             throw $this->createNotFoundException('The profile n° '.$profile->getId().' does not exist. Please contact an administrator.');
@@ -225,8 +219,6 @@ class ProfileController extends AbstractController
         $profile->setModifier($this->getUser());
 
         $form = $this->createForm(ProfileEditForm::class, $profile);
-
-        $em = $this->doctrine->getManager();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -253,8 +245,6 @@ class ProfileController extends AbstractController
             ]);
         }
 
-        $em = $this->doctrine->getManager();
-
         $classes = $classRepository->findClassesByProfileId($profile);
 
         $selectableClasses = $classRepository->findClassesForAssociationWithProfileByProfileId($profile);
@@ -274,7 +264,7 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/edit.html.twig', [
             'profile' => $profile,
-            'profileIdentificationForm' => $form->createView(),
+            'profileIdentificationForm' => $form,
             'classes' => $classes,
             'selectableClasses' => $selectableClasses,
             'rootNamespaces' => $rootNamespaces,
@@ -287,7 +277,7 @@ class ProfileController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/profile/{id}/publish', name: 'profile_publish', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
-    public function publishAction(Profile $profile): RedirectResponse
+    public function publishAction(Profile $profile, EntityManagerInterface $em,): RedirectResponse
     {
         if (!$profile->isPublishable()) {
             throw $this->createAccessDeniedException('The profile n° '.$profile->getId().' can\'t be published. Please verify your profile.');
@@ -307,7 +297,6 @@ class ProfileController extends AbstractController
         $stateOfVisibility = $profile->getIsVisible();
         $profile->setIsVisible(true);
 
-        $em = $this->doctrine->getManager();
         $em->persist($profile);
         $em->flush();
 
@@ -370,7 +359,7 @@ class ProfileController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/profile/{id}/deprecate', name: 'profile_deprecate', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
-    public function deprecateAction(Profile $profile): RedirectResponse
+    public function deprecateAction(Profile $profile, EntityManagerInterface $em,): RedirectResponse
     {
         if (is_null($profile)) {
             throw $this->createNotFoundException('The profile n° '.$profile->getId().' does not exist. Please contact an administrator.');
@@ -378,8 +367,6 @@ class ProfileController extends AbstractController
 
         // only the project of belonging administrator car deprecate a profile
         $this->denyAccessUnlessGranted('full_edit', $profile->getProjectOfBelonging());
-
-        $em = $this->doctrine->getManager();
 
         $profile->setEndDate(new \DateTime('now'));
 
@@ -403,7 +390,7 @@ class ProfileController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/profile/{profile}/namespace/{namespace}/add', name: 'profile_namespace_association', requirements: ['profile' => '^([0-9]+)|(profileID)$', 'namespace' => '^([0-9]+)|(selectedValue)$'], methods: ['POST'])]
-    public function newProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
+    public function newProfileNamespaceAssociationAction(EntityManagerInterface $em,OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
@@ -423,9 +410,6 @@ class ProfileController extends AbstractController
             $status = 'Error';
             $message = 'This namespace is already used by this profile';
         } else {
-            $em = $this->doctrine->getManager();
-            
-
             $referencedNamespaceAssociation = new ReferencedNamespaceAssociation();
             $referencedNamespaceAssociation->setProfile($profile);
             $referencedNamespaceAssociation->setReferencedNamespace($namespace);
@@ -502,12 +486,11 @@ class ProfileController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/profile/{profile}/namespace/{namespace}/delete', name: 'profile_namespace_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
-    public function deleteProfileNamespaceAssociationAction(OntoNamespace $namespace, Profile $profile): JsonResponse
+    public function deleteProfileNamespaceAssociationAction(EntityManagerInterface $em, OntoNamespace $namespace, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
         // Trouver le referencedNamespaceAssociation correspondant
-        $em = $this->doctrine->getManager();
         $referencedNamespaceAssociation = $em->getRepository(ReferencedNamespaceAssociation::class)->findOneBy([
             'profile' => $profile,
             'referencedNamespace' => $namespace,
@@ -528,11 +511,10 @@ class ProfileController extends AbstractController
      * @param OntoNamespace $newAssociatedNamespace The new associated namespace to be changed from an associated namespace
      */
     #[Route(path: '/profile/{profile}/namespace/{associatedNamespace}/newNamespace/{newAssociatedNamespace}/change', name: 'namespace_associated_profile_change', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'associatedNamespace' => '^([0-9]+)|(oldNsId){1}$', 'newAssociatedNamespace' => '^([0-9]+)|(newNsId){1}$'], methods: ['GET'])]
-    public function changeReferencedNamespaceAssociationAction(Profile $profile, OntoNamespace $associatedNamespace, OntoNamespace $newAssociatedNamespace): JsonResponse
+    public function changeReferencedNamespaceAssociationAction(EntityManagerInterface $em, Profile $profile, OntoNamespace $associatedNamespace, OntoNamespace $newAssociatedNamespace): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->doctrine->getManager();
         $profile->removeNamespace($associatedNamespace);
 
         if ($newAssociatedNamespace->getIsTopLevelNamespace()) {
@@ -543,7 +525,6 @@ class ProfileController extends AbstractController
             $message = 'This namespace is already used by this profile';
         } else {
             $profile->addNamespace($newAssociatedNamespace);
-            $em = $this->doctrine->getManager();
             $em->persist($profile);
 
             // Créer les entity_to_user_project pour les activer par défaut
@@ -656,11 +637,10 @@ class ProfileController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/profile/{profile}/class/{class}/add', name: 'profile_class_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['POST'])]
-    public function newProfileClassAssociationAction(OntoClass $class, Profile $profile, ClassVersionRepository $classVersionRepository): JsonResponse
+    public function newProfileClassAssociationAction(EntityManagerInterface $em, OntoClass $class, Profile $profile, ClassVersionRepository $classVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(['profile' => $profile->getId(), 'class' => $class->getId()]);
 
@@ -678,8 +658,6 @@ class ProfileController extends AbstractController
                 $message = 'Class successfully re-associated';
             }
         } else {
-            $em = $this->doctrine->getManager();
-
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
             $profileAssociation->setClass($class);
@@ -726,11 +704,10 @@ class ProfileController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/profile/{profile}/property/{property}/add', name: 'profile_property_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['POST'])]
-    public function newProfilePropertyAssociationAction(Property $property, Profile $profile, PropertyVersionRepository $propertyVersionRepository): JsonResponse
+    public function newProfilePropertyAssociationAction(EntityManagerInterface $em, Property $property, Profile $profile, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(['profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => null, 'range' => null]);
 
@@ -748,8 +725,6 @@ class ProfileController extends AbstractController
                 $message = 'property successfully re-associated';
             }
         } else {
-            $em = $this->doctrine->getManager();
-
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
             $profileAssociation->setProperty($property);
@@ -798,11 +773,10 @@ class ProfileController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/profile/{profile}/property/{property}/domain/{domain}/range/{range}/add', name: 'profile_inherited_property_association', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$'], methods: ['POST'])]
-    public function newProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository): JsonResponse
+    public function newProfileInheritedPropertyAssociationAction(EntityManagerInterface $em, Property $property, Profile $profile, OntoClass $domain, OntoClass $range, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
 
-        $em = $this->doctrine->getManager();
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(['profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => $domain->getId(), 'range' => $range->getId()]);
 
@@ -820,8 +794,6 @@ class ProfileController extends AbstractController
                 $message = 'property successfully re-associated';
             }
         } else {
-            $em = $this->doctrine->getManager();
-
             $profileAssociation = new ProfileAssociation();
             $profileAssociation->setProfile($profile);
             $profileAssociation->setProperty($property);
@@ -874,11 +846,10 @@ class ProfileController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/profile/{profile}/class/{class}/delete', name: 'profile_class_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'class' => '^([0-9]+)|(classID){1}$'], methods: ['POST'])]
-    public function deleteProfileClassAssociationAction(OntoClass $class, Profile $profile): JsonResponse
+    public function deleteProfileClassAssociationAction(EntityManagerInterface $em, OntoClass $class, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->doctrine->getManager();
-
+        
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(['profile' => $profile->getId(), 'class' => $class->getId()]);
 
@@ -921,10 +892,9 @@ class ProfileController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/profile/{profile}/property/{property}/delete', name: 'profile_property_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['POST'])]
-    public function deleteProfilePropertyAssociationAction(Property $property, Profile $profile): JsonResponse
+    public function deleteProfilePropertyAssociationAction(EntityManagerInterface $em, Property $property, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->doctrine->getManager();
 
         $profileAssociation = $em->getRepository(ProfileAssociation::class)
             ->findOneBy(['profile' => $profile->getId(), 'property' => $property->getId(), 'domain' => null, 'range' => null]);
@@ -948,10 +918,9 @@ class ProfileController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/profile/{profile}/property/{property}/domain/{domain}/range/{range}/delete', name: 'profile_inherited_property_disassociation', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$'], methods: ['POST'])]
-    public function deleteProfileInheritedPropertyAssociationAction(Property $property, Profile $profile, OntoClass $domain, OntoClass $range): JsonResponse
+    public function deleteProfileInheritedPropertyAssociationAction(EntityManagerInterface $em, Property $property, Profile $profile, OntoClass $domain, OntoClass $range): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile->getRootProfile());
-        $em = $this->doctrine->getManager();
 
         try {
             $profileAssociation = $em->getRepository(ProfileAssociation::class)
@@ -1088,12 +1057,11 @@ class ProfileController extends AbstractController
      * @return JsonResponse a Json formatted list representation of selectable descendent classes for properties by Class, Property and Profile
      */
     #[Route(path: '/selectable-descendent-domain/profile/{profile}/domain/{domain}/range/{range}/property/{property}/json', name: 'selectable_descendent_domain_profile_json', requirements: ['profile' => '^([0-9]+)|(profileID){1}$', 'domain' => '^([0-9]+)|(domainID){1}$', 'range' => '^([0-9]+)|(rangeID){1}$', 'property' => '^([0-9]+)|(propertyID){1}$'], methods: ['GET'])]
-    public function getSelectableDescendentDomain(OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
+    public function getSelectableDescendentDomain(EntityManagerInterface $em, OntoClass $domain, OntoClass $range, Profile $profile, Property $property, Request $request, ClassRepository $classRepository): JsonResponse
     {
         try {
             $searchTerm = $request->get('term'); // récupération du paramètre "term" envoyé par select2 pour la requête AJAX
 
-            $em = $this->doctrine->getManager();
             $classes = $classRepository->findDescendantsDomainByProfileAndDomainAndRangeId($profile, $domain, $range, $property, $searchTerm);
             $data['results'] = $classes;
             $data = json_encode($data);
@@ -1209,10 +1177,9 @@ class ProfileController extends AbstractController
      * @param Profile $profile The published profile to be recreate
      */
     #[Route(path: '/profile/{profile}/recreate', name: 'profile_recreate', requirements: ['profile' => '^[0-9]+$|(profileID){1}$'], methods: ['GET'])]
-    public function recreateProfileFromPublishedProfileAction(Profile $profile): RedirectResponse
+    public function recreateProfileFromPublishedProfileAction(EntityManagerInterface $em, Profile $profile): RedirectResponse
     {
         $this->denyAccessUnlessGranted('duplicate', $profile);
-        $em = $this->doctrine->getManager();
 
         $newProfile = new Profile();
 
@@ -1271,10 +1238,8 @@ class ProfileController extends AbstractController
      * @return Response the rendered template
      */
     #[Route(path: '/profileAssociation/{id}/custom/edit', name: 'edit_customisation', requirements: ['id' => '^([0-9]+)|(profileAssociationID){1}$'])]
-    public function editCustomisationAction(ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory, TextPropertyRepository $textPropertyRepository)
+    public function editCustomisationAction(EntityManagerInterface $em, ProfileAssociation $profileAssociation, Request $request, FormFactoryInterface $formFactory, TextPropertyRepository $textPropertyRepository)
     {
-        $em = $this->doctrine->getManager();
-
         // Justification form
         $systemTypeJustification = $em->getRepository(SystemType::class)->find(15);
         $textPropertyJustification = $textPropertyRepository->findOneBy(
@@ -1427,26 +1392,25 @@ class ProfileController extends AbstractController
                 );
             }
             // Create the view *after* calling handleRequest, so data is updated to the form, even if, say, there are validation errors.
-            $formsExampleViews[$formName] = $formExample->createView();
+            $formsExampleViews[$formName] = $formExample;
         }
 
         return $this->render('profileAssociation/edit_customisation.html.twig', [
             'profileAssociation' => $profileAssociation,
-            'formJustification' => $formJustification->createView(),
-            'formUseCase' => $formUseCase->createView(),
-            'formNote' => $formNote->createView(),
-            'formNewExample' => $formNewExample->createView(),
+            'formJustification' => $formJustification,
+            'formUseCase' => $formUseCase,
+            'formNote' => $formNote,
+            'formNewExample' => $formNewExample,
             'formsExample' => $formsExampleViews,
         ]);
     }
 
     #[Route(path: '/profile/{id}/makevisible', name: 'profile_make_visible', requirements: ['id' => '^([0-9]+)|(profileID){1}$'])]
-    public function makeVisibleAction(Profile $profile): JsonResponse
+    public function makeVisibleAction(EntityManagerInterface $em, Profile $profile): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $profile);
         try {
             $profile->setIsVisible(true);
-            $em = $this->doctrine->getManager();
             $em->persist($profile);
             $em->flush();
         } catch (\Exception $e) {

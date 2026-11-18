@@ -7,6 +7,7 @@ use App\Entity\Label;
 use App\Repository\ContainerRepository;
 use App\Repository\NamespaceRepository;
 use App\Repository\ProjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -134,7 +135,7 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response indicating the result of the container creation
      */
     #[Route(path: '/container/create', name: 'container_create', methods: ['POST'])]
-    public function createContainer(Request $request, ProjectRepository $projectRepository): JsonResponse
+    public function createContainer(Request $request, EntityManagerInterface $em, ProjectRepository $projectRepository): JsonResponse
     {
         $projectId = $request->get('project_id');
         $label = $request->get('label');
@@ -158,7 +159,6 @@ class ContainerController extends AbstractController
         $newContainer->setCreationTime(new \DateTime());
         $newContainer->setModificationTime(new \DateTime());
 
-        $em = $this->doctrine->getManager();
         $em->persist($newLabel);
         $em->persist($newContainer);
         $em->flush();
@@ -173,7 +173,7 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response indicating the result of the association creation
      */
     #[Route(path: '/association_container_namespace/create', name: 'association_container_namespace_create', methods: ['POST'])]
-    public function createAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function createAssociationContainerNamespace(Request $request, EntityManagerInterface $em, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         $containerId = $request->get('container_id');
         $namespaceId = $request->get('namespace_id');
@@ -192,7 +192,6 @@ class ContainerController extends AbstractController
         $container->setModifier($this->getUser());
         $container->setModificationTime(new \DateTime());
 
-        $em = $this->doctrine->getManager();
         $em->persist($container);
         $em->flush();
 
@@ -206,7 +205,7 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
     #[Route(path: '/association_container_namespace/{containerId}/{namespaceId}/delete', name: 'association_container_namespace_delete', methods: ['DELETE'])]
-    public function deleteAssociationContainerNamespace(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function deleteAssociationContainerNamespace(Request $request, EntityManagerInterface $em, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
 
@@ -220,7 +219,6 @@ class ContainerController extends AbstractController
         $container->setModifier($this->getUser());
         $container->setModificationTime(new \DateTime());
 
-        $em = $this->doctrine->getManager();
         $em->persist($container);
         $em->flush();
 

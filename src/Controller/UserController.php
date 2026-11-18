@@ -27,6 +27,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use App\Security\LoginFormAuthenticator;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -64,7 +65,7 @@ class UserController extends AbstractController
      * @return Response a response instance
      */
     #[Route(path: '/register', name: 'user_register')]
-    public function registerAction(Request $request, LoginFormAuthenticator $authenticator, MailerInterface $mailer, UserAuthenticatorInterface $userAuthenticator, ProjectRepository $projectRepository)
+    public function registerAction(Request $request, EntityManagerInterface $em, LoginFormAuthenticator $authenticator, MailerInterface $mailer, UserAuthenticatorInterface $userAuthenticator, ProjectRepository $projectRepository)
     {
         $form = $this->createForm(UserRegistrationForm::class);
 
@@ -78,8 +79,7 @@ class UserController extends AbstractController
             // Initialiser fk_current_active_project à 21 (public project)
             $publicProject = $projectRepository->find(21);
             $user->setCurrentActiveProject($publicProject);
-
-            $em = $this->doctrine->getManager();
+            
             $em->persist($user);
             $em->flush();
 
@@ -112,7 +112,7 @@ class UserController extends AbstractController
         }
 
         return $this->render('user/register.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
@@ -120,11 +120,9 @@ class UserController extends AbstractController
      * @return Response a response instance
      */
     #[Route(path: '/request-password', name: 'user_request_password')]
-    public function requestPasswordAction(Request $request, MailerInterface $mailer, UserRepository $userRepository)
+    public function requestPasswordAction(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UserRepository $userRepository)
     {
         $tmpUser = new User();
-
-        $em = $this->doctrine->getManager();
 
         $form = $this->createForm(UserRequestPasswordForm::class);
         $form->handleRequest($request);
@@ -158,14 +156,13 @@ class UserController extends AbstractController
         }
 
         return $this->render('security/requestPassword.html.twig', [
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
 
     #[Route(path: '/reset-password/{token}', name: 'user_reset_password')]
-    public function resetPasswordAction(Request $request, $token, UserRepository $userRepository)
+    public function resetPasswordAction(Request $request, EntityManagerInterface $em, $token, UserRepository $userRepository)
     {
-        $em = $this->doctrine->getManager();
         $tmpUser = $userRepository->findOneBy(['token' => $token]);
         $formView = null;
 
@@ -182,7 +179,7 @@ class UserController extends AbstractController
                 $user = $tmpUser;
                 $form = $this->createForm(UserResetPasswordForm::class, $user);
                 $form->handleRequest($request);
-                $formView = $form->createView();
+                $formView = $form;
                 if ($form->isSubmitted() && $form->isValid()) {
                     $user->setToken(null); // token remis à null
                     $user->setTokenDate(null); // date du token remise à null
@@ -246,7 +243,7 @@ class UserController extends AbstractController
      * @param $user User
      */
     #[Route(path: '/user/{id}', name: 'user_show', requirements: ['id' => '^[0-9]+$'])]
-    public function showAction(User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): Response
+    public function showAction(EntityManagerInterface $em, User $user, AuthorizationCheckerInterface $authorizationChecker, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): Response
     {
         if (!$authorizationChecker->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
@@ -259,7 +256,6 @@ class UserController extends AbstractController
 
         // Pour l'onglet My Project
         // On récupère tous les userProjectAssociations de l'utilisateur dans un ArrayCollection
-        $em = $this->doctrine->getManager();
         $userProjectAssociations = new ArrayCollection($em->getRepository(UserProjectAssociation::class)
             ->findBy(['user' => $user->getId()]));
 
@@ -359,12 +355,10 @@ class UserController extends AbstractController
      * @return Response
      */
     #[Route(path: '/user/editCurrentActiveProject/{project}', name: 'user_edit_current_active_project', requirements: ['project' => '^[0-9]+$'])]
-    public function editCurrentActiveProjectAction(Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
+    public function editCurrentActiveProjectAction(EntityManagerInterface $em, Project $project, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
     {
         $user = $this->getUser();
         $this->denyAccessUnlessGranted('edit', $user);
-
-        $em = $this->doctrine->getManager();
 
         // Public project = 21
         $publicProject = $projectRepository->find(21);
@@ -460,7 +454,7 @@ class UserController extends AbstractController
     }
 
     #[Route(path: '/user/{id}/edit', name: 'user_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(User $user, Request $request, AuthorizationCheckerInterface $authorizationChecker)
+    public function editAction(User $user, Request $request, EntityManagerInterface $em, AuthorizationCheckerInterface $authorizationChecker)
     {
         if ($user != $this->getUser() && !$authorizationChecker->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException();
@@ -474,7 +468,6 @@ class UserController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->doctrine->getManager();
             $em->persist($user);
             $em->flush();
 
@@ -486,13 +479,13 @@ class UserController extends AbstractController
         }
         if ($authorizationChecker->isGranted('ROLE_ADMIN')) {
             return $this->render('user/edit.html.twig', [
-                'userForm' => $form->createView(),
+                'userForm' => $form,
                 'user' => $user,
             ]);
         }
 
         return $this->render('user/selfEdit.html.twig', [
-            'userForm' => $form->createView(),
+            'userForm' => $form,
             'user' => $user,
         ]);
     }
@@ -506,7 +499,7 @@ class UserController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/user/{userProjectAssociation}/namespace/{namespace}/add', name: 'user_project_namespace_association', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
-    public function newUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
+    public function newUserProjectNamespaceAssociationAction(EntityManagerInterface $em, OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -514,8 +507,6 @@ class UserController extends AbstractController
         // 2 Vérifier qu'une association namespace - userproject identique n'existe pas
         // Si oui : remettre le system type à 25
         // Si non : créer l'association
-
-        $em = $this->doctrine->getManager();
 
         $eupa = null;
         if ($namespace->getIsTopLevelNamespace()) {
@@ -583,12 +574,9 @@ class UserController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/user/{userProjectAssociation}/namespace/{namespace}/delete', name: 'user_project_namespace_disassociation', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'namespace' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
-    public function deleteUserProjectNamespaceAssociationAction(OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
+    public function deleteUserProjectNamespaceAssociationAction(EntityManagerInterface $em, OntoNamespace $namespace, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
-
-        $em = $this->doctrine->getManager();
-
         $eupa = null;
 
         foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
@@ -646,7 +634,7 @@ class UserController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/user/{userProjectAssociation}/profile/{profile}/add', name: 'user_project_profile_association', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'profile' => '^([0-9]+)|(selectedValue){1}$'], methods: ['POST'])]
-    public function newUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
+    public function newUserProjectProfileAssociationAction(EntityManagerInterface $em, Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
 
@@ -654,9 +642,6 @@ class UserController extends AbstractController
         // 2 Vérifier qu'une association namespace - userproject identique n'existe pas
         // Si oui : remettre le system type à 25
         // Si non : créer l'association
-
-        $em = $this->doctrine->getManager();
-
         $eupa = null;
 
         foreach ($userProjectAssociation->getEntityUserProjectAssociations() as $eupa) {
@@ -768,11 +753,9 @@ class UserController extends AbstractController
      * @return JsonResponse a Json 204 HTTP response
      */
     #[Route(path: '/user/{userProjectAssociation}/profile/{profile}/delete', name: 'user_project_profile_disassociation', requirements: ['userProjectAssociation' => '^([0-9]+)|(userProjectID){1}$', 'profile' => '^([0-9]+)|(selectedValue){1}$'], methods: ['DELETE'])]
-    public function deleteUserProjectProfileAssociationAction(Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
+    public function deleteUserProjectProfileAssociationAction(EntityManagerInterface $em, Profile $profile, UserProjectAssociation $userProjectAssociation): JsonResponse
     {
         $this->denyAccessUnlessGranted('edit', $userProjectAssociation->getUser());
-
-        $em = $this->doctrine->getManager();
 
         $eupa = null;
 
@@ -879,14 +862,13 @@ class UserController extends AbstractController
      * @return Response
      */
     #[Route(path: '/user/{id}/reinitialization', name: 'user_reinitialization', requirements: ['id' => '^[0-9]+$'])]
-    public function reinitialization(User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
+    public function reinitialization(EntityManagerInterface $em, User $user, NamespaceRepository $namespaceRepository, ProfileRepository $profileRepository): RedirectResponse
     {
         $this->denyAccessUnlessGranted('edit', $user);
 
         // récupérer l'id du projet actif
         $currentProject = $user->getCurrentActiveProject();
         if ($currentProject->getId() != 21) {
-            $em = $this->doctrine->getManager();
             $upa = $em->getRepository(UserProjectAssociation::class)
                 ->findOneBy(['user' => $user, 'project' => $currentProject]);
 

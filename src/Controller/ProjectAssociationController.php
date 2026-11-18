@@ -13,6 +13,7 @@ use App\Entity\ProjectAssociation;
 use App\Entity\SystemType;
 use App\Form\PublicProjectNamespaceAssociationAddForm;
 use App\Repository\ProjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,14 +30,13 @@ class ProjectAssociationController extends AbstractController
     }
 
     #[Route(path: '/public-project-namespace-association/new', name: 'public_project_namespace_association_new')]
-    public function newPublicProjectNamespaceAssociationAction(Request $request, ProjectRepository $projectRepository)
+    public function newPublicProjectNamespaceAssociationAction(EntityManagerInterface $em, Request $request, ProjectRepository $projectRepository)
     {
         $projectAssociation = new ProjectAssociation();
         $publicProject = $projectRepository->find(21); // public project = 21
 
         $this->denyAccessUnlessGranted('full_edit', $publicProject); // admins only can add a new namespace to the public project
 
-        $em = $this->doctrine->getManager();
         $systemType = $em->getRepository(SystemType::class)->find(17); // systemType 17 = Default display
 
         $form = $this->createForm(PublicProjectNamespaceAssociationAddForm::class, $projectAssociation);
@@ -63,12 +63,12 @@ class ProjectAssociationController extends AbstractController
 
         return $this->render('projectAssociation/newPublicProjectNamespaceAssociation.html.twig', [
             'projectAssociation' => $projectAssociation,
-            'publicProjectNamespaceAssociationForm' => $form->createView(),
+            'publicProjectNamespaceAssociationForm' => $form,
         ]);
     }
 
     #[Route(path: '/project-association/{id}/delete', name: 'project_association_delete', requirements: ['id' => '^([0-9]+)|(associationID){1}$'])]
-    public function deleteAction(ProjectAssociation $projectAssociation)
+    public function deleteAction(EntityManagerInterface $em, ProjectAssociation $projectAssociation)
     {
         $this->denyAccessUnlessGranted('full_edit', $projectAssociation->getProject());
 
@@ -77,7 +77,6 @@ class ProjectAssociationController extends AbstractController
         }
 
         try {
-            $em = $this->doctrine->getManager();
             $em->remove($projectAssociation);
             $em->flush();
         } catch (\Exception $e) {

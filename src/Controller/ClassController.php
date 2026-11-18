@@ -25,6 +25,7 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -219,7 +220,8 @@ class ClassController extends AbstractController
 
         return $this->render('class/new.html.twig', [
             'class' => $class,
-            'classForm' => $form->createView(),
+            'classForm' => $form,
+            'namespace' => $namespace
         ]);
     }
 
@@ -274,7 +276,7 @@ class ClassController extends AbstractController
             if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
                 $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
             } else { // Utilisateur connecté et utilisant un autre projet
-                $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+                $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
             }
             foreach ($namespacesIdFromUser as $namespaceIdFromUser) {
                 $namespaceFromUser = $em->getRepository(OntoNamespace::class)->find($namespaceIdFromUser);
@@ -475,7 +477,7 @@ class ClassController extends AbstractController
      * @throws DBALException
      */
     #[Route(path: '/class/{id}/edit', name: 'class_edit', requirements: ['id' => '^[0-9]+$'])]
-    public function editAction(OntoClass $class, Request $request, ManagerRegistry $managerRegistry, LoggerInterface $logger)
+    public function editAction(OntoClass $class, Request $request, EntityManagerInterface $em, NamespaceRepository $namespaceRepository, ClassRepository $classRepository, PropertyRepository $propertyRepository, LoggerInterface $logger)
     {
         // Récupérer la version de la classe demandée
         // En mode Edit on a besoin de la version ongoing
@@ -487,25 +489,23 @@ class ClassController extends AbstractController
             throw $this->createNotFoundException('The class n°'.$class->getId().' has no version. Please contact an administrator.');
         }
 
-        $em = $managerRegistry->getManager();
-
         // $namespacesIdFromClassVersion : Ensemble de namespaces provenant de la classe affiché (namespaceForVersion + references)
         // $rootNamespacesFromClassVersion : Ensemble des versions racines (pour contrôle en dessous)
         $nsId = $classVersion->getNamespaceForVersion()->getId();
         $namespacesIdFromClassVersion[] = $nsId;
-        $rootNamespacesFromClassVersion[] = $em->getRepository(OntoNamespace::class)->findOneBy(['id' => $nsId])->getTopLevelNamespace();
+        $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(['id' => $nsId])->getTopLevelNamespace();
 
         foreach ($classVersion->getNamespaceForVersion()->getAllReferencedNamespaces() as $referencedNamespaces) {
             $nsId = $referencedNamespaces->getId();
             $namespacesIdFromClassVersion[] = $nsId;
-            $rootNamespacesFromClassVersion[] = $em->getRepository(OntoNamespace::class)->findOneBy(['id' => $nsId])->getTopLevelNamespace();
+            $rootNamespacesFromClassVersion[] = $namespaceRepository->findOneBy(['id' => $nsId])->getTopLevelNamespace();
         }
 
         // $namespacesIdFromUser : Ensemble de tous les namespaces activés par l'utilisateur
         if (is_null($this->getUser()) || $this->getUser()->getCurrentActiveProject()->getId() == 21) {
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findPublicProjectNamespacesId();
+            $namespacesIdFromUser = $namespaceRepository->findPublicProjectNamespacesId();
         } else { // Utilisateur connecté et utilisant un projet
-            $namespacesIdFromUser = $em->getRepository(OntoNamespace::class)->findNamespacesIdByUser($this->getUser());
+            $namespacesIdFromUser = $namespaceRepository->findNamespacesIdByUser($this->getUser());
         }
         // sauf ceux automatiquement activés par l'entité
         $namespacesIdFromUser = array_diff($namespacesIdFromUser, $namespacesIdFromClassVersion);
@@ -513,7 +513,7 @@ class ClassController extends AbstractController
         // Créer un array de ns à ajouter (ne pas rajouter ceux dont le root est déjà utilisé
         $nsIdFromUser = [];
         foreach ($namespacesIdFromUser as $namespaceIdFromUser) {
-            $nsRootUser = $em->getRepository(OntoNamespace::class)->findOneBy(['id' => $namespaceIdFromUser])->getTopLevelNamespace();
+            $nsRootUser = $namespaceRepository->findOneBy(['id' => $namespaceIdFromUser])->getTopLevelNamespace();
             if (!in_array($nsRootUser, $rootNamespacesFromClassVersion)) {
                 $nsIdFromUser[] = $namespaceIdFromUser;
             }
@@ -522,16 +522,16 @@ class ClassController extends AbstractController
         // $namespacesId : Tous les namespaces trouvés ci-dessus
         $namespacesId = array_merge($namespacesIdFromClassVersion, $nsIdFromUser);
 
-        $ancestors = $em->getRepository(OntoClass::class)->findAncestorsByClassVersionAndNamespacesId($classVersion, $namespacesId);
-        $descendants = $em->getRepository(OntoClass::class)->findDescendantsByClassVersionAndNamespacesId($classVersion, $namespacesId);
-        $relations = $em->getRepository(OntoClass::class)->findRelationsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $ancestors = $classRepository->findAncestorsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $descendants = $classRepository->findDescendantsByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $relations = $classRepository->findRelationsByClassVersionAndNamespacesId($classVersion, $namespacesId);
 
-        $outgoingProperties = $em->getRepository(Property::class)->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-        $outgoingInheritedProperties = $em->getRepository(Property::class)->findOutgoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-        $ingoingProperties = $em->getRepository(Property::class)->findIngoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
-        $ingoingInheritedProperties = $em->getRepository(Property::class)->findIngoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $outgoingProperties = $propertyRepository->findOutgoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $outgoingInheritedProperties = $propertyRepository->findOutgoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $ingoingProperties = $propertyRepository->findIngoingPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
+        $ingoingInheritedProperties = $propertyRepository->findIngoingInheritedPropertiesByClassVersionAndNamespacesId($classVersion, $namespacesId);
 
-        $isE55Descendant = $em->getRepository(OntoClass::class)->findE55ChildClasses($class->getId());
+        $isE55Descendant = $classRepository->findE55ChildClasses($class->getId());
 
         $this->denyAccessUnlessGranted('edit', $classVersion);
 
@@ -697,8 +697,8 @@ class ClassController extends AbstractController
             'namespacesId' => $namespacesId,
             'namespacesIdFromClassVersion' => $namespacesIdFromClassVersion,
             'namespacesIdFromUser' => $namespacesIdFromUser,
-            'classIdentifierForm' => $formIdentifier->createView(),
-            'classUriIdentifierForm' => $formUriIdentifier->createView(),
+            'classIdentifierForm' => $formIdentifier,
+            'classUriIdentifierForm' => $formUriIdentifier,
         ]);
     }
 

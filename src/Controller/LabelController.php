@@ -20,6 +20,7 @@ use App\Repository\ProfileRepository;
 use App\Repository\ProjectRepository;
 use App\Repository\PropertyVersionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -55,11 +56,10 @@ class LabelController extends AbstractController
     }
 
     #[Route(path: '/label/{id}/edit', name: 'label_edit', requirements: ['id' => '^[0-9]+'])]
-    public function editAction(Label $label, Request $request, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
+    public function editAction(Label $label, Request $request, EntityManagerInterface $em, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
         $canInverseLabel = false;
         $allEntities = null;
-        $em = $this->doctrine->getManager();
 
         if (!is_null($label->getClass())) {
             $object = $label->getClass();
@@ -131,7 +131,6 @@ class LabelController extends AbstractController
         }
 
         if ($form->isSubmitted() && $form->isValid() && $isLabelValid) {
-            $em = $this->doctrine->getManager();
             if (!is_null($label->getNamespace()) && $label->getNamespace()->getIsOngoing()) {
                 $label->setLabel($label->getLabel().' ongoing');
             }
@@ -155,7 +154,7 @@ class LabelController extends AbstractController
         }
 
         return $this->render('label/edit.html.twig', [
-            'labelForm' => $form->createView(),
+            'labelForm' => $form,
             'associatedObject' => $object,
             'label' => $label,
             'canInverseLabel' => $canInverseLabel,
@@ -163,10 +162,8 @@ class LabelController extends AbstractController
     }
 
     #[Route(path: '/label/new/{object}/{objectId}', name: 'label_new', requirements: ['object' => '^(class|property|profile|project|namespace){1}$', 'objectId' => '^[0-9]+'])]
-    public function newAction(string $object, string $objectId, Request $request, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
+    public function newAction(string $object, string $objectId, Request $request, EntityManagerInterface $em, ClassVersionRepository $classVersionRepository, PropertyVersionRepository $propertyVersionRepository, ProfileRepository $profileRepository, ProjectRepository $projectRepository, NamespaceRepository $namespaceRepository)
     {
-        $em = $this->doctrine->getManager();
-
         $label = new Label();
         $canInverseLabel = false;
 
@@ -270,7 +267,7 @@ class LabelController extends AbstractController
 
         return $this->render('label/new.html.twig', [
             'label' => $label,
-            'labelForm' => $form->createView(),
+            'labelForm' => $form,
             'canInverseLabel' => $canInverseLabel,
         ]);
     }
@@ -279,7 +276,7 @@ class LabelController extends AbstractController
      * @throws \Exception in case of unsuccessful association
      */
     #[Route(path: '/label/{id}/edit-validity/{validationStatus}', name: 'label_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^(26|27|28|37){1}$'])]
-    public function editValidationStatusAction(Label $label, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(Label $label, SystemType $validationStatus, EntityManagerInterface $em,): RedirectResponse
     {
         $object = null;
         if (!is_null($label->getClass())) {
@@ -311,7 +308,6 @@ class LabelController extends AbstractController
         $newValidationStatus = new SystemType();
 
         try {
-            $em = $this->doctrine->getManager();
             $newValidationStatus = $em->getRepository(SystemType::class)
                 ->findOneBy(['id' => $validationStatus->getId()]);
         } catch (\Exception $e) {

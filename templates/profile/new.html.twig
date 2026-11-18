@@ -26,11 +26,11 @@
         <div class="row">
             <div class="col-xs-12">
                 <div class="pull-right reset-div">
-                    <a href="{{ path('profile_new', {'project': app.request.get('project').id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
+                    <a href="{{ path('profile_new', {'project': project.id}) }}" class="btn btn-primary pull-right">Reset <span class="fa fa-undo"></span></a>
                 </div>
                 <h2>
-                    Add new profile to the {{ app.request.get('project') }} project
-                    <a href="{{ path('project_edit', {'id': app.request.get('project').id}) }}#managed-profiles" class="pull-right btn btn-link">
+                    Add new profile to the {{ project }} project
+                    <a href="{{ path('project_edit', {'id': project.id}) }}#managed-profiles" class="pull-right btn btn-link">
                         <i class="fas fa-arrow-left"></i><span>&nbsp;Back</span>
                     </a>
                 </h2>
