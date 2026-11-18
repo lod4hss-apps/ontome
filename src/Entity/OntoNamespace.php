@@ -98,7 +98,7 @@ class OntoNamespace
     #[ORM\JoinColumn(name: 'fk_project_for_top_level_namespace', referencedColumnName: 'pk_project')]
     private ?Project $projectForTopLevelNamespace = null;
 
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private string $standardLabel;
 
     #[ORM\Column(nullable: true)]

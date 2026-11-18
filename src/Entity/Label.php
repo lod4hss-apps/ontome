@@ -32,7 +32,7 @@ class Label
 
     #[Assert\NotBlank]
     #[ORM\Column(type: 'text', nullable: false)]
-    private string $label;
+    private ?string $label = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $inverseLabel = null;

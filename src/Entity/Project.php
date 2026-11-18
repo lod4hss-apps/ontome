@@ -37,7 +37,7 @@ class Project
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $notes = null;
 
-    #[ORM\Column(type: 'string', length: 500)]
+    #[ORM\Column(type: 'string', length: 500, nullable: true)]
     private string $standardLabel;
 
     #[ORM\ManyToOne(inversedBy: 'childProjects')]

@@ -31,7 +31,7 @@ class SystemType
     #[ORM\Column(length: 250, nullable: false, options: ['comment' => 'A table name where a system type can be used. Many table names can be provided: they have to be separated by commas without spaces'])]
     private string $usedInTable;
 
-    #[ORM\Column(length: 500, nullable: false)]
+    #[ORM\Column(length: 500, nullable: true)]
     private string $standardLabel;
 
     #[Assert\NotBlank]

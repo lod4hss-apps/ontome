@@ -29,7 +29,7 @@ class OntoClassVersion
     #[ORM\Column(name: 'pk_class_version')]
     private int $id;
 
-    #[ORM\Column(length: 500)]
+    #[ORM\Column(length: 500, nullable: true)]
     private string $standardLabel;
 
     #[ORM\ManyToOne(inversedBy: 'classVersions')]
