@@ -38,7 +38,6 @@ use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,16 +49,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class ProjectController extends AbstractController
-{
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
-    #[Route(path: '/project')]
+{#[Route(path: '/project')]
     #[Route(path: '/domains', name: 'domain_list')]
     public function listAction(Request $request, ProjectRepository $projectRepository): Response
     {

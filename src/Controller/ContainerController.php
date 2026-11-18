@@ -8,7 +8,6 @@ use App\Repository\ContainerRepository;
 use App\Repository\NamespaceRepository;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,14 +17,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ContainerController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     /**
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */

@@ -27,7 +27,6 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,14 +38,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PropertyController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     #[Route(path: '/property')]
     public function listAction(NamespaceRepository $namespaceRepository, PropertyRepository $propertyRepository): Response
     {

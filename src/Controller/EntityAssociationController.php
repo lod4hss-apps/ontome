@@ -21,7 +21,6 @@ use App\Repository\ClassVersionRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -32,14 +31,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class EntityAssociationController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     #[Route(path: '/entity-association/new/{object}/{objectId}', name: 'new_entity_association_form', requirements: ['object' => '^(class|property){1}$', 'objectId' => '^[0-9]+$'])]
     public function newEntityAssociationAction(Request $request, EntityManagerInterface $em, string $object, string $objectId, ClassRepository $classRepository, ClassVersionRepository $classVersionRepository, PropertyRepository $propertyRepository, PropertyVersionRepository $propertyVersionRepository)
     {

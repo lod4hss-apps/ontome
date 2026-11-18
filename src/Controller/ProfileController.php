@@ -33,7 +33,6 @@ use App\Repository\PropertyVersionRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -46,14 +45,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ProfileController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     /**
      * @return Response the rendered template
      */

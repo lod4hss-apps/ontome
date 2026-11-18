@@ -9,12 +9,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Project;
 use App\Entity\ProjectThesaurusAssociation;
 use App\Form\ProjectThesaurusAssociationForm;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,14 +21,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ProjectThesaurusAssociationController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     /**
      * @param int $projectId The id of the object
      *

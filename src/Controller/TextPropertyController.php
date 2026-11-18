@@ -23,7 +23,6 @@ use App\Repository\ProjectRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -35,14 +34,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class TextPropertyController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     /**
      * @return Response the rendered template
      */

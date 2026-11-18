@@ -28,7 +28,6 @@ use App\Repository\UserRepository;
 use App\Security\LoginFormAuthenticator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -42,18 +41,14 @@ use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
 class UserController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
     private $recaptchaSecret;
 
     /**
      * UserController constructor.
      */
-    public function __construct(ManagerRegistry $doctrine, $recaptchaSecret)
+    public function __construct($recaptchaSecret)
     {
         $this->recaptchaSecret = $recaptchaSecret;
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
     }
 
     public function getRecaptchaSecret()

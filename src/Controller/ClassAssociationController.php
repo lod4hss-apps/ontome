@@ -19,7 +19,6 @@ use App\Repository\ClassRepository;
 use App\Repository\ClassVersionRepository;
 use App\Repository\NamespaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,13 +30,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ClassAssociationController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
 
     #[Route(path: '/parent-class-association/new/{childClass}', name: 'new_parent_class_form', requirements: ['childClass' => '^[0-9]+$'])]
     public function newParentAction(

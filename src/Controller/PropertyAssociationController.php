@@ -19,7 +19,6 @@ use App\Repository\NamespaceRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,14 +30,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PropertyAssociationController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     #[Route(path: '/parent-property-association/new/{childProperty}', name: 'new_parent_property_form', requirements: ['childProperty' => '^[0-9]+$'])]
     public function newParentAction(EntityManagerInterface $em, Request $request, Property $childProperty, PropertyVersionRepository $propertyVersionRepository, PropertyRepository $propertyRepository, NamespaceRepository $namespaceRepository)
     {

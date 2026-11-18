@@ -29,7 +29,6 @@ use App\Repository\PropertyRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\SimpleType\Jc;
 use PhpOffice\PhpWord\SimpleType\VerticalJc;
@@ -49,14 +48,6 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class NamespaceController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     #[Route(path: '/namespace')]
     public function listAction(NamespaceRepository $namespaceRepository): Response
     {

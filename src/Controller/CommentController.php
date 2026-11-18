@@ -22,7 +22,6 @@ use App\Repository\PropertyRepository;
 use App\Repository\PropertyVersionRepository;
 use App\Repository\TextPropertyRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,14 +29,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class CommentController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     /**
      * @param string $objectType The object type name
      * @param int    $objectId   The id of the object
@@ -45,7 +36,7 @@ class CommentController extends AbstractController
      * @return JsonResponse a Json formatted comments list
      */
     #[Route(path: '/comment/{objectType}/{objectId}/json', name: 'comment_show_json', requirements: ['objectType' => '^(class|property|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['GET'])]
-    public function getCommentsAction(string $objectType, string $objectId, EntityManagerInterfa $em, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function getCommentsAction(string $objectType, string $objectId, EntityManagerInterface $em, ClassRepository $classRepository, PropertyRepository $propertyRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
         // $objectType = 'class';
         // $objectId = 268;
@@ -112,7 +103,7 @@ class CommentController extends AbstractController
     }
 
     #[Route(path: '/comment/new/{object}/{objectId}', name: 'comment_new', requirements: ['object' => '^(class-version|property-version|class-association|property-association|entity-association|text-property|label|namespace){1}$', 'objectId' => '^[0-9]+$'], methods: ['POST'])]
-    public function newAction(string $object, string $objectId, Request $request, EntityManagerInterface $em, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository, ManagerRegistry $managerRegistry)
+    public function newAction(string $object, string $objectId, Request $request, EntityManagerInterface $em, ClassVersionRepository $classVersionRepository, NamespaceRepository $namespaceRepository, PropertyVersionRepository $propertyVersionRepository, TextPropertyRepository $textPropertyRepository, LabelRepository $labelRepository)
     {
         $comment = new Comment();
 
@@ -212,7 +203,6 @@ class CommentController extends AbstractController
             $comment->setModificationTime(new \DateTime('now'));
             $comment->setNamespaceForVersion($namespaceForVersion);
 
-            $em = $managerRegistry->getManager();
             $em->persist($comment);
             $em->flush();
 

@@ -14,21 +14,12 @@ use App\Entity\SystemType;
 use App\Form\PublicProjectNamespaceAssociationAddForm;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 class ProjectAssociationController extends AbstractController
 {
-    private ManagerRegistry $doctrine;
-
-    public function __construct(ManagerRegistry $doctrine)
-    {
-        // Inject the ManagerRegistry into the controller
-        $this->doctrine = $doctrine;
-    }
-
     #[Route(path: '/public-project-namespace-association/new', name: 'public_project_namespace_association_new')]
     public function newPublicProjectNamespaceAssociationAction(EntityManagerInterface $em, Request $request, ProjectRepository $projectRepository)
     {
