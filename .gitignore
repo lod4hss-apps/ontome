@@ -30,7 +30,6 @@ web/images/logo.png
 .env
 .env.local
 .env.phn-dev
-.gitignore
 
 ###> symfony/phpunit-bridge ###
 .phpunit.result.cache
