@@ -153,7 +153,7 @@ class OntoNamespace
      * 3: No parameter
      */
     #[ORM\Column(options: ['default' => 0])]
-    private int $uriParameter;
+    private int $uriParameter = 0;
 
     #[Assert\Valid]
     #[Assert\NotBlank]
@@ -835,9 +835,9 @@ class OntoNamespace
     /**
      * @param int $uriParameter
      */
-    public function setUriParameter($uriParameter)
+    public function setUriParameter(?int $uriParameter)
     {
-        $this->uriParameter = $uriParameter;
+        $this->uriParameter = $uriParameter ?? 0;
     }
 
     /**

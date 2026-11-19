@@ -30,7 +30,7 @@ class Property
     private int $id;
 
     #[Assert\Regex(pattern: '/^[a-zA-Z0-9_.]+$/', message: 'This identifier should be alphanumeric without space. Underscores and dots are allowed.')]
-    #[ORM\Column(type: 'text')]
+    #[ORM\Column(type: 'text', nullable: true)]
     private string $identifierInNamespace;
 
     #[Assert\NotBlank(message: 'The identifier in URI field cannot be empty')]

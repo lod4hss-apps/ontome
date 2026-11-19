@@ -1383,7 +1383,7 @@ class ProfileController extends AbstractController
                 );
             }
             // Create the view *after* calling handleRequest, so data is updated to the form, even if, say, there are validation errors.
-            $formsExampleViews[$formName] = $formExample;
+            $formsExampleViews[$formName] = $formExample->createView();
         }
 
         return $this->render('profileAssociation/edit_customisation.html.twig', [

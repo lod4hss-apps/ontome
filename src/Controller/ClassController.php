@@ -146,6 +146,7 @@ class ClassController extends AbstractController
         $class->addLabel($label);
 
         $class->setIsManualIdentifier(is_null($namespace->getTopLevelNamespace()->getClassPrefix()));
+        $class->setIsRecursive(false);
 
         $class->setCreator($this->getUser());
         $class->setModifier($this->getUser());
@@ -701,7 +702,7 @@ class ClassController extends AbstractController
      * @throws \Exception in case of unsuccessful validation
      */
     #[Route(path: '/class-version/{id}/edit-validity/{validationStatus}', name: 'class_version_validation_status_edit', requirements: ['id' => '^[0-9]+$', 'validationStatus' => '^26|27|28|37$'])]
-    public function editValidationStatusAction(EntityManagerInterface $em, $classVersion, SystemType $validationStatus): RedirectResponse
+    public function editValidationStatusAction(EntityManagerInterface $em, OntoClassVersion $classVersion, SystemType $validationStatus): RedirectResponse
     {
         // On doit avoir une version de la classe sinon on lance une exception.
         if (is_null($classVersion)) {
@@ -893,14 +894,12 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted tree representation of OntoClasses
      */
     #[Route(path: '/classes-tree/json', name: 'classes_tree_json', methods: ['GET'])]
-    public function getTreeJson(EntityManagerInterface $em): JsonResponse
+    public function getTreeJson(ClassRepository $classRepository): JsonResponse
     {
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
-            $classes = $em->getRepository(OntoClass::class)
-                ->findFilteredClassesTree($this->getUser());
+            $classes = $classRepository->findFilteredClassesTree($this->getUser());
         } else {
-            $classes = $em->getRepository(OntoClass::class)
-                ->findClassesTree();
+            $classes = $classRepository->findClassesTree();
         }
 
         return new JsonResponse($classes[0]['json'], Response::HTTP_OK, [], true);
@@ -910,7 +909,7 @@ class ClassController extends AbstractController
      * @return JsonResponse a Json formatted legend for the OntoClasses tree
      */
     #[Route(path: '/classes-tree-legend/json', name: 'classes_tree_legend_json', methods: ['GET'])]
-    public function getTreeLegendJson(EntityManagerInterface $em,): JsonResponse
+    public function getTreeLegendJson(ClassRepository $classRepository): JsonResponse
     {
         if (!is_null($this->getUser()) && $this->getUser()->getCurrentActiveProject()->getId() != 21) {
             $context = 'public_namespace_classes_tree';
@@ -918,8 +917,7 @@ class ClassController extends AbstractController
             $context = 'public_namespace_classes_tree';
         }
 
-        $legend = $em->getRepository(OntoClass::class)
-            ->findClassesTreeLegend($context);
+        $legend = $classRepository->findClassesTreeLegend($context);
 
         return new JsonResponse($legend[0]['json']);
     }

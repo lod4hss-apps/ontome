@@ -289,7 +289,7 @@ class ClassRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = 'SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = :context ORDER BY notes) legend;';
+        $sql = 'SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM system.css_color WHERE context = :context ORDER BY notes) legend;';
 
         $stmt = $conn->prepare($sql);
         $stmt->bindValue('context', $context);

@@ -9,6 +9,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Property;
 use App\Entity\PropertyVersion;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

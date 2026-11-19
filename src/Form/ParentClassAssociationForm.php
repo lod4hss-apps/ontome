@@ -63,6 +63,9 @@ class ParentClassAssociationForm extends AbstractType
                 'by_reference' => false,
             ]);
 
+        $builder->get('parentClass')
+            ->addModelTransformer($this->transformer);
+
         $builder->get('childClass')
             ->addModelTransformer($this->transformer);
     }

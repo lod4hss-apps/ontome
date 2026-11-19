@@ -52,7 +52,8 @@ class TextProperty implements GroupSequenceProviderInterface
     #[Assert\NotBlank]
     #[Assert\Length(
         min: 40,
-        minMessage: 'Your description must be at least {{ limit }} characters long'
+        minMessage: 'Your description must be at least {{ limit }} characters long',
+        groups: ['Description']
     )]
     #[ORM\Column(type: 'text', nullable: false)]
     private string $textProperty;

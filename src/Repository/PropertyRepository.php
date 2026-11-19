@@ -533,7 +533,7 @@ class PropertyRepository extends ServiceEntityRepository
         $conn = $this->getEntityManager()
             ->getConnection();
 
-        $sql = "SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM che.css_color WHERE context = 'ontologies_properties_tree' ORDER BY pk_css_color) legend;";
+        $sql = "SELECT array_to_json(array_agg(legend)) AS json FROM (SELECT pk_css_color, css_color, label FROM system.css_color WHERE context = 'ontologies_properties_tree' ORDER BY pk_css_color) legend;";
 
         $stmt = $conn->prepare($sql);
         $result = $stmt->executeQuery();

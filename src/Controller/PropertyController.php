@@ -208,6 +208,7 @@ class PropertyController extends AbstractController
         $propertyVersion = new PropertyVersion();
         $propertyVersion->setProperty($property);
         $propertyVersion->setNamespaceForVersion($this->getUser()->getCurrentOngoingNamespace());
+        $propertyVersion->setIsDomainIdentification(false);
         $propertyVersion->setCreator($this->getUser());
         $propertyVersion->setModifier($this->getUser());
         $propertyVersion->setCreationTime(new \DateTime('now'));
@@ -244,6 +245,8 @@ class PropertyController extends AbstractController
 
         // $property->setIsManualIdentifier(is_null($classVersion->getNamespaceForVersion()->getTopLevelNamespace()->getPropertyPrefix()));
         $property->setIsManualIdentifier(is_null($this->getUser()->getCurrentOngoingNamespace()->getTopLevelNamespace()->getPropertyPrefix()));
+        $property->setIsDomainIdentification(false);
+        $property->setIsRecursive(false);
         $property->setCreator($this->getUser());
         $property->setModifier($this->getUser());
 

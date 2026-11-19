@@ -21,12 +21,8 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response of the container with its namespaces and pathbuilders
      */
     #[Route(path: '/container/{id}/fetch', name: 'container', methods: ['GET'])]
-    public function getContainer(Request $request, ContainerRepository $containerRepository): JsonResponse
+    public function getContainer(Container $container,ContainerRepository $containerRepository): JsonResponse
     {
-        $id = $request->query->get('id');
-
-        $container = $containerRepository->find($id);
-
         if (!$container) {
             throw new NotFoundHttpException('Container not found');
         }
@@ -77,12 +73,8 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response of the root namespaces not associated with the container
      */
     #[Route(path: '/container/{id}/root-namespaces-not-associated/fetch', name: 'container_root_namespaces_not_associated', methods: ['GET'])]
-    public function getRootNamespacesNotAssociated(Request $request, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
+    public function getRootNamespacesNotAssociated(Container $container, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $id = $request->query->get('id');
-
-        $container = $containerRepository->find($id);
-
         if (!$container) {
             throw new NotFoundHttpException('Container not found');
         }
@@ -128,8 +120,8 @@ class ContainerController extends AbstractController
     #[Route(path: '/container/create', name: 'container_create', methods: ['POST'])]
     public function createContainer(Request $request, EntityManagerInterface $em, ProjectRepository $projectRepository): JsonResponse
     {
-        $projectId = $request->query->get('project_id');
-        $label = $request->query->get('label');
+        $projectId = $request->request->get('project_id');
+        $label = $request->request->get('label');
         $project = $projectRepository->find($projectId);
 
         $newLabel = new Label();
@@ -166,8 +158,8 @@ class ContainerController extends AbstractController
     #[Route(path: '/association_container_namespace/create', name: 'association_container_namespace_create', methods: ['POST'])]
     public function createAssociationContainerNamespace(Request $request, EntityManagerInterface $em, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
     {
-        $containerId = $request->query->get('container_id');
-        $namespaceId = $request->query->get('namespace_id');
+        $containerId = $request->request->get('container_id');
+        $namespaceId = $request->request->get('namespace_id');
 
         $container = $containerRepository->find($containerId);
         $namespace = $namespaceRepository->find($namespaceId);
@@ -196,13 +188,13 @@ class ContainerController extends AbstractController
      * @return JsonResponse a JSON formatted response indicating the result of the association deletion
      */
     #[Route(path: '/association_container_namespace/{containerId}/{namespaceId}/delete', name: 'association_container_namespace_delete', methods: ['DELETE'])]
-    public function deleteAssociationContainerNamespace(Request $request, EntityManagerInterface $em, ContainerRepository $containerRepository, NamespaceRepository $namespaceRepository): JsonResponse
-    {
-        // Il faudra rajouter le droit d'accès à cette route pour éviter que n'importe qui puisse faire n'importe quoi
-
-        $containerId = $request->query->get('containerId');
-        $namespaceId = $request->query->get('namespaceId');
-
+    public function deleteAssociationContainerNamespace(
+        int $containerId,
+        int $namespaceId,
+        ContainerRepository $containerRepository,
+        NamespaceRepository $namespaceRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
         $container = $containerRepository->find($containerId);
         $namespace = $namespaceRepository->find($namespaceId);
 

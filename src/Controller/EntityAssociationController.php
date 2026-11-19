@@ -97,7 +97,7 @@ class EntityAssociationController extends AbstractController
                 }
             }
         } elseif ($entityAssociation->getSourceObjectType() == 'property') {
-            $arrayEntitiesVersion = $propertyRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
+            $arrayEntitiesVersion = $propertyVersionRepository->findIdAndStandardLabelOfPropertiesVersionByNamespacesId($namespacesId);
             if (!$entityAssociation->getSourceProperty()->getIsRecursive()) {
                 foreach ($arrayEntitiesVersion as $pv) {
                     if ($pv['id'] == $objectId) {
