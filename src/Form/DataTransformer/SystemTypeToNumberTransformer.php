@@ -28,7 +28,7 @@ class SystemTypeToNumberTransformer implements DataTransformerInterface
      *
      * @return string
      */
-    public function transform($systemType)
+    public function transform(mixed $systemType):mixed
     {
         if (null === $systemType) {
             return '';
@@ -46,11 +46,11 @@ class SystemTypeToNumberTransformer implements DataTransformerInterface
      *
      * @throws TransformationFailedException if object (systemtype) is not found
      */
-    public function reverseTransform($systemTypeNumber)
+    public function reverseTransform(mixed $systemTypeNumber):mixed
     {
         // no issue number? It's optional, so that's ok
         if (!$systemTypeNumber) {
-            return;
+            return null;
         }
 
         $systemType = $this->em

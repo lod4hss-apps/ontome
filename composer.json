@@ -13,7 +13,7 @@
         }
     },
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.12",
@@ -24,32 +24,32 @@
         "nelmio/cors-bundle": "^2.0",
         "phpoffice/phpword": "^0.18",
         "stof/doctrine-extensions-bundle": "^1.7",
-        "symfony/asset": "^6.4",
-        "symfony/console": "^6.4",
-        "symfony/debug-bundle": "^6.4",
-        "symfony/doctrine-messenger": "^6.4",
+        "symfony/asset": "7.4.*",
+        "symfony/console": "7.4.*",
+        "symfony/debug-bundle": "7.4.*",
+        "symfony/doctrine-messenger": "7.4.*",
         "symfony/flex": "^2.1",
-        "symfony/form": "^6.4",
-        "symfony/framework-bundle": "^6.4",
-        "symfony/mailer": "^6.4",
+        "symfony/form": "7.4.*",
+        "symfony/framework-bundle": "7.4.*",
+        "symfony/mailer": "7.4.*",
         "symfony/monolog-bundle": "^3.1",
         "symfony/polyfill-apcu": "^1.0",
-        "symfony/runtime": "^6.4",
-        "symfony/security-bundle": "^6.4",
-        "symfony/security-csrf": "^6.4",
-        "symfony/translation": "^6.4",
-        "symfony/validator": "^6.4",
-        "symfony/yaml": "^6.4",
+        "symfony/runtime": "7.4.*",
+        "symfony/security-bundle": "7.4.*",
+        "symfony/security-csrf": "7.4.*",
+        "symfony/translation": "7.4.*",
+        "symfony/validator": "7.4.*",
+        "symfony/yaml": "7.4.*",
         "twig/twig": "^3.0.4"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "rector/rector": "^2.6",
-        "symfony/dotenv": "^6.4",
+        "symfony/dotenv": "7.4.*",
         "symfony/maker-bundle": "^1.54",
-        "symfony/phpunit-bridge": "^6.4",
-        "symfony/stopwatch": "^6.4",
-        "symfony/web-profiler-bundle": "^6.4"
+        "symfony/phpunit-bridge": "7.4.*",
+        "symfony/stopwatch": "7.4.*",
+        "symfony/web-profiler-bundle": "7.4.*"
     },
     "scripts": {
         "auto-scripts": {
@@ -70,7 +70,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": true,
-            "require": "6.4.*"
+            "require": "7.4.*"
         },
         "symfony-app-dir": "app",
         "symfony-bin-dir": "bin",

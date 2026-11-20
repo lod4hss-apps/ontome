@@ -30,7 +30,7 @@ class OntoClassToNumberTransformer implements DataTransformerInterface
      *
      * @return string
      */
-    public function transform($class)
+    public function transform(mixed $class): mixed
     {
         if (null === $class) {
             return '';
@@ -48,11 +48,11 @@ class OntoClassToNumberTransformer implements DataTransformerInterface
      *
      * @throws TransformationFailedException if object (ontoclass) is not found
      */
-    public function reverseTransform($classNumber)
+    public function reverseTransform(mixed $classNumber): mixed
     {
         // no issue number? It's optional, so that's ok
         if (!$classNumber) {
-            return;
+            return null;
         }
 
         $class = $this->em

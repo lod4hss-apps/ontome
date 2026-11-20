@@ -30,7 +30,7 @@ class PropertyToNumberTransformer implements DataTransformerInterface
      *
      * @return string
      */
-    public function transform($property)
+    public function transform(mixed $property): mixed
     {
         if (null === $property) {
             return '';
@@ -48,11 +48,11 @@ class PropertyToNumberTransformer implements DataTransformerInterface
      *
      * @throws TransformationFailedException if object (property) is not found
      */
-    public function reverseTransform($propertyNumber)
+    public function reverseTransform(mixed $propertyNumber):mixed
     {
         // no issue number? It's optional, so that's ok
         if (!$propertyNumber) {
-            return;
+            return null;
         }
 
         $property = $this->em

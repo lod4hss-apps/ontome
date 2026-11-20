@@ -30,7 +30,7 @@ class UserToNumberTransformer implements DataTransformerInterface
      *
      * @return string
      */
-    public function transform($user)
+    public function transform(mixed $user):mixed
     {
         if (null === $user) {
             return '';
@@ -48,11 +48,11 @@ class UserToNumberTransformer implements DataTransformerInterface
      *
      * @throws TransformationFailedException if object (user) is not found
      */
-    public function reverseTransform($userNumber)
+    public function reverseTransform(mixed $userNumber):mixed
     {
         // no issue number? It's optional, so that's ok
         if (!$userNumber) {
-            return;
+            return null;
         }
 
         $user = $this->em

@@ -57,7 +57,7 @@
 <nav class="navbar navbar-default">
     <div class="container-fluid">
         <ul class="nav navbar-nav">
-            {% set route = app.request.get('_route') %}
+            {% set route = app.request.attributes.get('_route') %}
             <li class="{{ 'home' in route ? 'active' }}"><a href="{{ url('home') }}">Home</a></li>
             <li class="{{ 'domain' in route ? 'active' }}"><a href="{{ path('domain_list') }}">Domains</a></li>
             <li class="{{ 'profile' in route or 'customisation' in route ? 'active' }}"><a href="{{ url('app_profile_list') }}">Profiles</a></li>
